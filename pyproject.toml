@@ -44,6 +44,10 @@ files = ["src"]
 mypy_path = "src"
 plugins = ["pydantic.mypy"]
 
+[[tool.mypy.overrides]]
+module = ["msal", "msal.*"]
+ignore_missing_imports = true  # msal ships no type information
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
