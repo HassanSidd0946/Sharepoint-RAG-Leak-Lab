@@ -8,7 +8,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from leaklab.spec import TenantSpec, generate_canaries, load_spec
+from leaklab.spec import TenantSpec, generate_canaries, load_spec, special_key
 
 REPO_SPEC = Path(__file__).resolve().parents[1] / "tenant_spec.yaml"
 
@@ -181,12 +181,48 @@ def test_canaries_deterministic_and_unique() -> None:
     second = generate_canaries(load_spec(REPO_SPEC))
     assert first == second
     spec = load_spec(REPO_SPEC)
-    assert {p: len(c) for p, c in first.items()} == {f.path: f.doc_count for f in spec.folders}
+    expected = {f.path: f.doc_count for f in spec.folders}
+    expected[special_key("f-direct-share")] = 1
+    assert {p: len(c) for p, c in first.items()} == expected
     flat = [c for canaries in first.values() for c in canaries]
-    assert len(flat) == 36
+    assert len(flat) == 37  # 36 folder documents + 1 special file
     assert len(set(flat)) == len(flat)
     assert flat[0].startswith("CANARY-GEN-01-")
     assert len(flat[0].rsplit("-", 1)[1]) == 6
+
+
+def test_special_file_canary_is_spc_and_stable() -> None:
+    spec = load_spec(REPO_SPEC)
+    [canary] = generate_canaries(spec)[special_key("f-direct-share")]
+    assert canary.startswith("CANARY-SPC-") and len(canary) == len("CANARY-SPC-") + 6
+    assert canary == generate_canaries(load_spec(REPO_SPEC))[special_key("f-direct-share")][0]
+
+
+def test_special_file_canaries_distinct_per_file() -> None:
+    data = base()
+    second = copy.deepcopy(data["special_files"][0])
+    second["id"] = "f-second"
+    second["name"] = "second.txt"
+    data["special_files"].append(second)
+    result = generate_canaries(TenantSpec.model_validate(data))
+    first_canary = result[special_key("f-direct-share")]
+    assert first_canary != result[special_key("f-second")]
+
+
+def test_special_canary_collision_detected() -> None:
+    data = base()
+    data["documents"]["special_canary_pattern"] = "CANARY-SPC-CONSTANT"
+    second = copy.deepcopy(data["special_files"][0])
+    second["id"] = "f-second"
+    data["special_files"].append(second)
+    with pytest.raises(ValueError, match="canary collision"):
+        generate_canaries(TenantSpec.model_validate(data))
+
+
+def test_bad_special_canary_pattern_placeholder() -> None:
+    data = base()
+    data["documents"]["special_canary_pattern"] = "CANARY-{nope}"
+    assert_invalid(data, "special_canary_pattern")
 
 
 def test_canaries_change_with_seed() -> None:

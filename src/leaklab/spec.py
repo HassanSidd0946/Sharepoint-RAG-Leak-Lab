@@ -1,9 +1,10 @@
 """Pydantic v2 models for tenant_spec.yaml, plus deterministic canary generation.
 
 Inputs: the path to tenant_spec.yaml (load_spec) or an already-built TenantSpec.
-Outputs: a validated, immutable TenantSpec; generate_canaries() maps each folder path to its
-list of canary strings. Unknown YAML keys are rejected so typos fail loudly. All
-cross-reference problems are collected and reported together in one error message.
+Outputs: a validated, immutable TenantSpec; generate_canaries() maps each folder path (and
+each special file, as "special:<id>") to its list of canary strings. Unknown YAML keys are
+rejected so typos fail loudly. All cross-reference problems are collected and reported
+together in one error message.
 
 This module must stay free of engine code (it is shared with the independent oracle).
 """
@@ -78,6 +79,7 @@ class SpecialFile(_Model):
 class Documents(_Model):
     format: str
     canary_pattern: str
+    special_canary_pattern: str
     folder_codes: dict[str, str]
     body_template: str
     topics: list[str]
@@ -252,6 +254,12 @@ class TenantSpec(_Model):
                 "documents.canary_pattern may only use {folder_code}, {index} and {hex6}: "
                 f"{exc!r}"
             )
+        try:
+            self.documents.special_canary_pattern.format(file_id="x", hex6="abcdef")
+        except (KeyError, IndexError, ValueError) as exc:
+            errors.append(
+                f"documents.special_canary_pattern may only use {{file_id}} and {{hex6}}: {exc!r}"
+            )
         return errors
 
 
@@ -262,12 +270,25 @@ def load_spec(path: str | Path) -> TenantSpec:
     return TenantSpec.model_validate(data)
 
 
-def generate_canaries(spec: TenantSpec) -> dict[str, list[str]]:
-    """Return folder path -> canary strings (doc_count per folder), deterministically.
+SPECIAL_KEY_PREFIX = "special:"
 
-    Each canary's hex part is the first 6 hex chars of sha256("<seed>|<folder>|<index>"),
-    with index starting at 1. The same spec always yields the same canaries. Raises
-    ValueError if two canaries collide (e.g. a pattern that drops the folder code or index).
+
+def special_key(file_id: str) -> str:
+    """Key under which generate_canaries() stores a special file's canary."""
+    return f"{SPECIAL_KEY_PREFIX}{file_id}"
+
+
+def generate_canaries(spec: TenantSpec) -> dict[str, list[str]]:
+    """Return key -> canary strings, deterministically.
+
+    Folder documents: key is the folder path, with doc_count canaries. The hex part is the
+    first 6 hex chars of sha256("<seed>|<folder>|<index>"), index starting at 1.
+    Special files: key is "special:<file id>" (see special_key()), with exactly one canary,
+    hex from sha256("<seed>|special|<file id>"). Special files are extra documents; they do
+    not count toward their folder's doc_count.
+
+    The same spec always yields the same canaries. Raises ValueError if two canaries collide
+    (e.g. a pattern that drops the folder code or index).
     """
     result: dict[str, list[str]] = {}
     seen: dict[str, str] = {}
@@ -289,4 +310,14 @@ def generate_canaries(spec: TenantSpec) -> dict[str, list[str]]:
             seen[canary] = folder.path
             canaries.append(canary)
         result[folder.path] = canaries
+    for sf in spec.special_files:
+        digest = hashlib.sha256(f"{spec.naming.seed}|special|{sf.id}".encode()).hexdigest()
+        canary = spec.documents.special_canary_pattern.format(file_id=sf.id, hex6=digest[:6])
+        key = special_key(sf.id)
+        if canary in seen:
+            raise ValueError(
+                f"canary collision: {canary!r} generated for both {seen[canary]!r} and {key!r}"
+            )
+        seen[canary] = key
+        result[key] = [canary]
     return result

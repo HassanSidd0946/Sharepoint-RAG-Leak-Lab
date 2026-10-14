@@ -129,6 +129,9 @@ special_files:
 documents:
   format: txt                   # start with .txt; add docx only after a probe confirms indexing
   canary_pattern: "CANARY-{folder_code}-{index:02d}-{hex6}"
+  # Special files (see special_files) get exactly one canary each, derived from seed + file id.
+  # Placeholders: {hex6}, {file_id}. They are extra: they do not count toward a folder's doc_count.
+  special_canary_pattern: "CANARY-SPC-{hex6}"
   folder_codes:
     "General": GEN
     "Engineering": ENG
