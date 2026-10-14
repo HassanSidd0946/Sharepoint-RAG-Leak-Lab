@@ -1,0 +1,51 @@
+[project]
+name = "leaklab"
+version = "0.1.0"
+description = "Benchmark and prototype for permission-aware RAG over SharePoint (leak lab)."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "msal",
+    "httpx",
+    "pydantic>=2",
+    "pydantic-settings",
+    "pyyaml",
+    "typer",
+    "rich",
+    "cryptography",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+    "mypy",
+    "types-PyYAML",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/leaklab"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests", "probes"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src"]
+mypy_path = "src"
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "live: tests that call real Microsoft/Azure endpoints; skipped unless --live is passed",
+]

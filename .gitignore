@@ -1,0 +1,16 @@
+# Secrets
+.env
+certs/
+*.pem
+*.key
+*.crt
+*.pfx
+probes/out/*.raw.json
+
+# Python / tooling
+.venv/
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/

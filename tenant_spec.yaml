@@ -1,0 +1,168 @@
+# tenant_spec.yaml — single source of truth for the synthetic test tenant.
+# The generator builds the tenant from this file; the oracle computes expected access from it.
+# Secrets (passwords) are NOT stored here — they come from .env.
+
+version: 1
+
+naming:
+  prefix: "ll-"                 # every generated user/group/file name starts with this
+  domain: "YOURTENANT.onmicrosoft.com"   # replace with your test tenant's domain
+  seed: 20261014                # fixed seed: same spec -> same canaries and content
+
+site:
+  title: "LeakLab"
+  # Create this communication site manually in the SharePoint UI (Day 0).
+  url: "https://YOURTENANT.sharepoint.com/sites/LeakLab"
+  library: "Documents"
+  # Who gets access at the site root. Everything that inherits gets this.
+  root_grants:
+    - principal: { kind: entra_group, ref: grp-all-staff }
+      role: read
+    - principal: { kind: user, ref: admin }
+      role: full_control
+
+# ---------------------------------------------------------------------------
+# Users: 12 total. 6 are personas (we acquire tokens for them and query as them).
+# The rest exist only to make group membership realistic.
+# licensed: whether to assign an M365 license (keep to 2-3 to control cost).
+# ---------------------------------------------------------------------------
+users:
+  - { id: admin,     display: "LeakLab Admin",        persona: false, licensed: true,  note: "your own admin account; not generated" }
+  - { id: p-intern,  display: "Ivy Intern",           persona: true,  licensed: true  }
+  - { id: p-plateng, display: "Paul Platform",        persona: true,  licensed: true  }
+  - { id: p-finana,  display: "Fiona Analyst",        persona: true,  licensed: false }
+  - { id: p-finlead, display: "Felix FinanceLead",    persona: true,  licensed: false }
+  - { id: p-hr,      display: "Hana HR",              persona: true,  licensed: false }
+  - { id: p-ceo,     display: "Cora CEO",             persona: true,  licensed: false }
+  - { id: u-eng1,    display: "Eli Engineer",         persona: false, licensed: false }
+  - { id: u-eng2,    display: "Erin Engineer",        persona: false, licensed: false }
+  - { id: u-fin1,    display: "Frank Finance",        persona: false, licensed: false }
+  - { id: u-hr1,     display: "Hugo HR",              persona: false, licensed: false }
+  - { id: u-board1,  display: "Bea Board",            persona: false, licensed: false }
+
+# ---------------------------------------------------------------------------
+# Entra security groups. Nesting is expressed with member_groups.
+# Nesting depth reaches 3 levels: all-staff > engineering > eng-platform.
+# ---------------------------------------------------------------------------
+groups:
+  - id: grp-all-staff
+    members: [p-intern, u-hr1, u-board1]
+    member_groups: [grp-engineering, grp-finance, grp-hr]
+  - id: grp-engineering
+    members: [u-eng1]
+    member_groups: [grp-eng-platform]
+  - id: grp-eng-platform
+    members: [p-plateng, u-eng2]
+    member_groups: []
+  - id: grp-finance
+    members: [p-finana, u-fin1]
+    member_groups: [grp-finance-leads]
+  - id: grp-finance-leads
+    members: [p-finlead]
+    member_groups: []
+  - id: grp-hr
+    members: [p-hr]
+    member_groups: []
+  - id: grp-board
+    members: [p-ceo, u-board1]
+    member_groups: []
+
+# ---------------------------------------------------------------------------
+# Folder tree. inherits: true  -> effective access = parent's effective access
+#              inherits: false -> unique permissions; ONLY the listed grants apply
+# ---------------------------------------------------------------------------
+folders:
+  - path: "General"
+    inherits: true
+    doc_count: 6
+  - path: "Engineering"
+    inherits: false
+    grants:
+      - { principal: { kind: entra_group, ref: grp-engineering }, role: read }
+    doc_count: 6
+  - path: "Engineering/Platform-Secrets"
+    inherits: false
+    grants:
+      - { principal: { kind: entra_group, ref: grp-eng-platform }, role: read }
+    doc_count: 5
+  - path: "Finance"
+    inherits: false
+    grants:
+      - { principal: { kind: entra_group, ref: grp-finance }, role: read }
+    doc_count: 6
+  - path: "Finance/Leadership"
+    inherits: false
+    grants:
+      - { principal: { kind: entra_group, ref: grp-finance-leads }, role: read }
+    doc_count: 4
+  - path: "HR"
+    inherits: false
+    grants:
+      - { principal: { kind: entra_group, ref: grp-hr }, role: read }
+    doc_count: 5
+  - path: "Board"
+    inherits: false
+    grants:
+      - { principal: { kind: entra_group, ref: grp-board }, role: read }
+      - { principal: { kind: user, ref: p-ceo }, role: read }   # direct user grant as well
+    doc_count: 4
+
+# ---------------------------------------------------------------------------
+# Individually-permissioned files (edge cases). These sit inside a folder but
+# have their own unique grants.
+# ---------------------------------------------------------------------------
+special_files:
+  - id: f-direct-share
+    folder: "General"
+    name: "offer-letter-draft.txt"
+    inherits: false
+    grants:
+      - { principal: { kind: user, ref: p-hr }, role: read }
+      - { principal: { kind: user, ref: p-ceo }, role: read }
+    note: "Edge case: uniquely-shared file inside a broadly visible folder. Later moved into Board/ in a scenario."
+
+# ---------------------------------------------------------------------------
+# Documents: generated per folder (doc_count). Every document contains exactly
+# one canary string, unique across the tenant, derived deterministically from
+# seed + folder + index. Format: CANARY-<folder_code>-<nn>-<6 hex>
+# ---------------------------------------------------------------------------
+documents:
+  format: txt                   # start with .txt; add docx only after a probe confirms indexing
+  canary_pattern: "CANARY-{folder_code}-{index:02d}-{hex6}"
+  folder_codes:
+    "General": GEN
+    "Engineering": ENG
+    "Engineering/Platform-Secrets": PLT
+    "Finance": FIN
+    "Finance/Leadership": FLD
+    "HR": HR
+    "Board": BRD
+  body_template: |
+    {title}
+    This is a synthetic test document for the LeakLab benchmark.
+    Topic: {topic}
+    Reference code: {canary}
+    {filler}
+  topics: [budget, roadmap, salaries, incident review, hiring plan, vendor contract, board minutes]
+
+# ---------------------------------------------------------------------------
+# Policy decisions the oracle needs (ambiguous cases are made explicit).
+# ---------------------------------------------------------------------------
+policy:
+  org_wide_sharing_link: accessible_not_discoverable   # placeholder; edge case decided later
+  unknown_principal: deny
+  guest_users: deny_unless_explicit
+
+# ---------------------------------------------------------------------------
+# Scenario catalogue (implemented in Week 2). Listed now so the spec and
+# oracle are designed for them from the start.
+# ---------------------------------------------------------------------------
+scenarios:
+  - id: S1-parent-revocation
+    description: "Remove grp-engineering's grant on Engineering/ (affects inherited children)."
+  - id: S2-nested-group-removal
+    description: "Remove grp-eng-platform from grp-engineering."
+  - id: S4-move-into-restricted
+    description: "Move f-direct-share from General/ into Board/."
+  - id: S6-cached-answer
+    description: "p-finlead's cached answer about Finance/Leadership must not reach p-intern."
