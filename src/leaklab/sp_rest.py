@@ -8,9 +8,9 @@ non-success response, carrying the parsed error body.
 Retries: same policy as GraphClient (see http_retry.py).
 Security: requests only go to "<site_url>/_api/..."; the bearer token never leaves that host.
 
-Every method below that touches SharePoint behavior we have not verified against the real
-tenant is marked `# UNVERIFIED`. Remove the mark only after a probe confirms it and the result
-is in docs/FINDINGS.md.
+Behavior we have not verified against the real tenant is marked `UNVERIFIED`. Remove the mark
+only after a probe confirms it and the result is in docs/FINDINGS.md. Verified on 2026-10-15
+(probes/sp_probe.py): everything below except the points still marked UNVERIFIED.
 """
 
 import json
@@ -156,10 +156,10 @@ class SharePointRest:
             raise self._error(resp, path)
         raise AssertionError("unreachable")  # pragma: no cover
 
-    # -- permission operations (all UNVERIFIED until sp_probe has run) ----------------------
+    # -- permission operations ---------------------------------------------------------------
 
     def get_unique_flag(self, item_path: str) -> httpx.Response:
-        """GET <item>?$select=HasUniqueRoleAssignments. UNVERIFIED: property name and shape."""
+        """GET <item>?$select=HasUniqueRoleAssignments -> {"HasUniqueRoleAssignments": bool}."""
         return self.request("GET", item_path, params={"$select": "HasUniqueRoleAssignments"})
 
     def break_role_inheritance(
@@ -167,8 +167,9 @@ class SharePointRest:
     ) -> httpx.Response:
         """POST <item>/breakroleinheritance(...).
 
-        UNVERIFIED: that this works with an app-only bearer token and no X-RequestDigest, and
-        what the response body looks like.
+        Works with the app-only token and no X-RequestDigest; returns 200 with
+        {"odata.null": true} (verified on a folder's list item). UNVERIFIED: on a file's list
+        item, and what clear_subscopes does to children that have unique permissions.
         """
         copy = str(copy_role_assignments).lower()
         clear = str(clear_subscopes).lower()
@@ -180,13 +181,14 @@ class SharePointRest:
     def ensure_user(self, logon_name: str) -> httpx.Response:
         """POST /web/ensureuser {"logonName": ...}: resolve a claim to a SharePoint principal.
 
-        UNVERIFIED: that it accepts an Entra security-group claim, and which claim format
-        works (see docs/FINDINGS.md open question about group principals).
+        Verified: an Entra security group via "c:0t.c|tenant|<group-object-id>" (returns Id,
+        LoginName, Title, PrincipalType=4). UNVERIFIED: the claim format for a user
+        (assumed "i:0#.f|membership|<upn>"), and use right after creating the group.
         """
         return self.request("POST", "/web/ensureuser", body={"logonName": logon_name})
 
     def get_role_definitions(self) -> httpx.Response:
-        """GET /web/roledefinitions. UNVERIFIED: role names/ids in this tenant (never hardcode)."""
+        """GET /web/roledefinitions. Look roles up by RoleTypeKind/Name; never hardcode the ids."""
         return self.request(
             "GET", "/web/roledefinitions", params={"$select": "Id,Name,RoleTypeKind"}
         )
@@ -196,7 +198,8 @@ class SharePointRest:
     ) -> httpx.Response:
         """POST <item>/roleassignments/addroleassignment(principalid=..,roledefid=..).
 
-        UNVERIFIED: that it works on a folder's list item after inheritance was broken.
+        Verified on a folder's list item after inheritance was broken (200, {"odata.null":
+        true}). UNVERIFIED: on a file's list item.
         """
         return self.request(
             "POST",
@@ -207,7 +210,8 @@ class SharePointRest:
     def get_role_assignments(self, item_path: str) -> httpx.Response:
         """GET <item>/roleassignments?$expand=Member,RoleDefinitionBindings.
 
-        UNVERIFIED: response shape, and how inherited vs. unique assignments are shown.
+        Returns {"value": [{"Member": {...}, "RoleDefinitionBindings": [...], "PrincipalId"}]}.
+        An item that inherits shows its parent's assignments; use get_unique_flag to tell.
         """
         return self.request(
             "GET",
@@ -216,13 +220,16 @@ class SharePointRest:
         )
 
     def get_associated_group(self, kind: GroupKind) -> httpx.Response:
-        """GET /web/associated{owner|member|visitor}group. UNVERIFIED: property names."""
+        """GET /web/associated{owner|member|visitor}group -> {"Id", "Title", "LoginName"}."""
         return self.request(
             "GET", f"/web/associated{kind}group", params={"$select": "Id,Title,LoginName"}
         )
 
     def get_group_users(self, group_id: int) -> httpx.Response:
-        """GET /web/sitegroups/getbyid(<id>)/users. UNVERIFIED: how Entra groups/claims appear."""
+        """GET /web/sitegroups/getbyid(<id>)/users (verified for a user member).
+
+        UNVERIFIED: how an Entra group that is a member of a SharePoint group appears.
+        """
         return self.request(
             "GET",
             f"/web/sitegroups/getbyid({group_id})/users",

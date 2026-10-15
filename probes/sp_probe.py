@@ -356,8 +356,8 @@ def run_probe(
         time.sleep(group_wait)
     group_id = str(found["id"])
     report["ids"]["group_id"] = group_id
-    # UNVERIFIED: claim format for an Entra security group. Only this one format is tried; if
-    # it fails the probe stops instead of guessing another.
+    # Verified 2026-10-15: this claim format works for an Entra security group. Only this one
+    # format is tried; if it fails the probe stops instead of guessing another.
     claim = f"c:0t.c|tenant|{group_id}"
     report["group_claim_tried"] = claim
     _, principal = step(

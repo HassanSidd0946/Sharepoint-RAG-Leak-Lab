@@ -102,8 +102,8 @@ def main(
             detail = f"{err.get('code')}: {err.get('message')}"
         except ValueError:
             detail = "non-JSON response"
-        # UNVERIFIED: /organization with an app-only token needs Organization.Read.All
-        # (application). A 403 here usually means that permission was not granted.
+        # Verified 2026-10-15: the driver app's four roles are enough for 200 here (no
+        # Organization.Read.All). A 403 would mean one of those roles was removed.
         fail(report, f"GET /organization returned HTTP {resp.status_code} ({detail})")
     orgs = resp.json().get("value", [])
     name = orgs[0].get("displayName") if orgs else None

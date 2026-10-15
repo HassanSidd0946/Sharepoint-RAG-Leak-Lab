@@ -100,7 +100,7 @@ def _confidential_app() -> msal.ConfidentialClientApplication:
     return msal.ConfidentialClientApplication(
         s.driver_client_id,
         authority=f"{AUTHORITY_BASE}/{s.tenant_id}",
-        # UNVERIFIED: thumbprint format msal accepts for our certificate (SHA-1 hex expected).
+        # SHA-1 hex thumbprint verified with our certificate on 2026-10-15.
         client_credential={"private_key": private_key, "thumbprint": s.cert_thumbprint},
     )
 

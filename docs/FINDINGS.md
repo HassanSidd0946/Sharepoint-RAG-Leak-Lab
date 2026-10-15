@@ -85,10 +85,30 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 - Probe output: terminal output only (see caveat above)
 - Docs: n/a
 
+### Graph calls used by GraphClient (users, groups, membership, lookups)
+- Date: 2026-10-15
+- Endpoints, each returned the expected status in `graph_probe.py` / `sp_probe.py`:
+  - `GET /users/{upn}?$select=...`: 404 for a missing user (so `get_user_by_upn` -> None), 200 for
+    an existing one
+  - `POST /users` (201), `DELETE /users/{id}` (204)
+  - `POST /groups` with `securityEnabled=true, mailEnabled=false, groupTypes=[]` (201)
+  - `GET /groups?$filter=displayName eq '<name>'&$select=id,displayName`: works with no
+    ConsistencyLevel header; empty `value` when missing; `DELETE /groups/{id}` (204)
+  - `POST /groups/{id}/members/$ref` with `{"@odata.id": ".../directoryObjects/{id}"}` for both a
+    user and a group as the member (204), nested to 3 levels
+  - `GET /users/{id}/transitiveMemberOf?$select=id,displayName` (200; see consistency note
+    above)
+  - `GET /sites/{host}:/sites/LeakLab` and `GET /sites/{id}/drive` (200)
+- Not exercised for real: paging (`@odata.nextLink`), the retry path, and adding an existing
+  member (see Open questions).
+- Probe output: probes/out/sp_probe.json, probes/out/graph_probe_cleanup.json
+- Docs: n/a
+
 ### Tenant setup facts confirmed by the probe
 - Date: 2026-10-15
 - The tenant's domain `leaklabdev.onmicrosoft.com` is valid: users were created as
-  `ll-probe-a@leaklabdev.onmicrosoft.com` and `ll-probe-b@...`.
+  `ll-probe-a@leaklabdev.onmicrosoft.com` and `ll-probe-b@...`. The site is
+  `https://leaklabdev.sharepoint.com/sites/LeakLab`. `tenant_spec.yaml` now holds both.
 - Creating users with the `LEAKLAB_PERSONA_PASSWORD` value was accepted (it meets the tenant's
   password policy), and `POST /users`, `POST /groups` and the app roles
   `User.ReadWrite.All` / `Group.ReadWrite.All` are sufficient for it.
@@ -232,9 +252,8 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 - [ ] Persona sign-in (username/password): persona users do not exist yet (generator not
   written), so the persona app, public-client-flow setting, MFA/consent codes
   (`INTERACTION_ERROR_CODES` in `auth.py`) and `preferred_username`/`upn` claims are untested.
-- [ ] `tenant_spec.yaml` `naming.domain` is still the placeholder `YOURTENANT.onmicrosoft.com`;
-  the real domain is `leaklabdev.onmicrosoft.com` (verified above). Update the spec before
-  running the generator or persona probes.
+- [ ] The retry policy (`http_retry.py`: 429/503/504, Retry-After, backoff) is only unit-tested
+  with mocks; no real throttling response has been seen yet.
 - [ ] How long can transitiveMemberOf stay inconsistent, and does it flap? One sample only
   (11.6s, with a 2 -> 0 -> 3 sequence). Re-run `graph_probe.py` a few times; also check how the
   SharePoint/Azure AI Search side sees the same change.

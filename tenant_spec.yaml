@@ -6,13 +6,13 @@ version: 1
 
 naming:
   prefix: "ll-"                 # every generated user/group/file name starts with this
-  domain: "YOURTENANT.onmicrosoft.com"   # replace with your test tenant's domain
+  domain: "leaklabdev.onmicrosoft.com"   # verified 2026-10-15 (users created under it)
   seed: 20261014                # fixed seed: same spec -> same canaries and content
 
 site:
   title: "LeakLab"
   # Create this communication site manually in the SharePoint UI (Day 0).
-  url: "https://YOURTENANT.sharepoint.com/sites/LeakLab"
+  url: "https://leaklabdev.sharepoint.com/sites/LeakLab"   # verified 2026-10-15 (Graph + REST)
   library: "Documents"
   # Who gets access at the site root. Everything that inherits gets this.
   root_grants:

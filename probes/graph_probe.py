@@ -45,7 +45,8 @@ OUT_FILES = {"probe": OUT_DIR / "graph_probe.json", "cleanup": OUT_DIR / "graph_
 USER_NAMES = ("probe-a", "probe-b")
 GROUP_NAMES = ("probe-outer", "probe-mid", "probe-inner")
 # Newly created directory objects may not be addable to a group immediately (replication).
-# UNVERIFIED: whether this happens here; each retry is recorded in the output.
+# Verified 2026-10-15: a new group returned HTTP 404 for ~10s before it could be nested.
+# Each retry is recorded in the output.
 ADD_RETRIES = 6
 ADD_RETRY_WAIT_S = 5.0
 
