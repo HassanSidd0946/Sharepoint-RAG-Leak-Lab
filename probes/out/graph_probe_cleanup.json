@@ -1,0 +1,15 @@
+{
+  "probe": "graph_probe",
+  "run_at": "2026-10-15T16:01:50.743405+00:00",
+  "status": "ok",
+  "mode": "cleanup",
+  "prefix": "ll-",
+  "domain": "leaklabdev.onmicrosoft.com",
+  "deleted": [
+    {
+      "type": "group",
+      "id": "83132b60-bc4f-4aab-b7dc-ad6e91534c79",
+      "displayName": "ll-probe-inner"
+    }
+  ]
+}

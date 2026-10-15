@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from leaklab.config import Settings, assert_test_tenant, redact_jwt
+from leaklab.config import Settings, assert_test_tenant, redact_jwt, redact_payload
 
 TENANT = "11111111-2222-3333-4444-555555555555"
 
@@ -87,3 +87,22 @@ def test_redact_jwt_rejects_non_object_payload() -> None:
     payload = base64.urlsafe_b64encode(b"[1,2]").rstrip(b"=").decode()
     with pytest.raises(ValueError, match="JSON object"):
         redact_jwt(f"x.{payload}.")
+
+
+def test_redact_payload_strips_download_urls_links_and_secrets() -> None:
+    payload = {
+        "id": "1",
+        "@microsoft.graph.downloadUrl": "https://x/secret",
+        "value": [
+            {"roles": ["read"], "link": {"type": "view", "webUrl": "https://x/:t:/s/tok"}},
+            {"grantedToV2": {"user": {"displayName": "Ivy"}}},
+        ],
+        "nested": {"Password": "pw", "keep": 1},
+    }
+    out = redact_payload(payload)
+    assert out["@microsoft.graph.downloadUrl"] == "<redacted>"
+    assert out["value"][0]["link"] == {"type": "view", "webUrl": "<redacted>"}
+    assert out["value"][0]["roles"] == ["read"]
+    assert out["value"][1]["grantedToV2"]["user"]["displayName"] == "Ivy"
+    assert out["nested"] == {"Password": "<redacted>", "keep": 1}
+    assert payload["nested"]["Password"] == "pw"  # input not mutated

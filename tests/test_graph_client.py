@@ -12,8 +12,8 @@ from leaklab.graph_client import (
     GRAPH_BASE_URL,
     GraphClient,
     GraphError,
-    parse_retry_after,
 )
+from leaklab.http_retry import parse_retry_after
 
 Handler = Callable[[httpx.Request], httpx.Response]
 
@@ -286,3 +286,17 @@ def test_deletes() -> None:
     client.delete_user("u1")
     client.delete_group("g1")
     assert seen == [("DELETE", "/v1.0/users/u1"), ("DELETE", "/v1.0/groups/g1")]
+
+
+def test_raw_content_and_extra_headers_for_uploads() -> None:
+    client, _, requests = make_client(lambda r: httpx.Response(201, json={"id": "f1"}))
+    client.request(
+        "PUT",
+        "/drives/d/items/i:/x.txt:/content",
+        content="hello",
+        headers={"Content-Type": "text/plain"},
+    )
+    req = requests[0]
+    assert req.content == b"hello"
+    assert req.headers["Content-Type"] == "text/plain"
+    assert req.headers["Authorization"] == "Bearer fake-token"

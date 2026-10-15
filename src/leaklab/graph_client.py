@@ -3,10 +3,9 @@
 Inputs: a token provider (default: the driver app's app-only Graph token from auth.py).
 Outputs: parsed JSON dicts; GraphError on any non-success response.
 
-Retries: HTTP 429/503/504, up to 5 attempts in total. If the response has a Retry-After
-header it is honored (capped at MAX_RETRY_AFTER seconds); otherwise exponential backoff with
-jitter. Other statuses and transport errors are NOT retried: retrying a timed-out POST could
-create a duplicate, so callers that create things should look first (see graph_probe.py).
+Retries: see http_retry.py (429/503/504, 5 attempts, Retry-After honored, backoff + jitter).
+Other statuses and transport errors are NOT retried, so callers that create things should
+look first (see graph_probe.py).
 
 Security: the bearer token is only ever sent to graph.microsoft.com. A @odata.nextLink (or
 any absolute URL) pointing anywhere else is refused. Request bodies, tokens and passwords
@@ -17,8 +16,6 @@ import logging
 import random
 import time
 from collections.abc import Callable
-from datetime import UTC, datetime
-from email.utils import parsedate_to_datetime
 from types import TracebackType
 from typing import Any, Self
 from urllib.parse import quote, urlsplit
@@ -26,15 +23,12 @@ from urllib.parse import quote, urlsplit
 import httpx
 
 from leaklab.auth import GRAPH_DEFAULT_SCOPE, get_app_token
+from leaklab.http_retry import MAX_ATTEMPTS, RETRY_STATUSES, retry_delay
 
 log = logging.getLogger(__name__)
 
 GRAPH_BASE_URL = "https://graph.microsoft.com/v1.0"
 GRAPH_HOST = "graph.microsoft.com"
-RETRY_STATUSES: frozenset[int] = frozenset({429, 503, 504})
-MAX_ATTEMPTS = 5
-BASE_DELAY = 1.0
-MAX_RETRY_AFTER = 120.0
 MAX_PAGES = 1000
 
 
@@ -46,23 +40,6 @@ class GraphError(RuntimeError):
         self.status_code = status_code
         self.code = code
         self.message = message
-
-
-def parse_retry_after(value: str | None) -> float | None:
-    """Parse a Retry-After header (delta-seconds or HTTP date) into seconds, or None."""
-    if not value:
-        return None
-    try:
-        return max(0.0, float(value))
-    except ValueError:
-        pass
-    try:
-        when = parsedate_to_datetime(value)
-    except (TypeError, ValueError):
-        return None
-    if when.tzinfo is None:
-        when = when.replace(tzinfo=UTC)
-    return max(0.0, (when - datetime.now(UTC)).total_seconds())
 
 
 def _default_token() -> str:
@@ -112,12 +89,6 @@ class GraphClient:
             return url
         raise GraphError(0, "untrusted_url", f"refusing to send credentials to {parts.hostname!r}")
 
-    def _delay(self, resp: httpx.Response, attempt: int) -> float:
-        retry_after = parse_retry_after(resp.headers.get("Retry-After"))
-        if retry_after is not None:
-            return min(retry_after, MAX_RETRY_AFTER)
-        return float(BASE_DELAY * 2 ** (attempt - 1) * self._rng.uniform(0.5, 1.5))
-
     @staticmethod
     def _error(resp: httpx.Response) -> GraphError:
         try:
@@ -133,9 +104,13 @@ class GraphClient:
         url: str,
         *,
         json: dict[str, Any] | None = None,
+        content: bytes | str | None = None,
+        headers: dict[str, str] | None = None,
         params: dict[str, str] | None = None,
     ) -> httpx.Response:
         """Send a request (relative path like "/users", or an absolute Graph URL).
+
+        `content`/`headers` are for raw bodies such as file uploads (PUT .../content).
 
         Returns the 2xx response. Raises GraphError otherwise (after retries for 429/503/504).
         """
@@ -145,13 +120,14 @@ class GraphClient:
                 method,
                 full,
                 json=json,
+                content=content,
                 params=params,
-                headers={"Authorization": f"Bearer {self._token_provider()}"},
+                headers={**(headers or {}), "Authorization": f"Bearer {self._token_provider()}"},
             )
             if resp.is_success:
                 return resp
             if resp.status_code in RETRY_STATUSES and attempt < self._max_attempts:
-                delay = self._delay(resp, attempt)
+                delay = retry_delay(resp, attempt, self._rng)
                 log.warning(
                     "Graph %s %s -> %s; retry %d/%d in %.1fs",
                     method,

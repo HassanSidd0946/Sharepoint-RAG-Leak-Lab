@@ -69,6 +69,48 @@ def assert_test_tenant(tid: str, settings: Settings | None = None) -> None:
         )
 
 
+# Keys whose values are removed from any payload we print or save (matched case-insensitively).
+# Pre-authenticated download URLs and credential-like fields can grant access if leaked.
+REDACT_KEYS: frozenset[str] = frozenset(
+    {
+        "@microsoft.graph.downloadurl",
+        "@content.downloadurl",
+        "downloadurl",
+        "password",
+        "access_token",
+        "id_token",
+        "refresh_token",
+        "client_secret",
+        "authorization",
+    }
+)
+
+
+def redact_payload(obj: Any) -> Any:
+    """Return a copy of a JSON-like payload that is safe to print or save to probes/out.
+
+    Removes REDACT_KEYS everywhere, and the `webUrl` of any sharing `link` object (sharing
+    links can contain secrets). Everything else (ids, names, roles) is kept: the point of a
+    probe is to see the real response shape.
+    """
+    if isinstance(obj, dict):
+        out: dict[str, Any] = {}
+        for key, value in obj.items():
+            if str(key).lower() in REDACT_KEYS:
+                out[key] = "<redacted>"
+            elif key == "link" and isinstance(value, dict):
+                out[key] = {
+                    k: ("<redacted>" if k == "webUrl" else redact_payload(v))
+                    for k, v in value.items()
+                }
+            else:
+                out[key] = redact_payload(value)
+        return out
+    if isinstance(obj, list):
+        return [redact_payload(item) for item in obj]
+    return obj
+
+
 def redact_jwt(token: str) -> dict[str, Any]:
     """Decode a JWT's payload WITHOUT verifying it and return only non-secret claims.
 
