@@ -142,12 +142,20 @@ def get_app_token(scope: str) -> str:
     return _access_token(result, "app-only")
 
 
-def get_persona_token(upn: str, scopes: list[str], *, allow_device_code: bool = True) -> str:
+def get_persona_token(
+    upn: str,
+    scopes: list[str],
+    *,
+    allow_device_code: bool = True,
+    use_password: bool = True,
+) -> str:
     """Get a delegated token for persona `upn`.
 
     Order: cached token -> username/password -> device code (only if a human step is needed
     and `allow_device_code` is True). With `allow_device_code=False`, any sign-in error,
     including MFA or consent, raises PersonaSignInError instead of starting device code.
+    With `use_password=False` the shared persona password is never used and the sign-in goes
+    straight to device code (for accounts, like the admin, whose password is not in .env).
     The returned token is verified to belong to `upn`; a mismatch raises AuthError.
     """
     if not upn.strip() or not scopes:
@@ -160,7 +168,7 @@ def get_persona_token(upn: str, scopes: list[str], *, allow_device_code: bool = 
         if silent and silent.get("access_token"):
             return _access_token(silent, f"persona {upn}")
 
-    password = get_settings().persona_password.get_secret_value()
+    password = get_settings().persona_password.get_secret_value() if use_password else ""
     if password:
         # Username/password (ROPC) is used ONLY because this is a throwaway test tenant with
         # synthetic users and MFA disabled for them. It is insecure (the app handles the
@@ -175,7 +183,7 @@ def get_persona_token(upn: str, scopes: list[str], *, allow_device_code: bool = 
         log.warning("interaction required for %s; falling back to device code", upn)
     elif not allow_device_code:
         raise AuthError("LEAKLAB_PERSONA_PASSWORD is not set and device code is disabled.")
-    else:
+    elif use_password:
         log.warning("LEAKLAB_PERSONA_PASSWORD not set; using device code for %s", upn)
 
     return _verified(_device_code(app, scopes, upn), upn)

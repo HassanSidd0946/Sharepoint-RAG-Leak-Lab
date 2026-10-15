@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     persona_password: SecretStr = SecretStr("")
     site_url: str = ""
     sp_host: str = ""
+    admin_upn: str = ""  # UPN of your own admin account (delegated reads via device code)
     usage_location: str = ""  # two-letter country code, needed before assigning licenses
 
 

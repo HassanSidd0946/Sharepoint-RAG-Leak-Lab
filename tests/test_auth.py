@@ -304,3 +304,18 @@ def test_device_code_disabled_without_password(monkeypatch: pytest.MonkeyPatch) 
     with pytest.raises(auth.AuthError, match="device code is disabled"):
         auth.get_persona_token(UPN, SCOPES, allow_device_code=False)
     assert fake.calls == []
+
+
+def test_use_password_false_goes_straight_to_device_code(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = use_fake(monkeypatch)
+    fake.device = good_result()
+    token = auth.get_persona_token(UPN, SCOPES, use_password=False)
+    assert token == fake.device["access_token"]
+    assert fake.calls == ["initiate", "device"]  # the password flow was never tried
+
+
+def test_use_password_false_without_device_code_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = use_fake(monkeypatch)
+    with pytest.raises(auth.AuthError, match="device code is disabled"):
+        auth.get_persona_token(UPN, SCOPES, use_password=False, allow_device_code=False)
+    assert fake.calls == []

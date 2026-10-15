@@ -111,3 +111,8 @@ def test_redact_payload_strips_download_urls_links_and_secrets() -> None:
 def test_usage_location_setting(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LEAKLAB_USAGE_LOCATION", "US")
     assert Settings(_env_file=None).usage_location == "US"  # type: ignore[call-arg]
+
+
+def test_admin_upn_setting(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LEAKLAB_ADMIN_UPN", "admin@example.com")
+    assert Settings(_env_file=None).admin_upn == "admin@example.com"  # type: ignore[call-arg]
