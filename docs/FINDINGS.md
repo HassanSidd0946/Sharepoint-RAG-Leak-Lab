@@ -169,6 +169,66 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 - Probe output: probes/out/persona_probe.json (`assigned_sku_ids_after`)
 - Docs: https://learn.microsoft.com/en-us/graph/api/user-assignlicense?view=graph-rest-1.0
 
+### Real read access: nested Entra groups are honored, an outsider is denied (403), the admin keeps access
+- Date: 2026-10-15
+- Endpoint: `GET /v1.0/drives/{drive}/items/{file}/content` with DELEGATED tokens (scope
+  `Files.Read.All`, persona app), on a folder whose inheritance was broken
+  (`copyRoleAssignments=false`) and whose ONLY grant is Read for group OUTER (REST roleassignments
+  confirmed: `ll-probe-outer -> ['Read']`). Groups: inner nested in mid nested in outer.
+- Expected: p-plateng (in inner) allowed only if SharePoint honors nested groups; p-intern
+  (in no probe group) denied; admin to be verified; driver app (app-only control) allowed.
+- Actual (3 rounds, 10s apart, 12 reads; seconds since the grant: first read 94.5s, last 183.2s):
+  - p-plateng: 200 and the canary in the body, 3 of 3. SharePoint honored THREE-LEVEL nested
+    Entra group membership for access.
+  - p-intern: 403 with Graph error code `accessDenied`, no redirect, canary absent, 3 of 3.
+    A denial is 403 here (not 404).
+  - admin: 200 and the canary, 3 of 3, although REST lists only OUTER on the folder. So the
+    admin keeps access to a folder with unique permissions (this explains why Graph listed
+    the admin as `owner`). WHY is unverified (site collection admin vs. LeakLab Owners member vs.
+    something else).
+  - driver app (app-only, control): 200 and the canary, 3 of 3, so the file existed and the denial
+    of p-intern is a real access decision.
+  - No flapping in any subject across the 3 rounds.
+- Mechanics: an allowed read answers 302 with a pre-authenticated download URL on
+  `*.sharepoint.com` (followed without the Authorization header, never stored); a denied read
+  answers 403 straight away.
+- Limits: the earliest read was 94.5s after the grant (the admin device-code sign-in sits
+  in between), so this says nothing about how soon a new grant takes effect, nor about how soon a
+  REMOVED grant or membership takes effect. p-plateng's token was issued AFTER its membership was
+  stable; a token issued before a membership change was not tested.
+- Implication for the oracle: nested group expansion is correct, and "unique permissions mean only
+  the listed grants" is correct for ordinary users. The admin account is an exception and needs an
+  explicit oracle rule (e.g. exclude the admin from leak assertions, or model it as always
+  allowed).
+- Probe output: probes/out/access_probe.json (`reads`, `summary`)
+- Docs: n/a
+
+### Admin delegated sign-in by device code works
+- Date: 2026-10-15
+- Endpoint: device code flow on the persona app, scope `Files.Read.All`, admin account
+  (`auth.get_persona_token(..., use_password=False)`)
+- Actual: the device code was issued, the admin completed it in a browser, and the resulting token
+  passed the "issued to the requested UPN" check and read the file. The admin's password was never
+  used by the probe.
+- Probe output: probes/out/access_probe.json
+
+### Second sample: transitiveMemberOf lag, license visibility, re-creating deleted UPNs
+- Date: 2026-10-15
+- transitiveMemberOf (`access_probe`, p-plateng added to inner nested in mid nested in outer,
+  groups created minutes earlier): 0 of 3 groups at 0.4s and 6.0s, 3 of 3 at 12.3s and 17.8s. No
+  flapping this time (the earlier run saw 2 -> 0 -> 3), but again about 12s until the full
+  membership was visible. The negative control (p-intern) saw none, consistently.
+- Nesting a brand-new group: the first add (inner into mid) returned HTTP 404 once and succeeded
+  after 5s (earlier run: twice). `ensureuser` on a group created in the same run worked with no
+  explicit wait (a gap of tens of seconds; the exact gap was not measured).
+- assignedLicenses: after `assignLicense`, the license was visible after 0.6s for p-intern and
+  12.7s for p-plateng (in `persona_probe` an immediate read had still been empty). So a lag of
+  up to about 13s is possible; two samples.
+- The same UPNs (`ll-p-intern`, `ll-p-plateng`), deleted by `persona_probe --cleanup`
+  earlier in the session, were created again without error (state `created`). Re-creation
+  "straight away" after a delete was not tested; a gap of at least minutes was.
+- Probe output: probes/out/access_probe.json
+
 ### Persona sign-in with a nonexistent user fails with AADSTS50034 (no device-code fallback)
 - Date: 2026-10-15
 - Endpoint: token endpoint, username/password (ROPC) via `auth.get_persona_token`
@@ -305,25 +365,23 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 - [ ] Persona sign-in works for two LICENSED users. Not yet tested: UNLICENSED personas (four in
   the spec: p-finana, p-finlead, p-hr, p-ceo), whether any "not propagated yet" error exists
   (none seen), and the MFA/consent codes (`INTERACTION_ERROR_CODES` in `auth.py`).
-- [ ] How long until `assignedLicenses` shows the license after `assignLicense`, and whether the
-  license matters for SharePoint access or for the Azure AI Search ACL view.
-- [ ] Re-creating the same UPN after `--cleanup` deleted it: re-running `persona_probe.py` tests
-  this for `ll-p-intern` / `ll-p-plateng` (they were deleted).
+- [ ] Whether the license matters for SharePoint access or for the Azure AI Search ACL view: both
+  personas in the access test were licensed (license lag: 0.6s and 12.7s, see above).
 - [ ] The retry policy (`http_retry.py`: 429/503/504, Retry-After, backoff) is only unit-tested
   with mocks; no real throttling response has been seen yet.
-- [ ] How long can transitiveMemberOf stay inconsistent, and does it flap? One sample only
-  (11.6s, with a 2 -> 0 -> 3 sequence). Re-run `graph_probe.py` a few times; also check how the
-  SharePoint/Azure AI Search side sees the same change.
+- [ ] How long can transitiveMemberOf stay inconsistent, and does it flap? Two samples: 11.6s with a
+  2 -> 0 -> 3 sequence, and 12.3s with a clean 0 -> 3. Both are about 12s; the tail is unknown.
+  Also check how the SharePoint/Azure AI Search side sees the same change.
 - [ ] Adding a user/group that is already a member: the assumed error (HTTP 400, "already
-  exist") is still unverified; no run hit it. Also unverified: re-creating a deleted probe
-  user's UPN straight after `--cleanup`.
-- [ ] Does the admin (Hassan Siddiqui) keep real access to a folder with unique permissions?
-  Graph still lists him as `owner` there, REST does not list him. Test with the admin's own
-  token (a delegated read of a file in a unique-permission folder), then decide the oracle rule.
-- [ ] Does SharePoint honor NESTED Entra group membership for access (grant on a group, user in
-  a group nested inside it)? Needed for scenario S2. Not tested; sp_probe granted a group
-  with no members.
-- [ ] Does `ensureuser` work on a brand-new Entra group with no wait? The probe waited 20s.
+  exist") is still unverified; no run hit it. Also unverified: re-creating a deleted user's UPN
+  immediately (only a gap of minutes was tested).
+- [ ] REVOCATION TIMING (the core question for S1/S2/S6): after a grant or a group membership is
+  REMOVED, how long until reads are denied, with (a) a token issued BEFORE the change and (b) a
+  fresh token? The access test only covered allow/deny in a settled state, from 94s after the
+  grant. Also: how soon after a NEW grant does access begin?
+- [ ] Why the admin keeps access to a unique-permission folder: site collection admin, or any
+  member of LeakLab Owners (whose role assignment was removed from the folder)? Test a non-admin
+  member of LeakLab Owners, then fix the oracle rule for the admin account.
 - [ ] Graph breaking inheritance: not tried (REST works, so low priority). Children with their
   own unique permissions under `clearSubscopes=true`: not tested.
 - [ ] Special claims such as "Everyone except external users" and org-wide sharing links: not
@@ -331,5 +389,6 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 - [ ] How long Graph and REST permission reads lag after a change (one Graph sample was
   immediate), and whether the Azure AI Search ACL view lags longer.
 - [ ] What happens to a file's unique permissions when it is moved to another folder.
-- [ ] Whether unlicensed users can be granted access and be trimmed correctly in Azure AI Search.
+- [ ] Whether unlicensed users can be granted access (SharePoint read as an unlicensed persona has
+  not been tested) and be trimmed correctly in Azure AI Search.
 - [ ] Which token audience/scope the Azure AI Search ACL query requires for the end user.

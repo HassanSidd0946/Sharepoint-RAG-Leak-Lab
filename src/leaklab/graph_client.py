@@ -234,8 +234,8 @@ class GraphClient:
             raise
 
     def delete_user(self, user_id: str) -> None:
-        # UNVERIFIED: deleted users go to the soft-delete bin; whether the same UPN can be
-        # re-created straight away is not yet checked.
+        # Verified 2026-10-15: the same UPN can be re-created after a gap of minutes.
+        # UNVERIFIED: re-creating it straight away after the delete.
         self.request("DELETE", f"/users/{user_id}")
 
     # -- groups ----------------------------------------------------------------------------
