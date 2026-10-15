@@ -161,3 +161,12 @@ def test_token_never_in_error() -> None:
     with pytest.raises(SPRestError) as exc:
         client.request("GET", "/web")
     assert "fake-token" not in str(exc.value) and "fake-token" not in repr(exc.value.body)
+
+
+def test_remove_role_assignment_path() -> None:
+    client, _, requests = make_client(ok)
+    client.remove_role_assignment("/web", 12, 1073741826)
+    assert requests[0].method == "POST"
+    assert requests[0].url.path.endswith(
+        "/web/roleassignments/removeroleassignment(principalid=12,roledefid=1073741826)"
+    )

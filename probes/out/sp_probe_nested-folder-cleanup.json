@@ -1,0 +1,91 @@
+{
+  "probe": "sp_probe nested-folder",
+  "run_at": "2026-10-15T17:35:54.730736+00:00",
+  "status": "ok",
+  "mode": "nested-folder-cleanup",
+  "steps": [
+    {
+      "operation": "resolve site",
+      "endpoint": "GET /sites/leaklabdev.sharepoint.com:/sites/LeakLab",
+      "status": 200,
+      "summary": "id=leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#sites/$entity",
+        "createdDateTime": "2026-10-15T15:14:24.83Z",
+        "description": "Test site for RAG security benchmark.",
+        "id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+        "lastModifiedDateTime": "2026-10-15T17:35:53Z",
+        "name": "LeakLab",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+        "displayName": "LeakLab",
+        "root": {},
+        "siteCollection": {
+          "hostname": "leaklabdev.sharepoint.com"
+        }
+      }
+    },
+    {
+      "operation": "resolve drive",
+      "endpoint": "GET /sites/{site-id}/drive",
+      "status": 200,
+      "summary": "id=b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX name=Documents",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives/$entity",
+        "createdDateTime": "2026-10-11T20:37:43Z",
+        "description": "",
+        "id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+        "lastModifiedDateTime": "2026-10-15T17:35:53Z",
+        "name": "Documents",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents",
+        "driveType": "documentLibrary",
+        "createdBy": {
+          "user": {
+            "displayName": "System Account"
+          }
+        },
+        "owner": {
+          "user": {
+            "email": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+            "id": "1a993a79-1c75-44b0-8ad4-e87488148353",
+            "displayName": "Hassan Siddiqui"
+          }
+        },
+        "quota": {
+          "deleted": 3514,
+          "remaining": 27487788966545,
+          "state": "normal",
+          "total": 27487790694400,
+          "used": 1724341
+        }
+      }
+    },
+    {
+      "operation": "find folder ll-sp-nest-parent",
+      "endpoint": "GET /drives/{drive}/root:/<folder>",
+      "status": 404,
+      "summary": "HTTP 404 (allowed)",
+      "response": {
+        "code": "itemNotFound",
+        "message": "The resource could not be found."
+      }
+    }
+  ],
+  "prefix": "ll-",
+  "site_url": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+  "ids": {
+    "site_id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+    "drive_id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+    "drive_name": "Documents",
+    "library_server_relative_url": "/sites/LeakLab/Shared Documents"
+  },
+  "deleted": [
+    {
+      "type": "group",
+      "name": "ll-probe-nest-a"
+    },
+    {
+      "type": "group",
+      "name": "ll-probe-nest-b"
+    }
+  ]
+}

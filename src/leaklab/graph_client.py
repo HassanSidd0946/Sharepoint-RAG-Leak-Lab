@@ -274,8 +274,9 @@ class GraphClient:
         try:
             self.request("POST", f"/groups/{group_id}/members/$ref", json=body)
         except GraphError as exc:
-            # UNVERIFIED: the exact error Graph returns for an existing member; we assume
-            # HTTP 400 with "already exist" in the message.
+            # Verified 2026-10-15: Graph answers HTTP 400 Request_BadRequest, "One or more added
+            # object references already exist for the following modified properties: 'members'."
+            # (same for a user and for a group as the member).
             if exc.status_code == 400 and "already exist" in exc.message.lower():
                 return False
             raise

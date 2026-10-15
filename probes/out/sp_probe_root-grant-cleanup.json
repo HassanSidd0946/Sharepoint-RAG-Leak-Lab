@@ -1,0 +1,685 @@
+{
+  "probe": "sp_probe root-grant",
+  "run_at": "2026-10-15T17:35:26.378757+00:00",
+  "status": "ok",
+  "mode": "root-grant-cleanup",
+  "steps": [
+    {
+      "operation": "resolve site",
+      "endpoint": "GET /sites/leaklabdev.sharepoint.com:/sites/LeakLab",
+      "status": 200,
+      "summary": "id=leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#sites/$entity",
+        "createdDateTime": "2026-10-15T15:14:24.83Z",
+        "description": "Test site for RAG security benchmark.",
+        "id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+        "lastModifiedDateTime": "2026-10-15T17:30:11Z",
+        "name": "LeakLab",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+        "displayName": "LeakLab",
+        "root": {},
+        "siteCollection": {
+          "hostname": "leaklabdev.sharepoint.com"
+        }
+      }
+    },
+    {
+      "operation": "resolve drive",
+      "endpoint": "GET /sites/{site-id}/drive",
+      "status": 200,
+      "summary": "id=b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX name=Documents",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives/$entity",
+        "createdDateTime": "2026-10-11T20:37:43Z",
+        "description": "",
+        "id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+        "lastModifiedDateTime": "2026-10-15T17:30:11Z",
+        "name": "Documents",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents",
+        "driveType": "documentLibrary",
+        "createdBy": {
+          "user": {
+            "displayName": "System Account"
+          }
+        },
+        "owner": {
+          "user": {
+            "email": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+            "id": "1a993a79-1c75-44b0-8ad4-e87488148353",
+            "displayName": "Hassan Siddiqui"
+          }
+        },
+        "quota": {
+          "deleted": 1459,
+          "remaining": 27487788968600,
+          "state": "normal",
+          "total": 27487790694400,
+          "used": 1724341
+        }
+      }
+    },
+    {
+      "operation": "site root roleassignments (find ours)",
+      "endpoint": "GET /_api/web/roleassignments?$expand=Member,RoleDefinitionBindings",
+      "status": 200,
+      "summary": "8 assignments",
+      "response": {
+        "value": [
+          {
+            "Member": {
+              "Id": 3,
+              "IsHiddenInUI": false,
+              "LoginName": "LeakLab Owners",
+              "Title": "LeakLab Owners",
+              "PrincipalType": 8,
+              "AllowMembersEditMembership": false,
+              "AllowRequestToJoinLeave": false,
+              "AutoAcceptRequestToJoinLeave": false,
+              "Description": null,
+              "OnlyAllowMembersViewMembership": false,
+              "OwnerTitle": "LeakLab Owners",
+              "RequestToJoinLeaveEmailSetting": ""
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "2147483647",
+                  "Low": "4294967295"
+                },
+                "Description": "Has full control.",
+                "Hidden": false,
+                "Id": 1073741829,
+                "Name": "Full Control",
+                "Order": 1,
+                "RoleTypeKind": 5
+              }
+            ],
+            "PrincipalId": 3
+          },
+          {
+            "Member": {
+              "Id": 4,
+              "IsHiddenInUI": false,
+              "LoginName": "LeakLab Visitors",
+              "Title": "LeakLab Visitors",
+              "PrincipalType": 8,
+              "AllowMembersEditMembership": false,
+              "AllowRequestToJoinLeave": false,
+              "AutoAcceptRequestToJoinLeave": false,
+              "Description": null,
+              "OnlyAllowMembersViewMembership": false,
+              "OwnerTitle": "LeakLab Owners",
+              "RequestToJoinLeaveEmailSetting": ""
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "176",
+                  "Low": "138612833"
+                },
+                "Description": "Can view pages and list items and download documents.",
+                "Hidden": false,
+                "Id": 1073741826,
+                "Name": "Read",
+                "Order": 128,
+                "RoleTypeKind": 2
+              }
+            ],
+            "PrincipalId": 4
+          },
+          {
+            "Member": {
+              "Id": 5,
+              "IsHiddenInUI": false,
+              "LoginName": "LeakLab Members",
+              "Title": "LeakLab Members",
+              "PrincipalType": 8,
+              "AllowMembersEditMembership": true,
+              "AllowRequestToJoinLeave": false,
+              "AutoAcceptRequestToJoinLeave": false,
+              "Description": null,
+              "OnlyAllowMembersViewMembership": false,
+              "OwnerTitle": "LeakLab Owners",
+              "RequestToJoinLeaveEmailSetting": ""
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "432",
+                  "Low": "1011030767"
+                },
+                "Description": "Can add, edit and delete lists; can view, add, update and delete list items and documents.",
+                "Hidden": false,
+                "Id": 1073741830,
+                "Name": "Edit",
+                "Order": 48,
+                "RoleTypeKind": 6
+              }
+            ],
+            "PrincipalId": 5
+          },
+          {
+            "Member": {
+              "Id": 10,
+              "IsHiddenInUI": false,
+              "LoginName": "c:0t.c|tenant|83132b60-bc4f-4aab-b7dc-ad6e91534c79",
+              "Title": "ll-probe-inner",
+              "PrincipalType": 4,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": null,
+              "UserPrincipalName": null
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "48",
+                  "Low": "134287360"
+                },
+                "Description": "Can view specific lists, document libraries, list items, folders, or documents when given permissions.",
+                "Hidden": true,
+                "Id": 1073741825,
+                "Name": "Limited Access",
+                "Order": 160,
+                "RoleTypeKind": 1
+              }
+            ],
+            "PrincipalId": 10
+          },
+          {
+            "Member": {
+              "Id": 11,
+              "IsHiddenInUI": false,
+              "LoginName": "c:0t.c|tenant|f324e11b-0b9c-4391-a53e-11ca21076a6a",
+              "Title": "ll-probe-outer",
+              "PrincipalType": 4,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": null,
+              "UserPrincipalName": null
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "48",
+                  "Low": "134287360"
+                },
+                "Description": "Can view specific lists, document libraries, list items, folders, or documents when given permissions.",
+                "Hidden": true,
+                "Id": 1073741825,
+                "Name": "Limited Access",
+                "Order": 160,
+                "RoleTypeKind": 1
+              }
+            ],
+            "PrincipalId": 11
+          },
+          {
+            "Member": {
+              "Id": 13,
+              "IsHiddenInUI": false,
+              "LoginName": "c:0t.c|tenant|130f3a85-a4f7-4a23-bd45-0c0421a9fd3a",
+              "Title": "ll-probe-rootgrant",
+              "PrincipalType": 4,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": null,
+              "UserPrincipalName": null
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "176",
+                  "Low": "138612833"
+                },
+                "Description": "Can view pages and list items and download documents.",
+                "Hidden": false,
+                "Id": 1073741826,
+                "Name": "Read",
+                "Order": 128,
+                "RoleTypeKind": 2
+              }
+            ],
+            "PrincipalId": 13
+          },
+          {
+            "Member": {
+              "Id": 14,
+              "IsHiddenInUI": false,
+              "LoginName": "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com",
+              "Title": "ll-probe-a",
+              "PrincipalType": 1,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": {
+                "NameId": "1003200657406d48",
+                "NameIdIssuer": "urn:federation:microsoftonline"
+              },
+              "UserPrincipalName": "ll-probe-a@leaklabdev.onmicrosoft.com"
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "48",
+                  "Low": "134287360"
+                },
+                "Description": "Can view specific lists, document libraries, list items, folders, or documents when given permissions.",
+                "Hidden": true,
+                "Id": 1073741825,
+                "Name": "Limited Access",
+                "Order": 160,
+                "RoleTypeKind": 1
+              }
+            ],
+            "PrincipalId": 14
+          },
+          {
+            "Member": {
+              "Id": 15,
+              "IsHiddenInUI": false,
+              "LoginName": "c:0t.c|tenant|377d43fa-c39a-40c9-8145-fb27af1cff9d",
+              "Title": "ll-probe-move-dst",
+              "PrincipalType": 4,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": null,
+              "UserPrincipalName": null
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "48",
+                  "Low": "134287360"
+                },
+                "Description": "Can view specific lists, document libraries, list items, folders, or documents when given permissions.",
+                "Hidden": true,
+                "Id": 1073741825,
+                "Name": "Limited Access",
+                "Order": 160,
+                "RoleTypeKind": 1
+              }
+            ],
+            "PrincipalId": 15
+          }
+        ]
+      }
+    },
+    {
+      "operation": "role definitions",
+      "endpoint": "GET /_api/web/roledefinitions",
+      "status": 200,
+      "summary": "6 roles",
+      "response": {
+        "value": [
+          {
+            "Id": 1073741829,
+            "Name": "Full Control",
+            "RoleTypeKind": 5
+          },
+          {
+            "Id": 1073741828,
+            "Name": "Design",
+            "RoleTypeKind": 4
+          },
+          {
+            "Id": 1073741830,
+            "Name": "Edit",
+            "RoleTypeKind": 6
+          },
+          {
+            "Id": 1073741827,
+            "Name": "Contribute",
+            "RoleTypeKind": 3
+          },
+          {
+            "Id": 1073741826,
+            "Name": "Read",
+            "RoleTypeKind": 2
+          },
+          {
+            "Id": 1073741825,
+            "Name": "Limited Access",
+            "RoleTypeKind": 1
+          }
+        ]
+      }
+    },
+    {
+      "operation": "remove Read assignment at SITE ROOT",
+      "endpoint": "POST /web/roleassignments/removeroleassignment(principalid,roledefid)",
+      "status": 200,
+      "summary": "ok",
+      "response": {
+        "odata.null": true
+      }
+    },
+    {
+      "operation": "site root roleassignments (verify removal)",
+      "endpoint": "GET /_api/web/roleassignments?$expand=Member",
+      "status": 200,
+      "summary": "7 assignments",
+      "response": {
+        "value": [
+          {
+            "Member": {
+              "Id": 3,
+              "IsHiddenInUI": false,
+              "LoginName": "LeakLab Owners",
+              "Title": "LeakLab Owners",
+              "PrincipalType": 8,
+              "AllowMembersEditMembership": false,
+              "AllowRequestToJoinLeave": false,
+              "AutoAcceptRequestToJoinLeave": false,
+              "Description": null,
+              "OnlyAllowMembersViewMembership": false,
+              "OwnerTitle": "LeakLab Owners",
+              "RequestToJoinLeaveEmailSetting": ""
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "2147483647",
+                  "Low": "4294967295"
+                },
+                "Description": "Has full control.",
+                "Hidden": false,
+                "Id": 1073741829,
+                "Name": "Full Control",
+                "Order": 1,
+                "RoleTypeKind": 5
+              }
+            ],
+            "PrincipalId": 3
+          },
+          {
+            "Member": {
+              "Id": 4,
+              "IsHiddenInUI": false,
+              "LoginName": "LeakLab Visitors",
+              "Title": "LeakLab Visitors",
+              "PrincipalType": 8,
+              "AllowMembersEditMembership": false,
+              "AllowRequestToJoinLeave": false,
+              "AutoAcceptRequestToJoinLeave": false,
+              "Description": null,
+              "OnlyAllowMembersViewMembership": false,
+              "OwnerTitle": "LeakLab Owners",
+              "RequestToJoinLeaveEmailSetting": ""
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "176",
+                  "Low": "138612833"
+                },
+                "Description": "Can view pages and list items and download documents.",
+                "Hidden": false,
+                "Id": 1073741826,
+                "Name": "Read",
+                "Order": 128,
+                "RoleTypeKind": 2
+              }
+            ],
+            "PrincipalId": 4
+          },
+          {
+            "Member": {
+              "Id": 5,
+              "IsHiddenInUI": false,
+              "LoginName": "LeakLab Members",
+              "Title": "LeakLab Members",
+              "PrincipalType": 8,
+              "AllowMembersEditMembership": true,
+              "AllowRequestToJoinLeave": false,
+              "AutoAcceptRequestToJoinLeave": false,
+              "Description": null,
+              "OnlyAllowMembersViewMembership": false,
+              "OwnerTitle": "LeakLab Owners",
+              "RequestToJoinLeaveEmailSetting": ""
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "432",
+                  "Low": "1011030767"
+                },
+                "Description": "Can add, edit and delete lists; can view, add, update and delete list items and documents.",
+                "Hidden": false,
+                "Id": 1073741830,
+                "Name": "Edit",
+                "Order": 48,
+                "RoleTypeKind": 6
+              }
+            ],
+            "PrincipalId": 5
+          },
+          {
+            "Member": {
+              "Id": 10,
+              "IsHiddenInUI": false,
+              "LoginName": "c:0t.c|tenant|83132b60-bc4f-4aab-b7dc-ad6e91534c79",
+              "Title": "ll-probe-inner",
+              "PrincipalType": 4,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": null,
+              "UserPrincipalName": null
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "48",
+                  "Low": "134287360"
+                },
+                "Description": "Can view specific lists, document libraries, list items, folders, or documents when given permissions.",
+                "Hidden": true,
+                "Id": 1073741825,
+                "Name": "Limited Access",
+                "Order": 160,
+                "RoleTypeKind": 1
+              }
+            ],
+            "PrincipalId": 10
+          },
+          {
+            "Member": {
+              "Id": 11,
+              "IsHiddenInUI": false,
+              "LoginName": "c:0t.c|tenant|f324e11b-0b9c-4391-a53e-11ca21076a6a",
+              "Title": "ll-probe-outer",
+              "PrincipalType": 4,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": null,
+              "UserPrincipalName": null
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "48",
+                  "Low": "134287360"
+                },
+                "Description": "Can view specific lists, document libraries, list items, folders, or documents when given permissions.",
+                "Hidden": true,
+                "Id": 1073741825,
+                "Name": "Limited Access",
+                "Order": 160,
+                "RoleTypeKind": 1
+              }
+            ],
+            "PrincipalId": 11
+          },
+          {
+            "Member": {
+              "Id": 14,
+              "IsHiddenInUI": false,
+              "LoginName": "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com",
+              "Title": "ll-probe-a",
+              "PrincipalType": 1,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": {
+                "NameId": "1003200657406d48",
+                "NameIdIssuer": "urn:federation:microsoftonline"
+              },
+              "UserPrincipalName": "ll-probe-a@leaklabdev.onmicrosoft.com"
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "48",
+                  "Low": "134287360"
+                },
+                "Description": "Can view specific lists, document libraries, list items, folders, or documents when given permissions.",
+                "Hidden": true,
+                "Id": 1073741825,
+                "Name": "Limited Access",
+                "Order": 160,
+                "RoleTypeKind": 1
+              }
+            ],
+            "PrincipalId": 14
+          },
+          {
+            "Member": {
+              "Id": 15,
+              "IsHiddenInUI": false,
+              "LoginName": "c:0t.c|tenant|377d43fa-c39a-40c9-8145-fb27af1cff9d",
+              "Title": "ll-probe-move-dst",
+              "PrincipalType": 4,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": null,
+              "UserPrincipalName": null
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "48",
+                  "Low": "134287360"
+                },
+                "Description": "Can view specific lists, document libraries, list items, folders, or documents when given permissions.",
+                "Hidden": true,
+                "Id": 1073741825,
+                "Name": "Limited Access",
+                "Order": 160,
+                "RoleTypeKind": 1
+              }
+            ],
+            "PrincipalId": 15
+          }
+        ]
+      }
+    },
+    {
+      "operation": "find folder ll-sp-root-folder",
+      "endpoint": "GET /drives/{drive}/root:/<folder>",
+      "status": 200,
+      "summary": "exists",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#Collection(driveItem)/$entity",
+        "createdBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "createdDateTime": "2026-10-15T17:28:27Z",
+        "eTag": "\"{E0BE2F8F-54C6-45F4-9976-AD4DA29CC2B6},2\"",
+        "id": "01RQLOFTUPF67OBRSU6RCZS5VNJWRJZQVW",
+        "lastModifiedBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "lastModifiedDateTime": "2026-10-15T17:28:27Z",
+        "name": "ll-sp-root-folder",
+        "parentReference": {
+          "driveType": "documentLibrary",
+          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+          "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+          "name": "Shared Documents",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:",
+          "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7"
+        },
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-root-folder",
+        "fileSystemInfo": {
+          "createdDateTime": "2026-10-15T17:28:27Z",
+          "lastModifiedDateTime": "2026-10-15T17:28:27Z"
+        },
+        "folder": {
+          "childCount": 0
+        },
+        "isAuthoritative": false,
+        "shared": {
+          "effectiveRoles": [
+            "write"
+          ],
+          "scope": "users"
+        },
+        "size": 0
+      }
+    },
+    {
+      "operation": "delete folder ll-sp-root-folder",
+      "endpoint": "DELETE /drives/{drive}/items/{id}",
+      "status": 204,
+      "summary": "deleted (recycle bin)",
+      "response": null
+    }
+  ],
+  "prefix": "ll-",
+  "site_url": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+  "ids": {
+    "site_id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+    "drive_id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+    "drive_name": "Documents",
+    "library_server_relative_url": "/sites/LeakLab/Shared Documents",
+    "read_role_definition_id": 1073741826
+  },
+  "deleted": [
+    {
+      "type": "folder",
+      "name": "ll-sp-root-folder"
+    },
+    {
+      "type": "group",
+      "name": "ll-probe-rootgrant"
+    }
+  ]
+}

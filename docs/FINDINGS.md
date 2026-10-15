@@ -229,6 +229,134 @@ endpoint, what we expected, what actually happened, and a doc link if any.
   "straight away" after a delete was not tested; a gap of at least minutes was.
 - Probe output: probes/out/access_probe.json
 
+### Site-root grant reaches inheriting folders (sp_probe root-grant)
+- Date: 2026-10-15
+- Endpoint: `POST /_api/web/roleassignments/addroleassignment(principalid=<id>,roledefid=<Read>)`;
+  reads: `GET /_api/web/roleassignments?$expand=Member,RoleDefinitionBindings`,
+  `GET /_api/web?$select=HasUniqueRoleAssignments`, and Graph `/permissions` of an inheriting folder
+- Expected: unknown (marked UNVERIFIED).
+- Actual: HTTP 200, `{"odata.null": true}`. The site root is its own permission scope
+  (`HasUniqueRoleAssignments=True`). Before: LeakLab Members (Edit), Owners (Full Control),
+  Visitors (Read), plus two "Limited Access" principals (see the next entry). After: the same plus
+  the probe group with Read. A new folder (`HasUniqueRoleAssignments=False`) listed exactly the same
+  assignments before and after, including the new group. Graph's `/permissions` of that folder
+  listed the group (`read`) alongside Owners, Members, Visitors and the admin, 5 entries. The other
+  root assignments were unchanged. Both REST and Graph showed the grant on the first read after it
+  (seconds); one sample.
+- Cleanup (`removeroleassignment` at the site root) was run later and worked, see "Cleanup facts".
+- Probe output: probes/out/sp_probe_root-grant.json
+- Docs: n/a
+
+### "Limited Access" entries appear on their own and outlive deleted groups
+- Date: 2026-10-15
+- Observed (REST roleassignments of the site root and of inheriting items):
+  - Granting a USER on a single file (file-grant) made the parent folder, which inherits from the
+    site root, list `ll-probe-a -> Limited Access` although nothing was granted on the folder.
+    SharePoint adds "Limited Access" for a principal at the parent scope(s) of a uniquely-granted
+    item.
+  - Two entries, `ll-probe-inner` and `ll-probe-outer` with Limited Access, were already on the site
+    root before this run. They are left over from earlier probes whose Entra groups have since been
+    deleted, so deleting the Entra group does NOT remove its SharePoint principal or its Limited
+    Access assignment.
+  - Graph `/permissions` did NOT list those Limited Access principals (5 entries where REST listed 8).
+- Implications (facts to keep in mind, not decisions): an entry in REST `roleassignments` is not
+  proof of read access (Limited Access does not grant reading content); teardown of the test tenant
+  leaves orphaned principals and Limited Access entries unless they are removed explicitly.
+- Probe output: probes/out/sp_probe_root-grant.json, probes/out/sp_probe_file-grant.json
+
+### Unique permissions on a single FILE, granted to a user; the real user claim (sp_probe file-grant)
+- Date: 2026-10-15
+- Endpoint: `POST <file ListItemAllFields>/breakroleinheritance(...)`, `POST /_api/web/ensureuser`
+  with the PLAIN UPN `ll-probe-a@leaklabdev.onmicrosoft.com`, then `addroleassignment`
+- Actual: break inheritance on a file worked (200). `ensureuser` accepted the plain UPN and returned
+  `LoginName` = `i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com` (lowercase UPN),
+  `PrincipalType` 1, `Title` = `ll-probe-a`, `UserPrincipalName` set, `Email` empty. So the assumed
+  claim format is verified for a user (it is also what the admin has). After the grant, the file had
+  `HasUniqueRoleAssignments=True` and exactly one assignment (the user, Read); Graph listed the user
+  (`read`) and the admin (`owner`). The containing folder was untouched (`HasUniqueRoleAssignments=
+  False`, but it now listed the user with Limited Access, see above).
+- Probe output: probes/out/sp_probe_file-grant.json (`claim_check`)
+- Docs: n/a
+
+### Moving a uniquely-permissioned file keeps its own permissions (sp_probe move)
+- Date: 2026-10-15
+- Endpoint: Graph `PATCH /v1.0/drives/{drive}/items/{file-id}` with
+  `{"parentReference": {"id": "<destination-folder-id>"}}`; REST reads before and after
+- Setup: source folder (inherits the site root) with a file that has unique permissions (user:
+  Read); destination folder with unique permissions (a different group: Read).
+- Actual: the PATCH returned 200 and the item id did not change. After the move the file was still
+  `HasUniqueRoleAssignments=True` with exactly its own assignment (the user, Read). It did NOT take
+  the destination folder's assignments (the group). Graph `/permissions` listed the same two
+  principals before and after (the user and the admin).
+- Caveats: this is the permission LISTING; no user read was attempted after the move. One sample.
+- Implication: for scenario S4 (`f-direct-share` moved into a restricted folder), the listing says
+  the file keeps its own grants; the destination folder's grants are not applied to it.
+- Probe output: probes/out/sp_probe_move.json
+- Docs: n/a
+
+### ensureuser on a brand-new Entra group fails with HTTP 400 for a variable time
+- Date: 2026-10-15
+- Endpoint: `POST /_api/web/ensureuser` with `c:0t.c|tenant|<group-object-id>`
+- Actual: `400`, `odata.error.code` `-2146232832, Microsoft.SharePoint.SPException`, message "The
+  specified user c:0t.c|tenant|<id> could not be found." Not a 404. Observations: succeeded when the
+  group had been created about 15s earlier (root-grant) and in earlier probes after 20s or more;
+  failed for a group created about 15-20s earlier (nested-folder, group A) and for a group created a
+  few seconds earlier (idempotency). So there is no fixed delay and no verified upper bound.
+  `sp_probe` now retries this one error every 5s up to 120s and records attempts and seconds.
+- Probe output: probes/out/sp_probe_nested-folder.json, probes/out/sp_probe_idempotency.json
+  (the failed runs)
+- Docs: n/a
+
+### Unique child folder under a unique parent (sp_probe nested-folder)
+- Date: 2026-10-15
+- Endpoint: `breakroleinheritance(copyRoleAssignments=false,clearSubscopes=true)` on a parent and
+  then on its child folder, `addroleassignment`, REST and Graph reads
+- Setup: parent folder: unique, Read for group A. New child folder created inside it. File inside the
+  child. Then the child: unique, Read for group B.
+- Actual:
+  - A new child of a unique parent inherits the PARENT's unique assignments
+    (`HasUniqueRoleAssignments=False`, lists group A with Read).
+  - After the child's own break and grant: child `HasUniqueRoleAssignments=True` with ONLY group B
+    (Read). Group A is not listed on the child. A file in the child has
+    `HasUniqueRoleAssignments=False` and lists only group B.
+  - The parent (unique) lists group A (Read) and also `ll-probe-nest-b -> Limited Access`. Granting B
+    on the child made SharePoint add Limited Access for B on the nearest parent scope (same
+    mechanism as in the "Limited Access" entry above). The probe's own check "parent has only A"
+    therefore printed False; the real role on the parent is A's Read only.
+  - Graph `/permissions` of the child listed B (`read`) and the admin (`owner`).
+- Caveat: listings only; no user reads were attempted.
+- Probe output: probes/out/sp_probe_nested-folder.json
+- Docs: n/a
+
+### Idempotency: repeating a role assignment is harmless; repeating a group-member add is a 400
+- Date: 2026-10-15
+- Endpoints: `POST <item>/roleassignments/addroleassignment(...)` twice with the same arguments;
+  `POST /v1.0/groups/{id}/members/$ref` twice for the same user and for the same group
+- Actual:
+  - Role assignment: both calls returned 200 with `{"odata.null": true}`. The folder listed the group
+    once (no duplicate assignment).
+  - Group member (user and group alike): first add 204; second add HTTP 400, code
+    `Request_BadRequest`, message "One or more added object references already exist for the
+    following modified properties: 'members'." This is exactly what `GraphClient._add_member`
+    assumed, so that assumption is now verified.
+- Probe output: probes/out/sp_probe_idempotency.json (`evaluation`)
+- Docs: n/a
+
+### Cleanup facts: removeroleassignment works; Graph deletes lag behind GETs
+- Date: 2026-10-15
+- `POST /web/roleassignments/removeroleassignment(principalid,roledefid)` on the site root returned 200
+  and the assignment was gone on re-read (8 -> 7 assignments). The probe group was deleted only after
+  that, so no orphan was left for it. The 7 remaining assignments are the three site groups and
+  Limited Access entries of earlier probe principals (not removed).
+- A user deleted by one cleanup was still returned by `GET /users/{upn}` seconds later, and
+  `DELETE /users/{id}` then answered 404 `Request_ResourceNotFound`. Deletes lag behind lookups, so
+  cleanup code must treat a 404 on delete as "already gone" (`sp_probe` now does).
+- Re-running `nested-folder` and `idempotency` after cleanup: `ensureuser` on fresh groups succeeded on
+  the first attempt every time (0.4s to 1.6s), including groups created seconds-to-15s earlier, so the
+  earlier 400s remain unexplained variance.
+- Probe output: probes/out/sp_probe_root-grant-cleanup.json, sp_probe_file-grant-cleanup.json,
+  sp_probe_nested-folder.json, sp_probe_idempotency.json
+
 ### Persona sign-in with a nonexistent user fails with AADSTS50034 (no device-code fallback)
 - Date: 2026-10-15
 - Endpoint: token endpoint, username/password (ROPC) via `auth.get_persona_token`
@@ -360,6 +488,56 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 - Docs:
 -->
 
+## Oracle rules supported by verified results (NOT decisions)
+
+This list says what the evidence so far supports. Nothing here has been adopted in
+`src/leaklab/oracle/`; the oracle is still unwritten, and any rule it adopts must be chosen
+deliberately and explained here.
+
+Supported by real runs:
+1. **Nested groups expand.** A grant to a group reaches members of groups nested inside it, three
+   levels deep, for real file reads (access_probe: p-plateng read through inner -> mid -> outer).
+2. **Unique permissions list only their own grants.** After `breakroleinheritance` with
+   `copyRoleAssignments=false`, REST shows exactly the assignments added afterwards, and an ordinary
+   user outside them is denied (p-intern: 403 `accessDenied`).
+3. **Items without unique permissions follow their parent.** A file under a unique folder has
+   `HasUniqueRoleAssignments=false` and shows the folder's assignments (sp_probe).
+4. **Allow and deny are observable through Graph.** Allowed: 200 with the file content (via a 302 to
+   a pre-authenticated URL). Denied: 403 `accessDenied`, no redirect. A canary in the body is
+   therefore a usable leak signal for reads as a given user.
+5. **Principal forms seen:** an Entra security group via claim `c:0t.c|tenant|<group-object-id>`
+   (PrincipalType 4); site groups (PrincipalType 8); the admin user as `i:0#.f|membership|<upn>`
+   (PrincipalType 1).
+
+6. **Grants at the site root are inherited** by folders and files that do not have unique
+   permissions (root-grant: REST and Graph both listed the group on an inheriting folder).
+7. **A file keeps its own unique permissions when moved** into a folder with different unique
+   permissions (move; listing only, not a read test).
+8. **A user is a principal via `i:0#.f|membership|<upn lowercase>`**; `ensureuser` resolves a plain
+   UPN to it (file-grant).
+9. **Listing caveat:** REST `roleassignments` also contains "Limited Access" entries that are not read
+   access (and may belong to deleted principals); Graph `/permissions` omits them. A comparison with
+   the oracle must not count Limited Access as access.
+
+10. **A unique child scope replaces its parent's grants.** A child that breaks inheritance lists
+    only its own grants (the parent's group is not listed on it), and items inside it follow the
+    child (nested-folder; listing only).
+11. **Repeating a role assignment does not change the result** (no duplicate, no error).
+
+Observed but not settled (needs a decision, or more evidence, before it becomes a rule):
+- **The admin account keeps access** to a unique-permission folder it is not listed on. The cause
+  (site collection admin vs. Owners-group member) is unverified, so there is no rule yet for which
+  accounts this applies to. Options for later: exclude the admin from leak assertions, or model it
+  as always allowed.
+- **Timing.** Membership became visible after about 12s in two samples, a license after up to
+  about 13s, and reads were only taken 94s or more after a grant. There is no verified bound for
+  how soon a grant or a REVOCATION takes effect, nor for tokens issued before a change. The oracle
+  should not encode a time window until the revocation probe has run.
+- **Licensing.** Only licensed personas were tested for access.
+
+Still not probed: real READS for the cases above that were only listed (nested folders, moved
+file, file-level grant), and everything on revocation timing.
+
 ## Open questions
 
 - [ ] Persona sign-in works for two LICENSED users. Not yet tested: UNLICENSED personas (four in
@@ -373,8 +551,8 @@ endpoint, what we expected, what actually happened, and a doc link if any.
   2 -> 0 -> 3 sequence, and 12.3s with a clean 0 -> 3. Both are about 12s; the tail is unknown.
   Also check how the SharePoint/Azure AI Search side sees the same change.
 - [ ] Adding a user/group that is already a member: the assumed error (HTTP 400, "already
-  exist") is still unverified; no run hit it. Also unverified: re-creating a deleted user's UPN
-  immediately (only a gap of minutes was tested).
+  exist") is now verified (see Idempotency). Still unverified: re-creating a deleted user's UPN
+  immediately (only a gap of minutes was tested; deletes lag behind lookups).
 - [ ] REVOCATION TIMING (the core question for S1/S2/S6): after a grant or a group membership is
   REMOVED, how long until reads are denied, with (a) a token issued BEFORE the change and (b) a
   fresh token? The access test only covered allow/deny in a settled state, from 94s after the
@@ -384,6 +562,14 @@ endpoint, what we expected, what actually happened, and a doc link if any.
   member of LeakLab Owners, then fix the oracle rule for the admin account.
 - [ ] Graph breaking inheritance: not tried (REST works, so low priority). Children with their
   own unique permissions under `clearSubscopes=true`: not tested.
+- [ ] Teardown of orphans: after Entra groups/users are deleted, their SharePoint principals and
+  "Limited Access" assignments remain on the site root. How to remove them (e.g. site user removal)
+  is untested.
+- [ ] A real READ after a file move: the listing says the file keeps its own grants, but nobody has
+  tried to read it as the granted user, as a member of the destination folder's group, and as an
+  outsider.
+- [ ] How long a brand-new Entra group takes to be resolvable by SharePoint `ensureuser` (variable;
+  see above). The re-run of the two failed subcommands will record seconds.
 - [ ] Special claims such as "Everyone except external users" and org-wide sharing links: not
   observed anywhere yet; the site has none. Needs a probe that grants one and reads it back.
 - [ ] How long Graph and REST permission reads lag after a change (one Graph sample was

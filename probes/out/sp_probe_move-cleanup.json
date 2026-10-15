@@ -1,0 +1,215 @@
+{
+  "probe": "sp_probe move",
+  "run_at": "2026-10-15T17:35:38.581407+00:00",
+  "status": "ok",
+  "mode": "move-cleanup",
+  "steps": [
+    {
+      "operation": "resolve site",
+      "endpoint": "GET /sites/leaklabdev.sharepoint.com:/sites/LeakLab",
+      "status": 200,
+      "summary": "id=leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#sites/$entity",
+        "createdDateTime": "2026-10-15T15:14:24.83Z",
+        "description": "Test site for RAG security benchmark.",
+        "id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+        "lastModifiedDateTime": "2026-10-15T17:35:36Z",
+        "name": "LeakLab",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+        "displayName": "LeakLab",
+        "root": {},
+        "siteCollection": {
+          "hostname": "leaklabdev.sharepoint.com"
+        }
+      }
+    },
+    {
+      "operation": "resolve drive",
+      "endpoint": "GET /sites/{site-id}/drive",
+      "status": 200,
+      "summary": "id=b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX name=Documents",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives/$entity",
+        "createdDateTime": "2026-10-11T20:37:43Z",
+        "description": "",
+        "id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+        "lastModifiedDateTime": "2026-10-15T17:35:36Z",
+        "name": "Documents",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents",
+        "driveType": "documentLibrary",
+        "createdBy": {
+          "user": {
+            "displayName": "System Account"
+          }
+        },
+        "owner": {
+          "user": {
+            "email": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+            "id": "1a993a79-1c75-44b0-8ad4-e87488148353",
+            "displayName": "Hassan Siddiqui"
+          }
+        },
+        "quota": {
+          "deleted": 1805,
+          "remaining": 27487788968254,
+          "state": "normal",
+          "total": 27487790694400,
+          "used": 1724341
+        }
+      }
+    },
+    {
+      "operation": "find folder ll-sp-move-src",
+      "endpoint": "GET /drives/{drive}/root:/<folder>",
+      "status": 200,
+      "summary": "exists",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#Collection(driveItem)/$entity",
+        "createdBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "createdDateTime": "2026-10-15T17:29:51Z",
+        "eTag": "\"{A09B6F63-6105-4962-8C69-B83C9A7A03A9},2\"",
+        "id": "01RQLOFTTDN6N2ABLBMJEYY2NYHSNHUA5J",
+        "lastModifiedBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "lastModifiedDateTime": "2026-10-15T17:29:51Z",
+        "name": "ll-sp-move-src",
+        "parentReference": {
+          "driveType": "documentLibrary",
+          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+          "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+          "name": "Shared Documents",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:",
+          "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7"
+        },
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-move-src",
+        "fileSystemInfo": {
+          "createdDateTime": "2026-10-15T17:29:51Z",
+          "lastModifiedDateTime": "2026-10-15T17:29:51Z"
+        },
+        "folder": {
+          "childCount": 0
+        },
+        "isAuthoritative": false,
+        "shared": {
+          "effectiveRoles": [
+            "write"
+          ],
+          "scope": "users"
+        },
+        "size": 0
+      }
+    },
+    {
+      "operation": "delete folder ll-sp-move-src",
+      "endpoint": "DELETE /drives/{drive}/items/{id}",
+      "status": 204,
+      "summary": "deleted (recycle bin)",
+      "response": null
+    },
+    {
+      "operation": "find folder ll-sp-move-dst",
+      "endpoint": "GET /drives/{drive}/root:/<folder>",
+      "status": 200,
+      "summary": "exists",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#Collection(driveItem)/$entity",
+        "createdBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "createdDateTime": "2026-10-15T17:29:52Z",
+        "eTag": "\"{AF111444-073A-498D-8BFC-36FF2C02D551},2\"",
+        "id": "01RQLOFTSECQI26OQHRVEYX7BW74WAFVKR",
+        "lastModifiedBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "lastModifiedDateTime": "2026-10-15T17:29:53Z",
+        "name": "ll-sp-move-dst",
+        "parentReference": {
+          "driveType": "documentLibrary",
+          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+          "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+          "name": "Shared Documents",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:",
+          "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7"
+        },
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-move-dst",
+        "fileSystemInfo": {
+          "createdDateTime": "2026-10-15T17:29:52Z",
+          "lastModifiedDateTime": "2026-10-15T17:29:53Z"
+        },
+        "folder": {
+          "childCount": 1
+        },
+        "isAuthoritative": false,
+        "shared": {
+          "effectiveRoles": [
+            "write"
+          ],
+          "scope": "users"
+        },
+        "size": 18
+      }
+    },
+    {
+      "operation": "delete folder ll-sp-move-dst",
+      "endpoint": "DELETE /drives/{drive}/items/{id}",
+      "status": 204,
+      "summary": "deleted (recycle bin)",
+      "response": null
+    }
+  ],
+  "prefix": "ll-",
+  "site_url": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+  "ids": {
+    "site_id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+    "drive_id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+    "drive_name": "Documents",
+    "library_server_relative_url": "/sites/LeakLab/Shared Documents"
+  },
+  "deleted": [
+    {
+      "type": "folder",
+      "name": "ll-sp-move-src"
+    },
+    {
+      "type": "folder",
+      "name": "ll-sp-move-dst"
+    },
+    {
+      "type": "group",
+      "name": "ll-probe-move-dst"
+    },
+    {
+      "type": "user",
+      "name": "ll-probe-a"
+    }
+  ]
+}

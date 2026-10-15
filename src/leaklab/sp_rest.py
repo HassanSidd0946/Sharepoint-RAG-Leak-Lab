@@ -168,8 +168,8 @@ class SharePointRest:
         """POST <item>/breakroleinheritance(...).
 
         Works with the app-only token and no X-RequestDigest; returns 200 with
-        {"odata.null": true} (verified on a folder's list item). UNVERIFIED: on a file's list
-        item, and what clear_subscopes does to children that have unique permissions.
+        {"odata.null": true}. Verified on a folder's and on a file's list item (2026-10-15).
+        UNVERIFIED: what clear_subscopes does to children that have unique permissions.
         """
         copy = str(copy_role_assignments).lower()
         clear = str(clear_subscopes).lower()
@@ -181,9 +181,11 @@ class SharePointRest:
     def ensure_user(self, logon_name: str) -> httpx.Response:
         """POST /web/ensureuser {"logonName": ...}: resolve a claim to a SharePoint principal.
 
-        Verified: an Entra security group via "c:0t.c|tenant|<group-object-id>" (returns Id,
-        LoginName, Title, PrincipalType=4). UNVERIFIED: the claim format for a user
-        (assumed "i:0#.f|membership|<upn>"), and use right after creating the group.
+        Verified (2026-10-15): an Entra security group via "c:0t.c|tenant|<group-object-id>"
+        (PrincipalType=4), and a user via its plain UPN, which returned the LoginName
+        "i:0#.f|membership|<upn lowercase>" (PrincipalType=1). A brand-new group can be
+        answered with HTTP 400 "The specified user ... could not be found" for a variable time
+        (seen 3 times); callers must retry that error.
         """
         return self.request("POST", "/web/ensureuser", body={"logonName": logon_name})
 
@@ -198,12 +200,26 @@ class SharePointRest:
     ) -> httpx.Response:
         """POST <item>/roleassignments/addroleassignment(principalid=..,roledefid=..).
 
-        Verified on a folder's list item after inheritance was broken (200, {"odata.null":
-        true}). UNVERIFIED: on a file's list item.
+        Verified after inheritance was broken, on a folder's and on a file's list item, and on
+        /web (site root): 200, {"odata.null": true} (2026-10-15).
         """
         return self.request(
             "POST",
             f"{item_path}/roleassignments/addroleassignment"
+            f"(principalid={principal_id},roledefid={role_definition_id})",
+        )
+
+    def remove_role_assignment(
+        self, item_path: str, principal_id: int, role_definition_id: int
+    ) -> httpx.Response:
+        """POST <item>/roleassignments/removeroleassignment(principalid=..,roledefid=..).
+
+        Verified on /web (site root) 2026-10-15: 200, and the assignment was gone on re-read
+        (used by sp_probe's root-grant --cleanup).
+        """
+        return self.request(
+            "POST",
+            f"{item_path}/roleassignments/removeroleassignment"
             f"(principalid={principal_id},roledefid={role_definition_id})",
         )
 

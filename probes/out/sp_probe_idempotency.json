@@ -1,0 +1,385 @@
+{
+  "probe": "sp_probe idempotency",
+  "run_at": "2026-10-15T17:36:57.034347+00:00",
+  "status": "ok",
+  "mode": "idempotency",
+  "steps": [
+    {
+      "operation": "resolve site",
+      "endpoint": "GET /sites/leaklabdev.sharepoint.com:/sites/LeakLab",
+      "status": 200,
+      "summary": "id=leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#sites/$entity",
+        "createdDateTime": "2026-10-15T15:14:24.83Z",
+        "description": "Test site for RAG security benchmark.",
+        "id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+        "lastModifiedDateTime": "2026-10-15T17:36:52Z",
+        "name": "LeakLab",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+        "displayName": "LeakLab",
+        "root": {},
+        "siteCollection": {
+          "hostname": "leaklabdev.sharepoint.com"
+        }
+      }
+    },
+    {
+      "operation": "resolve drive",
+      "endpoint": "GET /sites/{site-id}/drive",
+      "status": 200,
+      "summary": "id=b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX name=Documents",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives/$entity",
+        "createdDateTime": "2026-10-11T20:37:43Z",
+        "description": "",
+        "id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+        "lastModifiedDateTime": "2026-10-15T17:36:49Z",
+        "name": "Documents",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents",
+        "driveType": "documentLibrary",
+        "createdBy": {
+          "user": {
+            "displayName": "System Account"
+          }
+        },
+        "owner": {
+          "user": {
+            "email": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+            "id": "1a993a79-1c75-44b0-8ad4-e87488148353",
+            "displayName": "Hassan Siddiqui"
+          }
+        },
+        "quota": {
+          "deleted": 3860,
+          "remaining": 27487788966199,
+          "state": "normal",
+          "total": 27487790694400,
+          "used": 1724341
+        }
+      }
+    },
+    {
+      "operation": "find folder ll-sp-idem-folder",
+      "endpoint": "GET <folder lookup>",
+      "status": 404,
+      "summary": "HTTP 404 (allowed)",
+      "response": {
+        "code": "itemNotFound",
+        "message": "The resource could not be found."
+      }
+    },
+    {
+      "operation": "create folder ll-sp-idem-folder",
+      "endpoint": "POST <parent>/children",
+      "status": 201,
+      "summary": "id=01RQLOFTWRQPU5KYRRHNELCFYQX5NROZTU",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/root/children/$entity",
+        "@odata.etag": "\"{D5E983D1-3162-483B-B117-10BF5B176674},1\"",
+        "eTag": "\"{D5E983D1-3162-483B-B117-10BF5B176674},1\"",
+        "lastModifiedDateTime": "2026-10-15T17:37:20Z",
+        "createdDateTime": "2026-10-15T17:37:20Z",
+        "id": "01RQLOFTWRQPU5KYRRHNELCFYQX5NROZTU",
+        "name": "ll-sp-idem-folder",
+        "size": 0,
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-idem-folder",
+        "commentSettings": {
+          "commentingDisabled": {
+            "isDisabled": false
+          }
+        },
+        "createdBy": {
+          "application": {
+            "displayName": "Microsoft Graph",
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "lastModifiedBy": {
+          "application": {
+            "displayName": "Microsoft Graph",
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "parentReference": {
+          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+          "driveType": "documentLibrary",
+          "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:",
+          "sharepointIds": {
+            "listId": "ff0e6594-cb34-49ef-983f-38c811eb5cd7",
+            "listItemUniqueId": "d883dfed-07bb-44c2-a812-6a1c516d8594",
+            "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7",
+            "siteUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+            "tenantId": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+            "webId": "5c429f61-a18b-46e8-aa4f-0768964b1577"
+          }
+        },
+        "fileSystemInfo": {
+          "createdDateTime": "2026-10-15T17:37:20Z",
+          "lastModifiedDateTime": "2026-10-15T17:37:20Z"
+        },
+        "folder": {
+          "childCount": 0
+        },
+        "shared": {
+          "scope": "unknown"
+        }
+      }
+    },
+    {
+      "operation": "break inheritance (folder)",
+      "endpoint": "POST <item>/breakroleinheritance(copyRoleAssignments=false,clearSubscopes=true)",
+      "status": 200,
+      "summary": "ok",
+      "response": {
+        "odata.null": true
+      }
+    },
+    {
+      "operation": "ensureuser (idempotency group)",
+      "endpoint": "POST /_api/web/ensureuser",
+      "status": 200,
+      "summary": "Id=18 LoginName=c:0t.c|tenant|39f521e3-bb33-4d38-b116-a146222169ac type=4",
+      "response": {
+        "Id": 18,
+        "IsHiddenInUI": false,
+        "LoginName": "c:0t.c|tenant|39f521e3-bb33-4d38-b116-a146222169ac",
+        "Title": "ll-probe-idem",
+        "PrincipalType": 4,
+        "Email": "",
+        "Expiration": "",
+        "IsEmailAuthenticationGuestUser": false,
+        "IsShareByEmailGuestUser": false,
+        "IsSiteAdmin": false,
+        "UserId": null,
+        "UserPrincipalName": null
+      }
+    },
+    {
+      "operation": "role definitions",
+      "endpoint": "GET /_api/web/roledefinitions",
+      "status": 200,
+      "summary": "6 roles",
+      "response": {
+        "value": [
+          {
+            "Id": 1073741829,
+            "Name": "Full Control",
+            "RoleTypeKind": 5
+          },
+          {
+            "Id": 1073741828,
+            "Name": "Design",
+            "RoleTypeKind": 4
+          },
+          {
+            "Id": 1073741830,
+            "Name": "Edit",
+            "RoleTypeKind": 6
+          },
+          {
+            "Id": 1073741827,
+            "Name": "Contribute",
+            "RoleTypeKind": 3
+          },
+          {
+            "Id": 1073741826,
+            "Name": "Read",
+            "RoleTypeKind": 2
+          },
+          {
+            "Id": 1073741825,
+            "Name": "Limited Access",
+            "RoleTypeKind": 1
+          }
+        ]
+      }
+    },
+    {
+      "operation": "addroleassignment (1st)",
+      "endpoint": "POST <item>/roleassignments/addroleassignment(principalid,roledefid)",
+      "status": 200,
+      "summary": "ok",
+      "response": {
+        "odata.null": true
+      }
+    },
+    {
+      "operation": "addroleassignment (2nd, same)",
+      "endpoint": "POST <item>/roleassignments/addroleassignment(principalid,roledefid)",
+      "status": 200,
+      "summary": "ok",
+      "response": {
+        "odata.null": true
+      }
+    },
+    {
+      "operation": "REST unique flag: folder after both adds",
+      "endpoint": "GET <item>?$select=HasUniqueRoleAssignments",
+      "status": 200,
+      "summary": "HasUniqueRoleAssignments=True",
+      "response": {
+        "HasUniqueRoleAssignments": true
+      }
+    },
+    {
+      "operation": "REST roleassignments: folder after both adds",
+      "endpoint": "GET <item>/roleassignments?$expand=Member,RoleDefinitionBindings",
+      "status": 200,
+      "summary": "ll-probe-idem -> ['Read']",
+      "response": {
+        "value": [
+          {
+            "Member": {
+              "Id": 18,
+              "IsHiddenInUI": false,
+              "LoginName": "c:0t.c|tenant|39f521e3-bb33-4d38-b116-a146222169ac",
+              "Title": "ll-probe-idem",
+              "PrincipalType": 4,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": null,
+              "UserPrincipalName": null
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "176",
+                  "Low": "138612833"
+                },
+                "Description": "Can view pages and list items and download documents.",
+                "Hidden": false,
+                "Id": 1073741826,
+                "Name": "Read",
+                "Order": 128,
+                "RoleTypeKind": 2
+              }
+            ],
+            "PrincipalId": 18
+          }
+        ]
+      }
+    },
+    {
+      "operation": "add user to group (1st)",
+      "endpoint": "POST /groups/{id}/members/$ref",
+      "status": 204,
+      "summary": "added",
+      "response": null
+    },
+    {
+      "operation": "add user to group (2nd, same)",
+      "endpoint": "POST /groups/{id}/members/$ref",
+      "status": 400,
+      "summary": "HTTP 400 (allowed)",
+      "response": {
+        "code": "Request_BadRequest",
+        "message": "One or more added object references already exist for the following modified properties: 'members'."
+      }
+    },
+    {
+      "operation": "add group to group (1st)",
+      "endpoint": "POST /groups/{id}/members/$ref",
+      "status": 204,
+      "summary": "added",
+      "response": null
+    },
+    {
+      "operation": "add group to group (2nd, same)",
+      "endpoint": "POST /groups/{id}/members/$ref",
+      "status": 400,
+      "summary": "HTTP 400 (allowed)",
+      "response": {
+        "code": "Request_BadRequest",
+        "message": "One or more added object references already exist for the following modified properties: 'members'."
+      }
+    }
+  ],
+  "prefix": "ll-",
+  "site_url": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+  "ids": {
+    "site_id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+    "drive_id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+    "drive_name": "Documents",
+    "library_server_relative_url": "/sites/LeakLab/Shared Documents",
+    "read_role_definition_id": 1073741826
+  },
+  "groups": {
+    "ll-probe-idem": {
+      "id": "39f521e3-bb33-4d38-b116-a146222169ac",
+      "state": "created"
+    },
+    "ll-probe-idem-b": {
+      "id": "fa45f035-0eb9-46d8-ae1e-c1c95baf52f5",
+      "state": "created"
+    }
+  },
+  "users": {
+    "ll-probe-a": {
+      "id": "bb60e632-8c35-4527-94aa-eb4f160386cb",
+      "upn": "ll-probe-a@leaklabdev.onmicrosoft.com",
+      "state": "created"
+    }
+  },
+  "ensureuser_waits": {
+    "idempotency group": {
+      "attempts": 1,
+      "seconds": 0.4
+    }
+  },
+  "snapshots": {
+    "folder after both adds": {
+      "unique": true,
+      "assignments": [
+        {
+          "member": "ll-probe-idem",
+          "login": "c:0t.c|tenant|39f521e3-bb33-4d38-b116-a146222169ac",
+          "principal_type": 4,
+          "roles": [
+            "Read"
+          ]
+        }
+      ]
+    }
+  },
+  "evaluation": {
+    "role_assignment_status_1st_2nd": [
+      200,
+      200
+    ],
+    "role_assignment_2nd_body": {
+      "odata.null": true
+    },
+    "assignments_for_group_after_both": 1,
+    "user_add_status_1st_2nd": [
+      204,
+      400
+    ],
+    "user_add_2nd_body": {
+      "code": "Request_BadRequest",
+      "message": "One or more added object references already exist for the following modified properties: 'members'."
+    },
+    "group_add_status_1st_2nd": [
+      204,
+      400
+    ],
+    "group_add_2nd_body": {
+      "code": "Request_BadRequest",
+      "message": "One or more added object references already exist for the following modified properties: 'members'."
+    },
+    "graph_client_assumption_400_already_exist_holds": {
+      "user": true,
+      "group": true
+    }
+  }
+}

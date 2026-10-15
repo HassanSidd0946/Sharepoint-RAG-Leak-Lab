@@ -1,0 +1,834 @@
+{
+  "probe": "sp_probe move",
+  "run_at": "2026-10-15T17:29:24.370823+00:00",
+  "status": "ok",
+  "mode": "move",
+  "steps": [
+    {
+      "operation": "resolve site",
+      "endpoint": "GET /sites/leaklabdev.sharepoint.com:/sites/LeakLab",
+      "status": 200,
+      "summary": "id=leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#sites/$entity",
+        "createdDateTime": "2026-10-15T15:14:24.83Z",
+        "description": "Test site for RAG security benchmark.",
+        "id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+        "lastModifiedDateTime": "2026-10-15T17:29:20Z",
+        "name": "LeakLab",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+        "displayName": "LeakLab",
+        "root": {},
+        "siteCollection": {
+          "hostname": "leaklabdev.sharepoint.com"
+        }
+      }
+    },
+    {
+      "operation": "resolve drive",
+      "endpoint": "GET /sites/{site-id}/drive",
+      "status": 200,
+      "summary": "id=b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX name=Documents",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives/$entity",
+        "createdDateTime": "2026-10-11T20:37:43Z",
+        "description": "",
+        "id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+        "lastModifiedDateTime": "2026-10-15T17:29:17Z",
+        "name": "Documents",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents",
+        "driveType": "documentLibrary",
+        "createdBy": {
+          "user": {
+            "displayName": "System Account"
+          }
+        },
+        "owner": {
+          "user": {
+            "email": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+            "id": "1a993a79-1c75-44b0-8ad4-e87488148353",
+            "displayName": "Hassan Siddiqui"
+          }
+        },
+        "quota": {
+          "deleted": 1459,
+          "remaining": 27487789074533,
+          "state": "normal",
+          "total": 27487790694400,
+          "used": 1618408
+        }
+      }
+    },
+    {
+      "operation": "ensureuser (destination group)",
+      "endpoint": "POST /_api/web/ensureuser",
+      "status": 200,
+      "summary": "Id=15 LoginName=c:0t.c|tenant|377d43fa-c39a-40c9-8145-fb27af1cff9d type=4",
+      "response": {
+        "Id": 15,
+        "IsHiddenInUI": false,
+        "LoginName": "c:0t.c|tenant|377d43fa-c39a-40c9-8145-fb27af1cff9d",
+        "Title": "ll-probe-move-dst",
+        "PrincipalType": 4,
+        "Email": "",
+        "Expiration": "",
+        "IsEmailAuthenticationGuestUser": false,
+        "IsShareByEmailGuestUser": false,
+        "IsSiteAdmin": false,
+        "UserId": null,
+        "UserPrincipalName": null
+      }
+    },
+    {
+      "operation": "role definitions",
+      "endpoint": "GET /_api/web/roledefinitions",
+      "status": 200,
+      "summary": "6 roles",
+      "response": {
+        "value": [
+          {
+            "Id": 1073741829,
+            "Name": "Full Control",
+            "RoleTypeKind": 5
+          },
+          {
+            "Id": 1073741828,
+            "Name": "Design",
+            "RoleTypeKind": 4
+          },
+          {
+            "Id": 1073741830,
+            "Name": "Edit",
+            "RoleTypeKind": 6
+          },
+          {
+            "Id": 1073741827,
+            "Name": "Contribute",
+            "RoleTypeKind": 3
+          },
+          {
+            "Id": 1073741826,
+            "Name": "Read",
+            "RoleTypeKind": 2
+          },
+          {
+            "Id": 1073741825,
+            "Name": "Limited Access",
+            "RoleTypeKind": 1
+          }
+        ]
+      }
+    },
+    {
+      "operation": "find folder ll-sp-move-src",
+      "endpoint": "GET <folder lookup>",
+      "status": 404,
+      "summary": "HTTP 404 (allowed)",
+      "response": {
+        "code": "itemNotFound",
+        "message": "The resource could not be found."
+      }
+    },
+    {
+      "operation": "create folder ll-sp-move-src",
+      "endpoint": "POST <parent>/children",
+      "status": 201,
+      "summary": "id=01RQLOFTTDN6N2ABLBMJEYY2NYHSNHUA5J",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/root/children/$entity",
+        "@odata.etag": "\"{A09B6F63-6105-4962-8C69-B83C9A7A03A9},1\"",
+        "eTag": "\"{A09B6F63-6105-4962-8C69-B83C9A7A03A9},1\"",
+        "lastModifiedDateTime": "2026-10-15T17:29:51Z",
+        "createdDateTime": "2026-10-15T17:29:51Z",
+        "id": "01RQLOFTTDN6N2ABLBMJEYY2NYHSNHUA5J",
+        "name": "ll-sp-move-src",
+        "size": 0,
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-move-src",
+        "commentSettings": {
+          "commentingDisabled": {
+            "isDisabled": false
+          }
+        },
+        "createdBy": {
+          "application": {
+            "displayName": "Microsoft Graph",
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "lastModifiedBy": {
+          "application": {
+            "displayName": "Microsoft Graph",
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "parentReference": {
+          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+          "driveType": "documentLibrary",
+          "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:",
+          "sharepointIds": {
+            "listId": "ff0e6594-cb34-49ef-983f-38c811eb5cd7",
+            "listItemUniqueId": "d883dfed-07bb-44c2-a812-6a1c516d8594",
+            "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7",
+            "siteUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+            "tenantId": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+            "webId": "5c429f61-a18b-46e8-aa4f-0768964b1577"
+          }
+        },
+        "fileSystemInfo": {
+          "createdDateTime": "2026-10-15T17:29:51Z",
+          "lastModifiedDateTime": "2026-10-15T17:29:51Z"
+        },
+        "folder": {
+          "childCount": 0
+        },
+        "shared": {
+          "scope": "unknown"
+        }
+      }
+    },
+    {
+      "operation": "find folder ll-sp-move-dst",
+      "endpoint": "GET <folder lookup>",
+      "status": 404,
+      "summary": "HTTP 404 (allowed)",
+      "response": {
+        "code": "itemNotFound",
+        "message": "The resource could not be found."
+      }
+    },
+    {
+      "operation": "create folder ll-sp-move-dst",
+      "endpoint": "POST <parent>/children",
+      "status": 201,
+      "summary": "id=01RQLOFTSECQI26OQHRVEYX7BW74WAFVKR",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/root/children/$entity",
+        "@odata.etag": "\"{AF111444-073A-498D-8BFC-36FF2C02D551},1\"",
+        "eTag": "\"{AF111444-073A-498D-8BFC-36FF2C02D551},1\"",
+        "lastModifiedDateTime": "2026-10-15T17:29:52Z",
+        "createdDateTime": "2026-10-15T17:29:52Z",
+        "id": "01RQLOFTSECQI26OQHRVEYX7BW74WAFVKR",
+        "name": "ll-sp-move-dst",
+        "size": 0,
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-move-dst",
+        "commentSettings": {
+          "commentingDisabled": {
+            "isDisabled": false
+          }
+        },
+        "createdBy": {
+          "application": {
+            "displayName": "Microsoft Graph",
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "lastModifiedBy": {
+          "application": {
+            "displayName": "Microsoft Graph",
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "parentReference": {
+          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+          "driveType": "documentLibrary",
+          "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:",
+          "sharepointIds": {
+            "listId": "ff0e6594-cb34-49ef-983f-38c811eb5cd7",
+            "listItemUniqueId": "d883dfed-07bb-44c2-a812-6a1c516d8594",
+            "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7",
+            "siteUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+            "tenantId": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+            "webId": "5c429f61-a18b-46e8-aa4f-0768964b1577"
+          }
+        },
+        "fileSystemInfo": {
+          "createdDateTime": "2026-10-15T17:29:52Z",
+          "lastModifiedDateTime": "2026-10-15T17:29:52Z"
+        },
+        "folder": {
+          "childCount": 0
+        },
+        "shared": {
+          "scope": "unknown"
+        }
+      }
+    },
+    {
+      "operation": "upload ll-sp-move.txt",
+      "endpoint": "PUT <folder>:/<file>:/content",
+      "status": 201,
+      "summary": "id=01RQLOFTV2BQ67ACJQAFCIEHJD6BC7LNRL",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/items/$entity",
+        "@microsoft.graph.downloadUrl": "<redacted>",
+        "createdDateTime": "2026-10-15T17:29:53Z",
+        "eTag": "\"{F03D0CBA-3009-4401-821D-23F045F5B62B},1\"",
+        "id": "01RQLOFTV2BQ67ACJQAFCIEHJD6BC7LNRL",
+        "lastModifiedDateTime": "2026-10-15T17:29:53Z",
+        "name": "ll-sp-move.txt",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-move-src/ll-sp-move.txt",
+        "cTag": "\"c:{F03D0CBA-3009-4401-821D-23F045F5B62B},1\"",
+        "isAuthoritative": false,
+        "size": 18,
+        "createdBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "lastModifiedBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "parentReference": {
+          "driveType": "documentLibrary",
+          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+          "id": "01RQLOFTTDN6N2ABLBMJEYY2NYHSNHUA5J",
+          "name": "ll-sp-move-src",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:/ll-sp-move-src",
+          "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7"
+        },
+        "file": {
+          "mimeType": "text/plain",
+          "hashes": {
+            "quickXorHash": "LSY3SNbAhDCIAQRtaoMdygACOpQ="
+          }
+        },
+        "fileSystemInfo": {
+          "createdDateTime": "2026-10-15T17:29:53Z",
+          "lastModifiedDateTime": "2026-10-15T17:29:53Z"
+        },
+        "shared": {
+          "scope": "users"
+        }
+      }
+    },
+    {
+      "operation": "break inheritance (FILE, in source)",
+      "endpoint": "POST <item>/breakroleinheritance(copyRoleAssignments=false,clearSubscopes=true)",
+      "status": 200,
+      "summary": "ok",
+      "response": {
+        "odata.null": true
+      }
+    },
+    {
+      "operation": "ensureuser (user)",
+      "endpoint": "POST /_api/web/ensureuser",
+      "status": 200,
+      "summary": "Id=14 LoginName=i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com type=1",
+      "response": {
+        "Id": 14,
+        "IsHiddenInUI": false,
+        "LoginName": "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com",
+        "Title": "ll-probe-a",
+        "PrincipalType": 1,
+        "Email": "",
+        "Expiration": "",
+        "IsEmailAuthenticationGuestUser": false,
+        "IsShareByEmailGuestUser": false,
+        "IsSiteAdmin": false,
+        "UserId": {
+          "NameId": "1003200657406d48",
+          "NameIdIssuer": "urn:federation:microsoftonline"
+        },
+        "UserPrincipalName": "ll-probe-a@leaklabdev.onmicrosoft.com"
+      }
+    },
+    {
+      "operation": "grant Read to USER on FILE",
+      "endpoint": "POST <item>/roleassignments/addroleassignment(principalid,roledefid)",
+      "status": 200,
+      "summary": "ok",
+      "response": {
+        "odata.null": true
+      }
+    },
+    {
+      "operation": "break inheritance (DESTINATION folder)",
+      "endpoint": "POST <item>/breakroleinheritance(copyRoleAssignments=false,clearSubscopes=true)",
+      "status": 200,
+      "summary": "ok",
+      "response": {
+        "odata.null": true
+      }
+    },
+    {
+      "operation": "grant Read to GROUP on DESTINATION",
+      "endpoint": "POST <item>/roleassignments/addroleassignment(principalid,roledefid)",
+      "status": 200,
+      "summary": "ok",
+      "response": {
+        "odata.null": true
+      }
+    },
+    {
+      "operation": "REST unique flag: file (before move)",
+      "endpoint": "GET <item>?$select=HasUniqueRoleAssignments",
+      "status": 200,
+      "summary": "HasUniqueRoleAssignments=True",
+      "response": {
+        "HasUniqueRoleAssignments": true
+      }
+    },
+    {
+      "operation": "REST roleassignments: file (before move)",
+      "endpoint": "GET <item>/roleassignments?$expand=Member,RoleDefinitionBindings",
+      "status": 200,
+      "summary": "ll-probe-a -> ['Read']",
+      "response": {
+        "value": [
+          {
+            "Member": {
+              "Id": 14,
+              "IsHiddenInUI": false,
+              "LoginName": "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com",
+              "Title": "ll-probe-a",
+              "PrincipalType": 1,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": {
+                "NameId": "1003200657406d48",
+                "NameIdIssuer": "urn:federation:microsoftonline"
+              },
+              "UserPrincipalName": "ll-probe-a@leaklabdev.onmicrosoft.com"
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "176",
+                  "Low": "138612833"
+                },
+                "Description": "Can view pages and list items and download documents.",
+                "Hidden": false,
+                "Id": 1073741826,
+                "Name": "Read",
+                "Order": 128,
+                "RoleTypeKind": 2
+              }
+            ],
+            "PrincipalId": 14
+          }
+        ]
+      }
+    },
+    {
+      "operation": "REST unique flag: destination folder",
+      "endpoint": "GET <item>?$select=HasUniqueRoleAssignments",
+      "status": 200,
+      "summary": "HasUniqueRoleAssignments=True",
+      "response": {
+        "HasUniqueRoleAssignments": true
+      }
+    },
+    {
+      "operation": "REST roleassignments: destination folder",
+      "endpoint": "GET <item>/roleassignments?$expand=Member,RoleDefinitionBindings",
+      "status": 200,
+      "summary": "ll-probe-move-dst -> ['Read']",
+      "response": {
+        "value": [
+          {
+            "Member": {
+              "Id": 15,
+              "IsHiddenInUI": false,
+              "LoginName": "c:0t.c|tenant|377d43fa-c39a-40c9-8145-fb27af1cff9d",
+              "Title": "ll-probe-move-dst",
+              "PrincipalType": 4,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": null,
+              "UserPrincipalName": null
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "176",
+                  "Low": "138612833"
+                },
+                "Description": "Can view pages and list items and download documents.",
+                "Hidden": false,
+                "Id": 1073741826,
+                "Name": "Read",
+                "Order": 128,
+                "RoleTypeKind": 2
+              }
+            ],
+            "PrincipalId": 15
+          }
+        ]
+      }
+    },
+    {
+      "operation": "Graph permissions: file (before move)",
+      "endpoint": "GET /drives/{drive}/items/{id}/permissions",
+      "status": 200,
+      "summary": "2 entries",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/items('01RQLOFTV2BQ67ACJQAFCIEHJD6BC7LNRL')/permissions",
+        "value": [
+          {
+            "id": "aTowIy5mfG1lbWJlcnNoaXB8bGwtcHJvYmUtYUBsZWFrbGFiZGV2Lm9ubWljcm9zb2Z0LmNvbQ",
+            "roles": [
+              "read"
+            ],
+            "shareId": "aTowIy5mfG1lbWJlcnNoaXB8bGwtcHJvYmUtYUBsZWFrbGFiZGV2Lm9ubWljcm9zb2Z0LmNvbQ",
+            "grantedToV2": {
+              "siteUser": {
+                "displayName": "ll-probe-a",
+                "id": "14",
+                "loginName": "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com"
+              }
+            },
+            "grantedTo": {
+              "user": {
+                "displayName": "ll-probe-a",
+                "id": "14"
+              }
+            }
+          },
+          {
+            "id": "aTowIy5mfG1lbWJlcnNoaXB8aGFzc2Fuc2lkZGlxdWlAbGVha2xhYmRldi5vbm1pY3Jvc29mdC5jb20",
+            "roles": [
+              "owner"
+            ],
+            "shareId": "aTowIy5mfG1lbWJlcnNoaXB8aGFzc2Fuc2lkZGlxdWlAbGVha2xhYmRldi5vbm1pY3Jvc29mdC5jb20",
+            "grantedToV2": {
+              "user": {
+                "@odata.type": "#microsoft.graph.sharePointIdentity",
+                "displayName": "Hassan Siddiqui",
+                "email": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+                "id": "1a993a79-1c75-44b0-8ad4-e87488148353"
+              },
+              "siteUser": {
+                "displayName": "Hassan Siddiqui",
+                "email": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+                "id": "6",
+                "loginName": "i:0#.f|membership|hassansiddiqui@leaklabdev.onmicrosoft.com"
+              }
+            },
+            "grantedTo": {
+              "user": {
+                "displayName": "Hassan Siddiqui",
+                "email": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+                "id": "1a993a79-1c75-44b0-8ad4-e87488148353"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "operation": "move file",
+      "endpoint": "PATCH /drives/{drive}/items/{file-id}  {parentReference: {id: <destination>}}",
+      "status": 200,
+      "summary": "id=01RQLOFTV2BQ67ACJQAFCIEHJD6BC7LNRL parent=ll-sp-move-dst",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/items/$entity",
+        "@microsoft.graph.downloadUrl": "<redacted>",
+        "createdDateTime": "2026-10-15T17:29:53Z",
+        "eTag": "\"{F03D0CBA-3009-4401-821D-23F045F5B62B},2\"",
+        "id": "01RQLOFTV2BQ67ACJQAFCIEHJD6BC7LNRL",
+        "lastModifiedDateTime": "2026-10-15T17:29:53Z",
+        "name": "ll-sp-move.txt",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-move-dst/ll-sp-move.txt",
+        "cTag": "\"c:{F03D0CBA-3009-4401-821D-23F045F5B62B},1\"",
+        "isAuthoritative": false,
+        "size": 18,
+        "createdBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "lastModifiedBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "parentReference": {
+          "driveType": "documentLibrary",
+          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+          "id": "01RQLOFTSECQI26OQHRVEYX7BW74WAFVKR",
+          "name": "ll-sp-move-dst",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:/ll-sp-move-dst",
+          "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7"
+        },
+        "file": {
+          "mimeType": "text/plain",
+          "hashes": {
+            "quickXorHash": "LSY3SNbAhDCIAQRtaoMdygACOpQ="
+          }
+        },
+        "fileSystemInfo": {
+          "createdDateTime": "2026-10-15T17:29:53Z",
+          "lastModifiedDateTime": "2026-10-15T17:29:53Z"
+        },
+        "shared": {
+          "scope": "users"
+        }
+      }
+    },
+    {
+      "operation": "REST unique flag: file (after move)",
+      "endpoint": "GET <item>?$select=HasUniqueRoleAssignments",
+      "status": 200,
+      "summary": "HasUniqueRoleAssignments=True",
+      "response": {
+        "HasUniqueRoleAssignments": true
+      }
+    },
+    {
+      "operation": "REST roleassignments: file (after move)",
+      "endpoint": "GET <item>/roleassignments?$expand=Member,RoleDefinitionBindings",
+      "status": 200,
+      "summary": "ll-probe-a -> ['Read']",
+      "response": {
+        "value": [
+          {
+            "Member": {
+              "Id": 14,
+              "IsHiddenInUI": false,
+              "LoginName": "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com",
+              "Title": "ll-probe-a",
+              "PrincipalType": 1,
+              "Email": "",
+              "Expiration": "",
+              "IsEmailAuthenticationGuestUser": false,
+              "IsShareByEmailGuestUser": false,
+              "IsSiteAdmin": false,
+              "UserId": {
+                "NameId": "1003200657406d48",
+                "NameIdIssuer": "urn:federation:microsoftonline"
+              },
+              "UserPrincipalName": "ll-probe-a@leaklabdev.onmicrosoft.com"
+            },
+            "RoleDefinitionBindings": [
+              {
+                "BasePermissions": {
+                  "High": "176",
+                  "Low": "138612833"
+                },
+                "Description": "Can view pages and list items and download documents.",
+                "Hidden": false,
+                "Id": 1073741826,
+                "Name": "Read",
+                "Order": 128,
+                "RoleTypeKind": 2
+              }
+            ],
+            "PrincipalId": 14
+          }
+        ]
+      }
+    },
+    {
+      "operation": "Graph permissions: file (after move)",
+      "endpoint": "GET /drives/{drive}/items/{id}/permissions",
+      "status": 200,
+      "summary": "2 entries",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/items('01RQLOFTV2BQ67ACJQAFCIEHJD6BC7LNRL')/permissions",
+        "value": [
+          {
+            "id": "aTowIy5mfG1lbWJlcnNoaXB8bGwtcHJvYmUtYUBsZWFrbGFiZGV2Lm9ubWljcm9zb2Z0LmNvbQ",
+            "roles": [
+              "read"
+            ],
+            "shareId": "aTowIy5mfG1lbWJlcnNoaXB8bGwtcHJvYmUtYUBsZWFrbGFiZGV2Lm9ubWljcm9zb2Z0LmNvbQ",
+            "grantedToV2": {
+              "siteUser": {
+                "displayName": "ll-probe-a",
+                "id": "14",
+                "loginName": "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com"
+              }
+            },
+            "grantedTo": {
+              "user": {
+                "displayName": "ll-probe-a",
+                "id": "14"
+              }
+            }
+          },
+          {
+            "id": "aTowIy5mfG1lbWJlcnNoaXB8aGFzc2Fuc2lkZGlxdWlAbGVha2xhYmRldi5vbm1pY3Jvc29mdC5jb20",
+            "roles": [
+              "owner"
+            ],
+            "shareId": "aTowIy5mfG1lbWJlcnNoaXB8aGFzc2Fuc2lkZGlxdWlAbGVha2xhYmRldi5vbm1pY3Jvc29mdC5jb20",
+            "grantedToV2": {
+              "user": {
+                "@odata.type": "#microsoft.graph.sharePointIdentity",
+                "displayName": "Hassan Siddiqui",
+                "email": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+                "id": "1a993a79-1c75-44b0-8ad4-e87488148353"
+              },
+              "siteUser": {
+                "displayName": "Hassan Siddiqui",
+                "email": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+                "id": "6",
+                "loginName": "i:0#.f|membership|hassansiddiqui@leaklabdev.onmicrosoft.com"
+              }
+            },
+            "grantedTo": {
+              "user": {
+                "displayName": "Hassan Siddiqui",
+                "email": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+                "id": "1a993a79-1c75-44b0-8ad4-e87488148353"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "prefix": "ll-",
+  "site_url": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+  "ids": {
+    "site_id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+    "drive_id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+    "drive_name": "Documents",
+    "library_server_relative_url": "/sites/LeakLab/Shared Documents",
+    "read_role_definition_id": 1073741826,
+    "file_id_before": "01RQLOFTV2BQ67ACJQAFCIEHJD6BC7LNRL",
+    "file_id_after": "01RQLOFTV2BQ67ACJQAFCIEHJD6BC7LNRL"
+  },
+  "users": {
+    "ll-probe-a": {
+      "id": "d4a709aa-ab6f-45c5-9182-3b77e3d70222",
+      "upn": "ll-probe-a@leaklabdev.onmicrosoft.com",
+      "state": "reused"
+    }
+  },
+  "groups": {
+    "ll-probe-move-dst": {
+      "id": "377d43fa-c39a-40c9-8145-fb27af1cff9d",
+      "state": "created"
+    }
+  },
+  "snapshots": {
+    "file (before move)": {
+      "unique": true,
+      "assignments": [
+        {
+          "member": "ll-probe-a",
+          "login": "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com",
+          "principal_type": 1,
+          "roles": [
+            "Read"
+          ]
+        }
+      ]
+    },
+    "destination folder": {
+      "unique": true,
+      "assignments": [
+        {
+          "member": "ll-probe-move-dst",
+          "login": "c:0t.c|tenant|377d43fa-c39a-40c9-8145-fb27af1cff9d",
+          "principal_type": 4,
+          "roles": [
+            "Read"
+          ]
+        }
+      ]
+    },
+    "file (after move)": {
+      "unique": true,
+      "assignments": [
+        {
+          "member": "ll-probe-a",
+          "login": "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com",
+          "principal_type": 1,
+          "roles": [
+            "Read"
+          ]
+        }
+      ]
+    }
+  },
+  "graph_snapshots": {
+    "file (before move)": [
+      {
+        "who": "ll-probe-a",
+        "login": "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com",
+        "roles": [
+          "read"
+        ]
+      },
+      {
+        "who": "Hassan Siddiqui",
+        "login": "i:0#.f|membership|hassansiddiqui@leaklabdev.onmicrosoft.com",
+        "roles": [
+          "owner"
+        ]
+      }
+    ],
+    "file (after move)": [
+      {
+        "who": "ll-probe-a",
+        "login": "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com",
+        "roles": [
+          "read"
+        ]
+      },
+      {
+        "who": "Hassan Siddiqui",
+        "login": "i:0#.f|membership|hassansiddiqui@leaklabdev.onmicrosoft.com",
+        "roles": [
+          "owner"
+        ]
+      }
+    ]
+  },
+  "evaluation": {
+    "item_id_unchanged": true,
+    "file_kept_own_unique_permissions": true,
+    "file_now_inherits_destination": false,
+    "before_unique": true,
+    "after_unique": true,
+    "graph_principals_before": [
+      "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com",
+      "i:0#.f|membership|hassansiddiqui@leaklabdev.onmicrosoft.com"
+    ],
+    "graph_principals_after": [
+      "i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com",
+      "i:0#.f|membership|hassansiddiqui@leaklabdev.onmicrosoft.com"
+    ]
+  }
+}
