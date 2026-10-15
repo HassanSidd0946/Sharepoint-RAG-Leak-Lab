@@ -266,3 +266,41 @@ def test_tokens_and_passwords_never_logged(
     assert "sig-should-never-be-logged" not in caplog.text
     assert PASSWORD not in caplog.text
     assert "acquired" in caplog.text
+
+
+def test_device_code_disabled_stops_on_interaction_required(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake = use_fake(monkeypatch)
+    fake.ropc = {
+        "error": "invalid_grant",
+        "error_codes": [50076],
+        "error_description": "AADSTS50076: MFA needed\nTrace ID: x",
+    }
+    with pytest.raises(auth.PersonaSignInError) as exc:
+        auth.get_persona_token(UPN, SCOPES, allow_device_code=False)
+    assert fake.calls == ["ropc"]  # no device flow
+    assert exc.value.error_codes == [50076]
+    assert exc.value.interaction_required is True
+    assert "MFA needed" in exc.value.description
+    assert exc.value.upn == UPN
+
+
+def test_persona_sign_in_error_for_wrong_password_is_structured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake = use_fake(monkeypatch)
+    fake.ropc = {"error": "invalid_grant", "error_codes": [50126], "error_description": "bad pw"}
+    with pytest.raises(auth.PersonaSignInError) as exc:
+        auth.get_persona_token(UPN, SCOPES, allow_device_code=False)
+    assert exc.value.error == "invalid_grant"
+    assert exc.value.error_codes == [50126]
+    assert exc.value.interaction_required is False
+
+
+def test_device_code_disabled_without_password(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(auth, "get_settings", lambda: make_settings(persona_password=""))
+    fake = use_fake(monkeypatch)
+    with pytest.raises(auth.AuthError, match="device code is disabled"):
+        auth.get_persona_token(UPN, SCOPES, allow_device_code=False)
+    assert fake.calls == []

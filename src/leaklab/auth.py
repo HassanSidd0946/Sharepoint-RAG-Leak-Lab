@@ -38,6 +38,22 @@ class AuthError(RuntimeError):
     """Token acquisition failed or was refused. Never contains a token or password."""
 
 
+class PersonaSignInError(AuthError):
+    """Username/password sign-in was refused. Carries the exact error for probes to report.
+
+    `error_codes` are the AADSTS numbers; `description` is the full (secret-free) text from
+    Entra; `interaction_required` is True for MFA / consent style errors.
+    """
+
+    def __init__(self, upn: str, result: dict[str, Any]) -> None:
+        super().__init__(f"Username/password sign-in failed for {upn}: {_describe_error(result)}")
+        self.upn = upn
+        self.error = str(result.get("error", "unknown_error"))
+        self.error_codes: list[int] = [int(c) for c in result.get("error_codes") or []]
+        self.description = str(result.get("error_description", ""))
+        self.interaction_required = needs_interaction(result)
+
+
 def sp_scope(settings: Settings | None = None) -> str:
     """Return the app-only SharePoint scope, "https://{SP_HOST}/.default"."""
     host = (settings or get_settings()).sp_host.strip()
@@ -126,10 +142,12 @@ def get_app_token(scope: str) -> str:
     return _access_token(result, "app-only")
 
 
-def get_persona_token(upn: str, scopes: list[str]) -> str:
+def get_persona_token(upn: str, scopes: list[str], *, allow_device_code: bool = True) -> str:
     """Get a delegated token for persona `upn`.
 
-    Order: cached token -> username/password -> device code (only if a human step is needed).
+    Order: cached token -> username/password -> device code (only if a human step is needed
+    and `allow_device_code` is True). With `allow_device_code=False`, any sign-in error,
+    including MFA or consent, raises PersonaSignInError instead of starting device code.
     The returned token is verified to belong to `upn`; a mismatch raises AuthError.
     """
     if not upn.strip() or not scopes:
@@ -152,11 +170,11 @@ def get_persona_token(upn: str, scopes: list[str]) -> str:
         )
         if result.get("access_token"):
             return _verified(result, upn)
-        if not needs_interaction(result):
-            raise AuthError(
-                f"Username/password sign-in failed for {upn}: {_describe_error(result)}"
-            )
+        if not allow_device_code or not needs_interaction(result):
+            raise PersonaSignInError(upn, result)
         log.warning("interaction required for %s; falling back to device code", upn)
+    elif not allow_device_code:
+        raise AuthError("LEAKLAB_PERSONA_PASSWORD is not set and device code is disabled.")
     else:
         log.warning("LEAKLAB_PERSONA_PASSWORD not set; using device code for %s", upn)
 
@@ -184,6 +202,7 @@ def _verified(result: dict[str, Any], upn: str) -> str:
         if v
     }
     if upn.lower() not in names:
-        # UNVERIFIED: that preferred_username / upn are always present for our personas.
+        # The `upn` claim is present in persona access tokens (verified 2026-10-15).
+        # UNVERIFIED: that id_token_claims.preferred_username is present (never needed so far).
         raise AuthError(f"Token was not issued to {upn} (got {sorted(names) or 'no identity'}).")
     return token

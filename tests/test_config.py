@@ -106,3 +106,8 @@ def test_redact_payload_strips_download_urls_links_and_secrets() -> None:
     assert out["value"][1]["grantedToV2"]["user"]["displayName"] == "Ivy"
     assert out["nested"] == {"Password": "<redacted>", "keep": 1}
     assert payload["nested"]["Password"] == "pw"  # input not mutated
+
+
+def test_usage_location_setting(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LEAKLAB_USAGE_LOCATION", "US")
+    assert Settings(_env_file=None).usage_location == "US"  # type: ignore[call-arg]

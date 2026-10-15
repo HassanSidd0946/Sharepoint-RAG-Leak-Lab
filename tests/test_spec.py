@@ -8,7 +8,15 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from leaklab.spec import TenantSpec, generate_canaries, load_spec, special_key
+from leaklab.spec import (
+    TenantSpec,
+    generate_canaries,
+    group_display_name,
+    load_spec,
+    special_key,
+    user_mail_nickname,
+    user_upn,
+)
 
 REPO_SPEC = Path(__file__).resolve().parents[1] / "tenant_spec.yaml"
 
@@ -242,3 +250,20 @@ def test_canary_collision_detected() -> None:
     with pytest.raises(ValueError, match="canary collision"):
         generate_canaries(TenantSpec.model_validate(data))
     assert generate_canaries(spec)
+
+
+def test_name_helpers_use_prefix_and_domain() -> None:
+    spec = load_spec(REPO_SPEC)
+    assert user_upn(spec, "p-intern") == f"ll-p-intern@{spec.naming.domain}"
+    assert user_mail_nickname(spec, "p-intern") == "ll-p-intern"
+    assert group_display_name(spec, "grp-hr") == "ll-grp-hr"
+
+
+def test_name_helpers_reject_unknown_ids() -> None:
+    spec = load_spec(REPO_SPEC)
+    with pytest.raises(ValueError):
+        user_upn(spec, "nobody")
+    with pytest.raises(ValueError):
+        user_mail_nickname(spec, "grp-hr")  # a group id is not a user id
+    with pytest.raises(ValueError):
+        group_display_name(spec, "p-intern")

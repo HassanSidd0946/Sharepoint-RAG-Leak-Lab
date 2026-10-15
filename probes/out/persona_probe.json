@@ -1,0 +1,95 @@
+{
+  "probe": "persona_probe",
+  "run_at": "2026-10-15T16:44:54.205427+00:00",
+  "status": "ok",
+  "mode": "probe",
+  "usage_location": "US",
+  "users": [
+    {
+      "spec_id": "p-intern",
+      "upn": "ll-p-intern@leaklabdev.onmicrosoft.com",
+      "licensed_in_spec": true,
+      "state": "created",
+      "object_id": "5ac7522a-28de-4fff-978a-8dcd4bea1dd8",
+      "license": "assigned",
+      "assigned_sku_ids_after": [],
+      "sign_in_attempts": [
+        {
+          "elapsed_s": 12.6,
+          "ok": true
+        }
+      ],
+      "time_to_sign_in_s": 12.6,
+      "error_codes_seen": [],
+      "claims": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://graph.microsoft.com",
+        "scp": "Files.Read.All GroupMember.Read.All Sites.Read.All User.Read profile openid email",
+        "oid": "5ac7522a-28de-4fff-978a-8dcd4bea1dd8",
+        "upn": "ll-p-intern@leaklabdev.onmicrosoft.com",
+        "appid": "b50a2418-9e90-4246-911c-76a43b97791a",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792088109
+      },
+      "me": {
+        "status": 200,
+        "id": "5ac7522a-28de-4fff-978a-8dcd4bea1dd8",
+        "upn": "ll-p-intern@leaklabdev.onmicrosoft.com",
+        "matches_expected_user": true
+      }
+    },
+    {
+      "spec_id": "p-plateng",
+      "upn": "ll-p-plateng@leaklabdev.onmicrosoft.com",
+      "licensed_in_spec": true,
+      "state": "created",
+      "object_id": "b3c9e175-1e20-4d5d-b63d-f933cfa1bc1c",
+      "license": "assigned",
+      "assigned_sku_ids_after": [],
+      "sign_in_attempts": [
+        {
+          "elapsed_s": 9.4,
+          "ok": true
+        }
+      ],
+      "time_to_sign_in_s": 9.4,
+      "error_codes_seen": [],
+      "claims": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://graph.microsoft.com",
+        "scp": "Files.Read.All GroupMember.Read.All Sites.Read.All User.Read profile openid email",
+        "oid": "b3c9e175-1e20-4d5d-b63d-f933cfa1bc1c",
+        "upn": "ll-p-plateng@leaklabdev.onmicrosoft.com",
+        "appid": "b50a2418-9e90-4246-911c-76a43b97791a",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792086915
+      },
+      "me": {
+        "status": 200,
+        "id": "b3c9e175-1e20-4d5d-b63d-f933cfa1bc1c",
+        "upn": "ll-p-plateng@leaklabdev.onmicrosoft.com",
+        "matches_expected_user": true
+      }
+    }
+  ],
+  "subscribed_skus": [
+    {
+      "skuPartNumber": "O365_BUSINESS_ESSENTIALS",
+      "skuId": "3b555118-da6a-4418-894f-7df1e2096870",
+      "appliesTo": "User",
+      "capabilityStatus": "Enabled",
+      "enabledUnits": 25,
+      "consumedUnits": 1,
+      "availableUnits": 24
+    }
+  ],
+  "chosen_sku": {
+    "skuPartNumber": "O365_BUSINESS_ESSENTIALS",
+    "skuId": "3b555118-da6a-4418-894f-7df1e2096870",
+    "appliesTo": "User",
+    "capabilityStatus": "Enabled",
+    "enabledUnits": 25,
+    "consumedUnits": 1,
+    "availableUnits": 24
+  }
+}

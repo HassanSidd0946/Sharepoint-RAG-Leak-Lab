@@ -165,9 +165,17 @@ class GraphClient:
     # -- users -----------------------------------------------------------------------------
 
     def create_user(
-        self, upn: str, display_name: str, mail_nickname: str, password: str
+        self,
+        upn: str,
+        display_name: str,
+        mail_nickname: str,
+        password: str,
+        usage_location: str | None = None,
     ) -> dict[str, Any]:
-        """POST /users. Does not force a password change. Returns the created user."""
+        """POST /users. Does not force a password change. Returns the created user.
+
+        `usage_location` (two-letter country code) is required before a license can be assigned.
+        """
         body: dict[str, Any] = {
             "accountEnabled": True,
             "displayName": display_name,
@@ -175,7 +183,42 @@ class GraphClient:
             "userPrincipalName": upn,
             "passwordProfile": {"forceChangePasswordNextSignIn": False, "password": password},
         }
+        if usage_location:
+            body["usageLocation"] = usage_location
         result: dict[str, Any] = self.request("POST", "/users", json=body).json()
+        return result
+
+    def get_user_licensing(self, user_id: str) -> dict[str, Any]:
+        """GET /users/{id}?$select=id,usageLocation,assignedLicenses."""
+        return self.get(f"/users/{user_id}", {"$select": "id,usageLocation,assignedLicenses"})
+
+    def update_user(self, user_id: str, changes: dict[str, Any]) -> None:
+        """PATCH /users/{id}."""
+        self.request("PATCH", f"/users/{user_id}", json=changes)
+
+    def list_subscribed_skus(self) -> list[dict[str, Any]]:
+        """GET /subscribedSkus: the license SKUs this tenant owns (never hardcode a SKU id).
+
+        Returned 403 with the driver app's original four roles, and 200 after an extra
+        permission was granted (verified 2026-10-15). Per Microsoft's docs the least-privileged
+        application permission is LicenseAssignment.Read.All.
+        """
+        return self.get_paged("/subscribedSkus")
+
+    def assign_license(self, user_id: str, sku_id: str) -> dict[str, Any]:
+        """POST /users/{id}/assignLicense with one SKU and no disabled plans.
+
+        Works with the driver app's User.ReadWrite.All (verified 2026-10-15). NOTE: a read of
+        assignedLicenses right after this call was still empty, so do not treat an immediate
+        read as proof the license is (or is not) applied.
+        """
+        body: dict[str, Any] = {
+            "addLicenses": [{"skuId": sku_id, "disabledPlans": []}],
+            "removeLicenses": [],
+        }
+        result: dict[str, Any] = self.request(
+            "POST", f"/users/{user_id}/assignLicense", json=body
+        ).json()
         return result
 
     def get_user_by_upn(self, upn: str) -> dict[str, Any] | None:

@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     persona_password: SecretStr = SecretStr("")
     site_url: str = ""
     sp_host: str = ""
+    usage_location: str = ""  # two-letter country code, needed before assigning licenses
 
 
 @lru_cache(maxsize=1)

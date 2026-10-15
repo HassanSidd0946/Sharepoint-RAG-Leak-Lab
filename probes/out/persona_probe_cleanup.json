@@ -1,0 +1,16 @@
+{
+  "probe": "persona_probe",
+  "run_at": "2026-10-15T16:45:53.934900+00:00",
+  "status": "ok",
+  "mode": "cleanup",
+  "deleted": [
+    {
+      "upn": "ll-p-intern@leaklabdev.onmicrosoft.com",
+      "id": "5ac7522a-28de-4fff-978a-8dcd4bea1dd8"
+    },
+    {
+      "upn": "ll-p-plateng@leaklabdev.onmicrosoft.com",
+      "id": "b3c9e175-1e20-4d5d-b63d-f933cfa1bc1c"
+    }
+  ]
+}

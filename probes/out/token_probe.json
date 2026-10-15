@@ -1,6 +1,6 @@
 {
   "probe": "token_probe",
-  "run_at": "2026-10-15T15:28:22.090926+00:00",
+  "run_at": "2026-10-15T16:51:12.996616+00:00",
   "status": "ok",
   "tokens": {
     "app-only Graph": {
@@ -8,6 +8,7 @@
       "aud": "https://graph.microsoft.com",
       "roles": [
         "User.ReadWrite.All",
+        "LicenseAssignment.Read.All",
         "Group.ReadWrite.All",
         "Files.ReadWrite.All",
         "Sites.FullControl.All"
@@ -15,7 +16,7 @@
       "oid": "a34ceda0-5d19-44fc-bfa5-bca1388a0a8b",
       "appid": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
       "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
-      "exp": 1792081705
+      "exp": 1792086677
     },
     "app-only SharePoint": {
       "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
@@ -26,7 +27,7 @@
       "oid": "a34ceda0-5d19-44fc-bfa5-bca1388a0a8b",
       "appid": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
       "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
-      "exp": 1792081705
+      "exp": 1792086678
     }
   },
   "organization_request": {

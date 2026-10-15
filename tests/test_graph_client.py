@@ -300,3 +300,44 @@ def test_raw_content_and_extra_headers_for_uploads() -> None:
     assert req.content == b"hello"
     assert req.headers["Content-Type"] == "text/plain"
     assert req.headers["Authorization"] == "Bearer fake-token"
+
+
+def test_create_user_includes_usage_location_only_when_given() -> None:
+    bodies: list[dict[str, Any]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        bodies.append(json.loads(request.content))
+        return httpx.Response(201, json={"id": "u1"})
+
+    client, _, _ = make_client(handler)
+    client.create_user("a@x.com", "A", "a", "pw")
+    client.create_user("a@x.com", "A", "a", "pw", usage_location="US")
+    assert "usageLocation" not in bodies[0]
+    assert bodies[1]["usageLocation"] == "US"
+
+
+def test_license_methods() -> None:
+    seen: list[tuple[str, str, Any, dict[str, str]]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content) if request.content else None
+        seen.append((request.method, request.url.path, body, dict(request.url.params)))
+        if request.url.path.endswith("/subscribedSkus"):
+            return httpx.Response(200, json={"value": [{"skuId": "s1"}]})
+        if request.method == "PATCH":
+            return httpx.Response(204)
+        return httpx.Response(200, json={"id": "u1"})
+
+    client, _, _ = make_client(handler)
+    assert client.list_subscribed_skus() == [{"skuId": "s1"}]
+    client.get_user_licensing("u1")
+    client.update_user("u1", {"usageLocation": "US"})
+    client.assign_license("u1", "sku-1")
+    assert seen[0][:2] == ("GET", "/v1.0/subscribedSkus")
+    assert seen[1][3]["$select"] == "id,usageLocation,assignedLicenses"
+    assert seen[2][:3] == ("PATCH", "/v1.0/users/u1", {"usageLocation": "US"})
+    assert seen[3][1] == "/v1.0/users/u1/assignLicense"
+    assert seen[3][2] == {
+        "addLicenses": [{"skuId": "sku-1", "disabledPlans": []}],
+        "removeLicenses": [],
+    }

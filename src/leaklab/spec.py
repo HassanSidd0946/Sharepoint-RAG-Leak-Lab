@@ -321,3 +321,28 @@ def generate_canaries(spec: TenantSpec) -> dict[str, list[str]]:
         seen[canary] = key
         result[key] = [canary]
     return result
+
+
+def user_upn(spec: TenantSpec, user_id: str) -> str:
+    """UPN for a generated user: "<prefix><id>@<domain>", e.g. ll-p-intern@tenant.onmicrosoft.com.
+
+    The display name (e.g. "Ivy Intern") does not carry the prefix, so teardown and lookups
+    must match on the UPN / mail nickname instead.
+    """
+    if user_id not in spec.user_ids:
+        raise ValueError(f"unknown user id {user_id!r}")
+    return f"{spec.naming.prefix}{user_id}@{spec.naming.domain}"
+
+
+def user_mail_nickname(spec: TenantSpec, user_id: str) -> str:
+    """Mail nickname for a generated user: "<prefix><id>"."""
+    if user_id not in spec.user_ids:
+        raise ValueError(f"unknown user id {user_id!r}")
+    return f"{spec.naming.prefix}{user_id}"
+
+
+def group_display_name(spec: TenantSpec, group_id: str) -> str:
+    """Display name (and mail nickname) of a generated group: "<prefix><id>"."""
+    if group_id not in spec.group_ids:
+        raise ValueError(f"unknown group id {group_id!r}")
+    return f"{spec.naming.prefix}{group_id}"

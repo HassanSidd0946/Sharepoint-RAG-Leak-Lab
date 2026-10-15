@@ -116,6 +116,59 @@ endpoint, what we expected, what actually happened, and a doc link if any.
   `--cleanup`; objects were found by exact name and prefix `ll-probe-`.
 - Probe output: probes/out/graph_probe_cleanup.json (delete report)
 
+### GET /subscribedSkus is denied with the driver app's four roles
+- Date: 2026-10-15
+- Endpoint: `GET https://graph.microsoft.com/v1.0/subscribedSkus` (app-only token whose roles are
+  `User.ReadWrite.All`, `Group.ReadWrite.All`, `Files.ReadWrite.All`, `Sites.FullControl.All`)
+- Expected: unknown (marked UNVERIFIED in `graph_client.py`).
+- Actual: HTTP 403 `Authorization_RequestDenied` ("Insufficient privileges to complete the
+  operation"). `persona_probe.py` stopped there; nothing was created.
+- Fix (per Microsoft's docs, not yet tried): grant the application permission
+  `LicenseAssignment.Read.All` (least privileged; `Directory.Read.All` and
+  `Organization.Read.All` also qualify) to the driver app and grant admin consent. For
+  `POST /users/{id}/assignLicense` the docs list `User.ReadWrite.All` as sufficient, which the
+  app already has.
+- Resolved: the driver app was granted `LicenseAssignment.Read.All` (application) and the same call
+  then returned 200 (one SKU). Confirmed by `token_probe.py` on 2026-10-15: the Graph app token's
+  roles are now `User.ReadWrite.All`, `LicenseAssignment.Read.All`, `Group.ReadWrite.All`,
+  `Files.ReadWrite.All`, `Sites.FullControl.All`. The SharePoint token is unchanged
+  (`Sites.FullControl.All`, same audience), the tenant guard passed and `/organization` returned
+  200 again. The grant matches what Microsoft's docs list as least privileged for this call.
+- Probe output: probes/out/persona_probe.json (`error` field, first run)
+- Docs: https://learn.microsoft.com/en-us/graph/api/subscribedsku-list?view=graph-rest-1.0 ,
+  https://learn.microsoft.com/en-us/graph/api/user-assignlicense?view=graph-rest-1.0
+
+### Persona sign-in works end to end (username/password, no MFA, no propagation errors)
+- Date: 2026-10-15
+- Endpoint: token endpoint, ROPC via `auth.get_persona_token(..., allow_device_code=False)`, scope
+  `https://graph.microsoft.com/User.Read`; then `GET /v1.0/me`
+- Expected: possibly MFA / consent / public-client errors, or "user not found yet" errors right
+  after creation (the probe was set to retry 50034 and 50126).
+- Actual: both users (`ll-p-intern`, `ll-p-plateng`, created seconds earlier with the persona
+  password and `usageLocation`) signed in on the FIRST attempt, 12.6s and 9.4s after the probe
+  created them (that time includes the license calls). No error code appeared for either user.
+  So in this tenant: the persona app allows public-client flows, delegated consent is in place
+  and security defaults / Conditional Access did not block ROPC.
+- Token: `aud` = `https://graph.microsoft.com`, `appid` = the persona client id, `scp` = `Files.Read.All
+  GroupMember.Read.All Sites.Read.All User.Read profile openid email`, `upn` and `oid` present and
+  equal to the created user, v1-style issuer. `GET /me` returned 200 with the same id and UPN for
+  both. The `upn` claim is therefore usable for `auth._verified`.
+- Not exercised: the retry path (no error occurred) and the MFA / consent error codes.
+- Probe output: probes/out/persona_probe.json
+- Docs: n/a
+
+### Licenses: SKU discovery works; assignedLicenses did not show the license right away
+- Date: 2026-10-15
+- Endpoint: `GET /v1.0/subscribedSkus`, `POST /v1.0/users/{id}/assignLicense`,
+  `GET /v1.0/users/{id}?$select=id,usageLocation,assignedLicenses`
+- Actual: the tenant has exactly one SKU, `O365_BUSINESS_ESSENTIALS` (appliesTo `User`, `Enabled`,
+  25 enabled, 1 consumed before the run), so auto-selection worked without a hardcoded id.
+  `POST /users` with `usageLocation` and `assignLicense` both succeeded (HTTP 200) for both users.
+  However, `assignedLicenses` read straight after the call was EMPTY for both users. Whether and
+  when it fills in was not observed (the users were deleted afterwards).
+- Probe output: probes/out/persona_probe.json (`assigned_sku_ids_after`)
+- Docs: https://learn.microsoft.com/en-us/graph/api/user-assignlicense?view=graph-rest-1.0
+
 ### Persona sign-in with a nonexistent user fails with AADSTS50034 (no device-code fallback)
 - Date: 2026-10-15
 - Endpoint: token endpoint, username/password (ROPC) via `auth.get_persona_token`
@@ -249,9 +302,13 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 
 ## Open questions
 
-- [ ] Persona sign-in (username/password): persona users do not exist yet (generator not
-  written), so the persona app, public-client-flow setting, MFA/consent codes
-  (`INTERACTION_ERROR_CODES` in `auth.py`) and `preferred_username`/`upn` claims are untested.
+- [ ] Persona sign-in works for two LICENSED users. Not yet tested: UNLICENSED personas (four in
+  the spec: p-finana, p-finlead, p-hr, p-ceo), whether any "not propagated yet" error exists
+  (none seen), and the MFA/consent codes (`INTERACTION_ERROR_CODES` in `auth.py`).
+- [ ] How long until `assignedLicenses` shows the license after `assignLicense`, and whether the
+  license matters for SharePoint access or for the Azure AI Search ACL view.
+- [ ] Re-creating the same UPN after `--cleanup` deleted it: re-running `persona_probe.py` tests
+  this for `ll-p-intern` / `ll-p-plateng` (they were deleted).
 - [ ] The retry policy (`http_retry.py`: 429/503/504, Retry-After, backoff) is only unit-tested
   with mocks; no real throttling response has been seen yet.
 - [ ] How long can transitiveMemberOf stay inconsistent, and does it flap? One sample only
