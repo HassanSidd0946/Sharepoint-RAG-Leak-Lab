@@ -1,0 +1,37 @@
+{
+  "probe": "graph_probe",
+  "run_at": "2026-10-15T15:44:22.678175+00:00",
+  "status": "ok",
+  "prefix": "ll-",
+  "domain": "leaklabdev.onmicrosoft.com",
+  "mode": "cleanup",
+  "deleted": [
+    {
+      "type": "user",
+      "id": "524bf1be-4df8-4c94-81c2-b918a10f3a73",
+      "displayName": "ll-probe-a",
+      "userPrincipalName": "ll-probe-a@leaklabdev.onmicrosoft.com"
+    },
+    {
+      "type": "user",
+      "id": "134c5f4c-e5c7-4185-af52-33ca2f07874a",
+      "displayName": "ll-probe-b",
+      "userPrincipalName": "ll-probe-b@leaklabdev.onmicrosoft.com"
+    },
+    {
+      "type": "group",
+      "id": "ffb5970b-0afb-4211-b67e-d72be2b8d065",
+      "displayName": "ll-probe-outer"
+    },
+    {
+      "type": "group",
+      "id": "c01bce16-c896-40a8-9737-030fc2e106ad",
+      "displayName": "ll-probe-mid"
+    },
+    {
+      "type": "group",
+      "id": "f72025fd-d24f-4b5a-a5ed-45e32f7e6c4c",
+      "displayName": "ll-probe-inner"
+    }
+  ]
+}
