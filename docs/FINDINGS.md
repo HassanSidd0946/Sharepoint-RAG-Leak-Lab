@@ -957,9 +957,22 @@ Limited Access as a separate state; Setup A's own view (the oracle has none).
 
 ## Generator notes (src/leaklab/generator/)
 
-Status: implemented and tested against an in-memory fake tenant (tests/generator_fakes.py). It has NOT
-yet been run against the real tenant: the live test (`uv run pytest --live tests/test_generator_live.py`)
-and the CLI (`uv run python -m leaklab.generator generate|verify|teardown`) are the first real run.
+Status: implemented, tested against an in-memory fake tenant (tests/generator_fakes.py), and run LIVE once
+(2026-10-16, `uv run pytest --live tests/test_generator_live.py`, 1 passed in 254s):
+- generate: 9 users created and 2 reused (ll-p-intern and ll-p-plateng already existed), 7 groups, 17
+  memberships (12 user and 5 group-in-group, as in the spec), 7 folders, 37 documents, inheritance broken
+  on 7 items (6 folders and the special file) with 9 grants added back to back, 1 site-root grant.
+- verify (REST for structure, Graph for membership) reported NO issue, not even a warning, so the site's
+  Members and Visitors groups were empty.
+- a second generate created and changed nothing (11 users, 7 groups, 7 folders, 37 files reused, 17
+  memberships "already"), i.e. it is idempotent on the real tenant.
+- teardown removed the root assignment, the container, 7 groups and all 11 users (including the two
+  that existed before: they are part of the spec). The two persona probes users must be recreated by
+  the next run that needs them.
+Not exercised by that run (so still only fake-tested): the 404 and ensureuser retry paths (no event shows
+whether they triggered), license assignment for NEWLY created users (the only licensed users, p-intern
+and p-plateng, already existed with licenses), apply_mutation and the mutation log against the real
+tenant, and drift handling.
 
 Only behaviors recorded above as verified are used:
 - Graph: create user (with usageLocation) and group, license via subscribedSkus + assignLicense, member
