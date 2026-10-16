@@ -22,6 +22,11 @@ Each trial (--trials, default 2):
      Stops when every polled token has a stable denial, or after --poll-timeout seconds.
 App-only (driver) control reads before and after prove the file still exists.
 
+Besides the Graph reads, every read cycle also asks SharePoint REST for the user's EFFECTIVE
+permissions on the folder (no token involved): that separates "SharePoint thinks the user
+can read" from "something in the Graph content path denies". --suffix NAME gives the
+folder, file and groups new names (the run that worked was the first to use its names).
+
 Caveat: polling both tokens for the same user in the same trial could influence each other (e.g.
 caches); use --tokens old / --tokens fresh in separate runs to compare without that.
 
@@ -53,7 +58,7 @@ from graph_probe import add_with_retry
 from leaklab.auth import GRAPH_DEFAULT_SCOPE, AuthError, get_app_token, sp_scope
 from leaklab.config import assert_test_tenant, get_settings, redact_jwt, redact_payload
 from leaklab.graph_client import GraphClient, GraphError
-from leaklab.sp_rest import SharePointRest, SPRestError, folder_item_path
+from leaklab.sp_rest import SharePointRest, SPRestError, folder_item_path, parse_body
 from leaklab.spec import load_spec, user_upn
 from persona_probe import ProbeStop, choose_sku, ensure_user
 from sp_probe import (
@@ -67,6 +72,7 @@ from sp_probe import (
     delete_groups,
     delete_or_gone,
     ensure_group,
+    ensure_principal,
     grant_read,
     group_principal,
     read_role_id,
@@ -99,6 +105,7 @@ class Opts:
     sku_part_number: str
     entra_check_interval: float = 30.0
     throwaway_user: str = ""
+    suffix: str = ""
 
 
 def out_file_for(report: dict[str, Any]) -> Path:
@@ -173,6 +180,24 @@ def read_once(token: str, drive_id: str, file_id: str, canary: str) -> tuple[str
     return classify(result), result
 
 
+# BasePermissions.Low bits: ViewListItems (bit 0) and OpenItems (bit 5) are what Read grants.
+VIEW_AND_OPEN_MASK = 0x1 | 0x20
+
+
+def sp_view(sp: SharePointRest, item_path: str, login: str) -> dict[str, Any]:
+    """SharePoint's own effective-permission answer for the user (no token involved)."""
+    try:
+        data = parse_body(sp.get_user_effective_permissions(item_path, login))
+        if isinstance(data, dict) and isinstance(data.get("value"), dict):
+            data = data["value"]
+        if isinstance(data, dict) and isinstance(data.get("GetUserEffectivePermissions"), dict):
+            data = data["GetUserEffectivePermissions"]
+        low = int(data["Low"])
+    except (SPRestError, KeyError, TypeError, ValueError) as exc:
+        return {"error": f"{type(exc).__name__}: {str(exc)[:200]}"}
+    return {"low": low, "can_read": (low & VIEW_AND_OPEN_MASK) == VIEW_AND_OPEN_MASK}
+
+
 def poll_after_removal(
     t0: float,
     old_token: str,
@@ -184,6 +209,9 @@ def poll_after_removal(
     gc: GraphClient,
     user_id: str,
     outer_id: str,
+    sp: SharePointRest,
+    item_path: str,
+    login: str,
 ) -> dict[str, Any]:
     """Read every `interval` seconds after the removal; return the series and per-token summary.
 
@@ -201,6 +229,7 @@ def poll_after_removal(
     entra_checks: list[dict[str, Any]] = []
     last_entra = -999.0
     entra_removed_s: float | None = None
+    sp_not_readable_s: float | None = None
     k = 0
     while True:
         due = t0 + k * opts.interval
@@ -232,7 +261,10 @@ def poll_after_removal(
                 "code": result.get("error_code"),
             }
             update_state(states["fresh"], cls, t, result.get("first_status"))
+        row["sp"] = sp_view(sp, item_path, login)
         row["t"] = round(time.monotonic() - t0, 1)
+        if row["sp"].get("can_read") is False and sp_not_readable_s is None:
+            sp_not_readable_s = row["t"]
         series.append(row)
         if row["t"] - last_entra >= opts.entra_check_interval or k == 0:
             last_entra = row["t"]
@@ -244,6 +276,7 @@ def poll_after_removal(
         if row["t"] - last_print >= 15 or k == 0:
             last_print = row["t"]
             shown = "  ".join(f"{n}={row[n]['class']}({row[n]['status']})" for n in tokens)
+            shown += f"  SharePoint says can read: {row['sp'].get('can_read')}"
             console.print(f"  t={row['t']:6.1f}s  {shown}")
         if all(s["stable_denied_s"] is not None for s in states.values()):
             break
@@ -260,6 +293,7 @@ def poll_after_removal(
         "fresh_token": fresh_info,
         "entra_checks": entra_checks,
         "entra_first_seen_removed_s": entra_removed_s,
+        "sp_first_not_readable_s": sp_not_readable_s,
         "achieved_cycle_seconds": round(series[-1]["t"] / cycles, 1),
     }
 
@@ -275,6 +309,9 @@ def run_trial(
     file_id: str,
     canary: str,
     report: dict[str, Any],
+    sp: SharePointRest,
+    item_path: str,
+    login: str,
 ) -> dict[str, Any]:
     console.print(f"[bold]Trial {n}[/bold]")
     trial: dict[str, Any] = {"trial": n}
@@ -312,6 +349,7 @@ def run_trial(
         cls, result = read_once(old_token, drive_id, file_id, canary)
         elapsed = round(time.monotonic() - t_add, 1)
         entra_member = outer in {g["id"] for g in gc.list_transitive_member_of(user["object_id"])}
+        sp_state = sp_view(sp, item_path, login)
         waits.append(
             {
                 "since_add_s": elapsed,
@@ -319,11 +357,13 @@ def run_trial(
                 "status": result.get("first_status"),
                 "code": result.get("error_code"),
                 "entra_lists_member": entra_member,
+                "sp_view": sp_state,
             }
         )
         console.print(
             f"    t={elapsed:6.1f}s since add: {cls} ({result.get('first_status')}); "
-            f"Entra lists member: {entra_member}"
+            f"Entra lists member: {entra_member}; "
+            f"SharePoint says can read: {sp_state.get('can_read')}"
         )
         if cls == "allowed":
             trial["seconds_from_add_to_first_200"] = elapsed
@@ -349,7 +389,19 @@ def run_trial(
     trial["removed_at"] = datetime.now(UTC).isoformat()
 
     polled = poll_after_removal(
-        t0, old_token, user["upn"], drive_id, file_id, canary, opts, gc, user["object_id"], outer
+        t0,
+        old_token,
+        user["upn"],
+        drive_id,
+        file_id,
+        canary,
+        opts,
+        gc,
+        user["object_id"],
+        outer,
+        sp,
+        item_path,
+        login,
     )
     trial.update(polled)
     trial["control_after"] = classify(
@@ -408,6 +460,7 @@ def run_probe(
     p = ctx.prefix
     canary = CANARY_PREFIX + hashlib.sha256(f"{ctx.seed}|revocation".encode()).hexdigest()[:6]
     report.update(canary=canary, options=opts.__dict__)
+    tag = f"-{opts.suffix}" if opts.suffix else ""
 
     console.print("[bold]Setup[/bold]")
     _, drive_id, library_url = resolve_site_and_drive(rec, gc, ctx.host, ctx.site_path, report)
@@ -424,12 +477,12 @@ def run_probe(
 
     report["memberships"] = []
     groups: dict[str, dict[str, Any]] = {
-        "outer": ensure_group(gc, f"{p}probe-revoc", ctx, opts.wait, report)
+        "outer": ensure_group(gc, f"{p}probe-revoc{tag}", ctx, opts.wait, report)
     }
     if opts.mode == "nested":
-        groups["inner"] = ensure_group(gc, f"{p}probe-revoc-inner", ctx, 0.0, report)
+        groups["inner"] = ensure_group(gc, f"{p}probe-revoc-inner{tag}", ctx, 0.0, report)
 
-    folder_name, file_name = f"{p}sp-revoc-folder", f"{p}revoc.txt"
+    folder_name, file_name = f"{p}sp-revoc-folder{tag}", f"{p}revoc{tag}.txt"
     folder = create_folder(rec, gc, drive_id, folder_name, ctx)
     file = upload_file(
         rec,
@@ -451,6 +504,16 @@ def run_probe(
         "grant Read to the revocation group ONLY",
     )
     snapshot(rec, sp, "folder after grant", folder_item, report)
+    user_login = str(
+        ensure_principal(
+            rec,
+            sp,
+            user["upn"],
+            "user (SharePoint principal)",
+            "The user must exist in the directory.",
+        )["LoginName"]
+    )
+    report["user_login"] = user_login
     report["ids"] = {"drive_id": drive_id, "folder_id": folder["id"], "file_id": file["id"]}
 
     report["trials"] = []
@@ -465,6 +528,9 @@ def run_probe(
             file_id=str(file["id"]),
             canary=canary,
             report=report,
+            sp=sp,
+            item_path=folder_item,
+            login=user_login,
         )
 
 
@@ -475,12 +541,14 @@ def run_cleanup(
     ctx: Ctx,
     delete_users: bool,
     throwaway: str,
+    suffix: str,
     report: dict[str, Any],
 ) -> None:
     p = ctx.prefix
+    tag = f"-{suffix}" if suffix else ""
     _, drive_id, _ = resolve_site_and_drive(rec, gc, ctx.host, ctx.site_path, report)
-    delete_folder(rec, gc, drive_id, f"{p}sp-revoc-folder", ctx, report)
-    delete_groups(gc, [f"{p}probe-revoc", f"{p}probe-revoc-inner"], ctx, report)
+    delete_folder(rec, gc, drive_id, f"{p}sp-revoc-folder{tag}", ctx, report)
+    delete_groups(gc, [f"{p}probe-revoc{tag}", f"{p}probe-revoc-inner{tag}"], ctx, report)
     if delete_users:
         targets = [(USER_ID, user_upn(ctx.spec, USER_ID))]
         if throwaway:  # only the named throwaway user, never p-plateng
@@ -551,6 +619,9 @@ def main(
     license_timeout: float = typer.Option(300.0, help="Max seconds to wait for the license."),
     wait: float = typer.Option(15.0, help="Seconds to wait after creating the group."),
     sku_part_number: str = typer.Option("", help="License SKU part number (if not unique)."),
+    suffix: str = typer.Option(
+        "", help="Append -<SUFFIX> to folder, file and group names (new names rule out reuse)."
+    ),
     throwaway_user: str = typer.Option(
         "",
         help="Use a NEW user <prefix>probe-<NAME> instead of p-plateng (never touched SharePoint).",
@@ -603,10 +674,13 @@ def main(
             wait=wait,
             sku_part_number=sku_part_number,
             throwaway_user=throwaway_user,
+            suffix=suffix,
         )
         with GraphClient() as gc, SharePointRest(site_url) as sp:
             if cleanup:
-                run_cleanup(rec, gc, sp, ctx, delete_users, opts.throwaway_user, report)
+                run_cleanup(
+                    rec, gc, sp, ctx, delete_users, opts.throwaway_user, opts.suffix, report
+                )
             else:
                 run_probe(rec, gc, sp, ctx, opts, report)
     except (StepFailed, ProbeStop) as exc:

@@ -440,7 +440,7 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 
   What changed between A and B/C is not in the code path that talks to SharePoint (later changes only
   added Entra checks, saved data and options). A ran first; B and C ran after it, on new groups.
-- HYPOTHESIS (not verified; the data are only consistent with it): SharePoint keeps its own per-user
+- HYPOTHESIS (not verified; later NOT supported by the brand-new-user run, see the next entry): SharePoint keeps its own per-user
   view of the user's Entra group membership, fixes it at the user's first access (or when it
   expires) and keeps it for a long time (30+ minutes). That would explain all three runs: in A the
   user's view was built fresh at the first read, so the new group was included (200 in seconds), and
@@ -457,6 +457,34 @@ endpoint, what we expected, what actually happened, and a doc link if any.
   how much would depend on when each user last accessed it, not on when the permission changed.
 - Probe output: probes/out/revocation_probe.json (run C, status `failed` because it stopped at the
   timeout; the data are complete)
+- Docs: n/a
+
+### A brand-new user was also denied (the "per-user view fixed at first access" hypothesis is NOT supported)
+- Date: 2026-10-16
+- Probe: `probes/revocation_probe.py --throwaway-user rev1 --trials 1` (default access timeout 300s),
+  right after `--cleanup`: a new licensed user `ll-probe-rev1` (created 15s before), a new group and
+  grant, and the same folder/file names as the earlier runs.
+- Actual: Graph showed the user in the group stably after about 11s. About 34 reads, from 18.2s to
+  305.4s after the add, were ALL denied (403); Entra listed the member on each one. The probe stopped
+  at its 300s timeout.
+- The previous entry's hypothesis predicted a quick 200 for a user who had never touched SharePoint.
+  That did not happen, so the hypothesis is not supported by this run. Caveat: a brand-new user may
+  also be waiting for its SharePoint licence/profile to provision, so this run alone does not prove
+  the hypothesis wrong in every form.
+- A confound that the earlier runs share and nobody tested: the only run in which a new member could
+  read within seconds (run A) was the first time the probe's FOLDER and FILE names
+  (`ll-sp-revoc-folder`, `ll-revoc.txt`) were used. Runs B, C and this one each re-created that
+  folder and file right after deleting them (the deleted ones sit in the recycle bin). The
+  earlier `access_probe`, which also worked, used a new folder name but re-used group names from
+  `graph_probe`, so group-name reuse alone does not obviously break access.
+- Status: no explanation is established. Candidates not yet separated: re-use of a deleted folder
+  path; something about the time of day or service state; the licence/profile state of the user.
+- Next experiment (now supported by the probe): `--suffix NAME` gives the folder, file and groups new
+  names; every read cycle also records SharePoint's own effective-permission answer for the user
+  (`GET .../getusereffectivepermissions`, UNVERIFIED endpoint), which shows whether SharePoint itself
+  thinks the user can read, independently of the Graph read path.
+- Probe output: probes/out/revocation_probe.json (status `failed`: it stopped at the timeout; the
+  data are complete)
 - Docs: n/a
 
 ### Persona sign-in with a nonexistent user fails with AADSTS50034 (no device-code fallback)
@@ -660,8 +688,9 @@ file, file-level grant), and everything on revocation timing.
   immediately (only a gap of minutes was tested; deletes lag behind lookups).
 - [ ] VARIABLE PROPAGATION of a NEW membership to SharePoint reads: 10-17s in two trials, then never
   within 306s and 1805s in two later runs (Entra listed the member). What decides it (a brand-new group, the `ensureuser` retry, the
-  first access by that user, something else)? Next: `--throwaway-user NAME` with a brand-new
-  user each time, to test the "per-user view fixed at first access" hypothesis (see above).
+  first access by that user, something else)? The brand-new-user test (denied for 305s) did not support the "per-user
+  view fixed at first access" hypothesis. Next: `--suffix NEW` (new folder/file/group names) and read
+  the SharePoint effective-permissions column.
 - [ ] REVOCATION TIMING (the core question for S1/S2/S6). Direct membership removal: still allowed
   after 15 minutes, old and fresh tokens (see above); no upper bound yet. To do: (1) a long, sparse
   poll (hours) to find when, or whether, it turns 403; (2) re-run with the Entra check now in the

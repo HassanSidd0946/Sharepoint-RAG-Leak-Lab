@@ -170,3 +170,11 @@ def test_remove_role_assignment_path() -> None:
     assert requests[0].url.path.endswith(
         "/web/roleassignments/removeroleassignment(principalid=12,roledefid=1073741826)"
     )
+
+
+def test_get_user_effective_permissions_path_and_quoting() -> None:
+    client, _, requests = make_client(ok)
+    client.get_user_effective_permissions("/web/x", "i:0#.f|membership|o'brien@t.com")
+    req = requests[0]
+    assert req.url.path.endswith("/web/x/getusereffectivepermissions(@u)")
+    assert req.url.params["@u"] == "'i:0#.f|membership|o''brien@t.com'"

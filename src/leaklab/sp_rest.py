@@ -223,6 +223,18 @@ class SharePointRest:
             f"(principalid={principal_id},roledefid={role_definition_id})",
         )
 
+    def get_user_effective_permissions(self, item_path: str, logon_name: str) -> httpx.Response:
+        """GET <item>/getusereffectivepermissions(@u)?@u='<logon name>': SharePoint's own opinion.
+
+        Returns the user's BasePermissions as {"Low": "<uint32>", "High": "<uint32>"} (possibly
+        wrapped in "value"). UNVERIFIED: that the endpoint exists on a list item, accepts the
+        app-only token, and the exact response shape.
+        """
+        escaped = logon_name.replace("'", "''")
+        return self.request(
+            "GET", f"{item_path}/getusereffectivepermissions(@u)", params={"@u": f"'{escaped}'"}
+        )
+
     def get_role_assignments(self, item_path: str) -> httpx.Response:
         """GET <item>/roleassignments?$expand=Member,RoleDefinitionBindings.
 
