@@ -148,6 +148,7 @@ def get_persona_token(
     *,
     allow_device_code: bool = True,
     use_password: bool = True,
+    use_cache: bool = True,
 ) -> str:
     """Get a delegated token for persona `upn`.
 
@@ -156,13 +157,15 @@ def get_persona_token(
     including MFA or consent, raises PersonaSignInError instead of starting device code.
     With `use_password=False` the shared persona password is never used and the sign-in goes
     straight to device code (for accounts, like the admin, whose password is not in .env).
+    With `use_cache=False` MSAL's cached token is ignored, so the call always gets a NEW
+    token from Entra (needed to compare an old token with a fresh one).
     The returned token is verified to belong to `upn`; a mismatch raises AuthError.
     """
     if not upn.strip() or not scopes:
         raise AuthError("get_persona_token needs a UPN and at least one scope.")
     app = _public_app()
 
-    accounts = app.get_accounts(username=upn)
+    accounts = app.get_accounts(username=upn) if use_cache else []
     if accounts:
         silent: dict[str, Any] | None = app.acquire_token_silent(scopes, account=accounts[0])
         if silent and silent.get("access_token"):

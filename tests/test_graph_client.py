@@ -341,3 +341,15 @@ def test_license_methods() -> None:
         "addLicenses": [{"skuId": "sku-1", "disabledPlans": []}],
         "removeLicenses": [],
     }
+
+
+def test_remove_group_member_uses_ref_endpoint() -> None:
+    seen: list[tuple[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append((request.method, request.url.path))
+        return httpx.Response(204)
+
+    client, _, _ = make_client(handler)
+    client.remove_group_member("g1", "u1")
+    assert seen == [("DELETE", "/v1.0/groups/g1/members/u1/$ref")]

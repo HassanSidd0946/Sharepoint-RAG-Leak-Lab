@@ -282,6 +282,14 @@ class GraphClient:
             raise
         return True
 
+    def remove_group_member(self, group_id: str, member_id: str) -> None:
+        """DELETE /groups/{id}/members/{member-id}/$ref: remove a user or a nested group.
+
+        UNVERIFIED: the status code and body in this tenant (documented as 204), and what it
+        returns for someone who is not a member.
+        """
+        self.request("DELETE", f"/groups/{group_id}/members/{member_id}/$ref")
+
     def add_user_to_group(self, group_id: str, user_id: str) -> bool:
         return self._add_member(group_id, user_id)
 

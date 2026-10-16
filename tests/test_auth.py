@@ -319,3 +319,15 @@ def test_use_password_false_without_device_code_fails(monkeypatch: pytest.Monkey
     with pytest.raises(auth.AuthError, match="device code is disabled"):
         auth.get_persona_token(UPN, SCOPES, use_password=False, allow_device_code=False)
     assert fake.calls == []
+
+
+def test_use_cache_false_ignores_the_cached_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = use_fake(monkeypatch)
+    fake.accounts = [{"username": UPN}]
+    fake.silent = good_result()
+    fake.ropc = good_result()
+    fake.ropc["access_token"] = fake_jwt({"tid": "t", "upn": UPN, "scp": "new"})
+    token = auth.get_persona_token(UPN, SCOPES, use_cache=False)
+    assert token == fake.ropc["access_token"]
+    assert token != fake.silent["access_token"]
+    assert fake.calls == ["ropc"]  # the cache (silent) was never consulted
