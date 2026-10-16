@@ -1,6 +1,7 @@
 {
   "probe": "revocation_probe",
-  "run_at": "2026-10-16T08:02:50.212619+00:00",
+  "variant": "direct",
+  "run_at": "2026-10-16T08:58:05.794405+00:00",
   "status": "ok",
   "mode": "cleanup",
   "steps": [
@@ -14,7 +15,7 @@
         "createdDateTime": "2026-10-15T15:14:24.83Z",
         "description": "Test site for RAG security benchmark.",
         "id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
-        "lastModifiedDateTime": "2026-10-16T07:30:46Z",
+        "lastModifiedDateTime": "2026-10-16T08:02:57Z",
         "name": "LeakLab",
         "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
         "displayName": "LeakLab",
@@ -34,7 +35,7 @@
         "createdDateTime": "2026-10-11T20:37:43Z",
         "description": "",
         "id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
-        "lastModifiedDateTime": "2026-10-16T07:30:43Z",
+        "lastModifiedDateTime": "2026-10-16T08:02:57Z",
         "name": "Documents",
         "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents",
         "driveType": "documentLibrary",
@@ -51,76 +52,23 @@
           }
         },
         "quota": {
-          "deleted": 3860,
+          "deleted": 4592,
           "remaining": 27487788689397,
           "state": "normal",
           "total": 27487790694400,
-          "used": 2001143
+          "used": 2000411
         }
       }
     },
     {
       "operation": "find folder ll-sp-revoc-folder",
       "endpoint": "GET /drives/{drive}/root:/<folder>",
-      "status": 200,
-      "summary": "exists",
+      "status": 404,
+      "summary": "HTTP 404 (allowed)",
       "response": {
-        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#Collection(driveItem)/$entity",
-        "createdBy": {
-          "application": {
-            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
-            "displayName": "Microsoft Graph"
-          },
-          "user": {
-            "displayName": "SharePoint App"
-          }
-        },
-        "createdDateTime": "2026-10-16T07:30:43Z",
-        "eTag": "\"{B787BAAE-1CF1-4C62-B20C-9979C21E0B13},2\"",
-        "id": "01RQLOFTVOXKD3P4I4MJGLEDEZPHBB4CYT",
-        "lastModifiedBy": {
-          "application": {
-            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
-            "displayName": "Microsoft Graph"
-          },
-          "user": {
-            "displayName": "SharePoint App"
-          }
-        },
-        "lastModifiedDateTime": "2026-10-16T07:30:43Z",
-        "name": "ll-sp-revoc-folder",
-        "parentReference": {
-          "driveType": "documentLibrary",
-          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
-          "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
-          "name": "Shared Documents",
-          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:",
-          "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7"
-        },
-        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-revoc-folder",
-        "fileSystemInfo": {
-          "createdDateTime": "2026-10-16T07:30:43Z",
-          "lastModifiedDateTime": "2026-10-16T07:30:43Z"
-        },
-        "folder": {
-          "childCount": 1
-        },
-        "isAuthoritative": false,
-        "shared": {
-          "effectiveRoles": [
-            "write"
-          ],
-          "scope": "users"
-        },
-        "size": 68
+        "code": "itemNotFound",
+        "message": "The resource could not be found."
       }
-    },
-    {
-      "operation": "delete folder ll-sp-revoc-folder",
-      "endpoint": "DELETE /drives/{drive}/items/{id}",
-      "status": 204,
-      "summary": "deleted (recycle bin)",
-      "response": null
     }
   ],
   "prefix": "ll-",
@@ -131,21 +79,5 @@
     "drive_id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
     "drive_name": "Documents",
     "library_server_relative_url": "/sites/LeakLab/Shared Documents"
-  },
-  "deleted": [
-    {
-      "type": "folder",
-      "name": "ll-sp-revoc-folder"
-    },
-    {
-      "type": "group",
-      "name": "ll-probe-revoc",
-      "result": "deleted"
-    },
-    {
-      "type": "group",
-      "name": "ll-probe-revoc-inner",
-      "result": "deleted"
-    }
-  ]
+  }
 }

@@ -357,6 +357,48 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 - Probe output: probes/out/sp_probe_root-grant-cleanup.json, sp_probe_file-grant-cleanup.json,
   sp_probe_nested-folder.json, sp_probe_idempotency.json
 
+### Revocation: reads stayed ALLOWED for 15+ minutes after the group membership was removed
+- Date: 2026-10-16
+- Probe: `probes/revocation_probe.py` (direct mode: p-plateng is a direct member of the group that holds
+  the folder's only grant). Every read is a real one: Graph `GET /drives/{d}/items/{id}/content` with a
+  delegated token for p-plateng, 200 only if the canary is in the body.
+- Endpoint for the removal: `DELETE /v1.0/groups/{group}/members/{user}/$ref` (returned success in about
+  1s both times).
+- Expected: reads turn 403 within seconds to minutes after the removal; a token fetched after the
+  removal is denied no later than one fetched before it.
+- Actual (2 trials; numbers are from the terminal output, because the raw JSON was overwritten by a
+  failed follow-up run):
+  - New member access: the first 200 read came 16.7s (trial 1, new group) and 10.5s (trial 2) after
+    the add. Group membership as seen by Graph was stable after about 6-12s.
+  - After the removal, the polling ran for about 15 minutes per trial (poll timeout 900s). EVERY read
+    was allowed: trial 1: 172 allowed / 0 denied / 0 errors for the old token and 172/0/0 for a fresh
+    token (fetched 2.9s after the removal); trial 2: 160/0/0 for both (fresh token at 3.1s). No
+    denial, no flapping. App-only control reads were allowed before and after, so the file existed.
+  - Each polling cycle took about 5.2s (two tokens, two requests each), not the requested 2s, so the
+    time resolution is about 5s.
+  - The removal did take effect in Entra at some point: trial 2's re-add (about 15 minutes after
+    trial 1's removal) was reported as `added`, not "already a member". The probe did NOT check at the
+    time when Entra stopped listing the user (it does now: `entra_checks` in the output).
+- What this shows: for at least about 15 minutes after the removal call returned, a user who is no
+  longer in the group that holds the only grant could still read the file, with an old token and with
+  a token issued after the removal. Contrast: p-intern, who was never a member, was denied on every
+  read in `access_probe`; the delay is in REVOKING a previously valid member.
+- What this does NOT show (open): the cause (candidates, none verified: SharePoint caching of the
+  user's Entra group membership; a cache in the Graph content path; the removal reaching Entra later
+  than the probe could see); whether and when the read ever turns 403 (no upper bound known);
+  nested removal (S2 as in the spec); removal of the role assignment instead of the membership (S1);
+  other read paths (SharePoint REST with a SharePoint-audience token, browser access).
+- Why it matters: this is SharePoint's own behavior, which sits below Azure AI Search. A harness that
+  treats "current SharePoint read access" as instant ground truth would be wrong by at least this
+  window, and a native index built on SharePoint permissions can be no fresher than what SharePoint
+  itself enforces. No oracle decision has been taken from this.
+- Process note: a `--mode nested` run was started without cleaning up the direct run's folder, stopped
+  on "already exists" (as designed), and overwrote `revocation_probe.json`. The probe now writes a
+  per-variant file and never overwrites a successful result with a failed one.
+- Probe output: terminal output (direct run); probes/out/revocation_probe.json currently holds only
+  the failed nested attempt.
+- Docs: n/a
+
 ### Persona sign-in with a nonexistent user fails with AADSTS50034 (no device-code fallback)
 - Date: 2026-10-15
 - Endpoint: token endpoint, username/password (ROPC) via `auth.get_persona_token`
@@ -530,9 +572,11 @@ Observed but not settled (needs a decision, or more evidence, before it becomes 
   accounts this applies to. Options for later: exclude the admin from leak assertions, or model it
   as always allowed.
 - **Timing.** Membership became visible after about 12s in two samples, a license after up to
-  about 13s, and reads were only taken 94s or more after a grant. There is no verified bound for
-  how soon a grant or a REVOCATION takes effect, nor for tokens issued before a change. The oracle
-  should not encode a time window until the revocation probe has run.
+  about 13s, and a new member could read after 10-17s. Removing a member was NOT reflected in real
+  reads for at least about 15 minutes (2 trials, old and fresh tokens alike; see "Revocation"). So
+  "who can read right now in SharePoint" lags the directory state by a window whose upper bound is
+  unknown. The oracle should not encode a time window until that bound is measured, and the question
+  of what the oracle should compare against (directory state vs. real reads) is open.
 - **Licensing.** Only licensed personas were tested for access.
 
 Still not probed: real READS for the cases above that were only listed (nested folders, moved
@@ -553,10 +597,13 @@ file, file-level grant), and everything on revocation timing.
 - [ ] Adding a user/group that is already a member: the assumed error (HTTP 400, "already
   exist") is now verified (see Idempotency). Still unverified: re-creating a deleted user's UPN
   immediately (only a gap of minutes was tested; deletes lag behind lookups).
-- [ ] REVOCATION TIMING (the core question for S1/S2/S6): after a grant or a group membership is
-  REMOVED, how long until reads are denied, with (a) a token issued BEFORE the change and (b) a
-  fresh token? The access test only covered allow/deny in a settled state, from 94s after the
-  grant. Also: how soon after a NEW grant does access begin?
+- [ ] REVOCATION TIMING (the core question for S1/S2/S6). Direct membership removal: still allowed
+  after 15 minutes, old and fresh tokens (see above); no upper bound yet. To do: (1) a long, sparse
+  poll (hours) to find when, or whether, it turns 403; (2) re-run with the Entra check now in the
+  probe to confirm Entra dropped the membership early; (3) nested removal (`--mode nested`, S2);
+  (4) removing the folder's role assignment instead (S1); (5) another read path, e.g. SharePoint REST
+  with a SharePoint-audience token or `GetUserEffectivePermissions`, to see whether the delay is in
+  SharePoint or in the Graph content path.
 - [ ] Why the admin keeps access to a unique-permission folder: site collection admin, or any
   member of LeakLab Owners (whose role assignment was removed from the folder)? Test a non-admin
   member of LeakLab Owners, then fix the oracle rule for the admin account.

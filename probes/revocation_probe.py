@@ -76,10 +76,6 @@ from sp_probe import (
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "probes" / "out"
-OUT_FILES = {
-    "probe": OUT_DIR / "revocation_probe.json",
-    "cleanup": OUT_DIR / "revocation_probe_cleanup.json",
-}
 USER_ID = "p-plateng"
 STABLE_DENIALS = 3  # consecutive denied reads that count as a "stable denial"
 CANARY_PREFIX = "CANARY-REV-"
@@ -100,10 +96,29 @@ class Opts:
     license_timeout: float
     wait: float
     sku_part_number: str
+    entra_check_interval: float = 30.0
+
+
+def out_file_for(report: dict[str, Any]) -> Path:
+    """direct: revocation_probe.json; nested: ..._nested.json; cleanup: ..._cleanup.json."""
+    if report["mode"] == "cleanup":
+        return OUT_DIR / "revocation_probe_cleanup.json"
+    variant = report.get("variant", "direct")
+    return OUT_DIR / (
+        "revocation_probe.json" if variant == "direct" else f"revocation_probe_{variant}.json"
+    )
 
 
 def save(report: dict[str, Any]) -> None:
-    out_file = OUT_FILES[report["mode"]]
+    out_file = out_file_for(report)
+    if report.get("status") != "ok" and out_file.exists():
+        # Never let a failed run overwrite a successful result (this lost data once).
+        try:
+            previous = json.loads(out_file.read_text(encoding="utf-8")).get("status")
+        except (OSError, ValueError):
+            previous = None
+        if previous == "ok":
+            out_file = out_file.with_name(out_file.stem + ".failed.json")
     out_file.parent.mkdir(parents=True, exist_ok=True)
     out_file.write_text(json.dumps(report, indent=2, default=str) + "\n", encoding="utf-8")
     console.print(f"Saved redacted results to {out_file}")
@@ -164,8 +179,16 @@ def poll_after_removal(
     file_id: str,
     canary: str,
     opts: Opts,
+    gc: GraphClient,
+    user_id: str,
+    outer_id: str,
 ) -> dict[str, Any]:
-    """Read every `interval` seconds after the removal; return the series and per-token summary."""
+    """Read every `interval` seconds after the removal; return the series and per-token summary.
+
+    Control: every `entra_check_interval` seconds, ask Graph whether the user is still
+    (transitively) in the granted group, so a 200 can be told apart from "the removal never
+    took effect".
+    """
     use_old = opts.tokens in ("both", "old")
     use_fresh = opts.tokens in ("both", "fresh")
     tokens: dict[str, str] = {"old": old_token} if use_old else {}
@@ -173,6 +196,9 @@ def poll_after_removal(
     series: list[dict[str, Any]] = []
     fresh_info: dict[str, Any] | None = None
     last_print = -999.0
+    entra_checks: list[dict[str, Any]] = []
+    last_entra = -999.0
+    entra_removed_s: float | None = None
     k = 0
     while True:
         due = t0 + k * opts.interval
@@ -206,6 +232,13 @@ def poll_after_removal(
             update_state(states["fresh"], cls, t, result.get("first_status"))
         row["t"] = round(time.monotonic() - t0, 1)
         series.append(row)
+        if row["t"] - last_entra >= opts.entra_check_interval or k == 0:
+            last_entra = row["t"]
+            still = outer_id in {g["id"] for g in gc.list_transitive_member_of(user_id)}
+            entra_checks.append({"t": row["t"], "still_member": still})
+            if not still and entra_removed_s is None:
+                entra_removed_s = row["t"]
+            console.print(f"  [dim]Entra still lists the user in the group: {still}[/dim]")
         if row["t"] - last_print >= 15 or k == 0:
             last_print = row["t"]
             shown = "  ".join(f"{n}={row[n]['class']}({row[n]['status']})" for n in tokens)
@@ -218,7 +251,15 @@ def poll_after_removal(
             )
             break
         k += 1
-    return {"series": series, "summary": states, "fresh_token": fresh_info}
+    cycles = max(len(series) - 1, 1)
+    return {
+        "series": series,
+        "summary": states,
+        "fresh_token": fresh_info,
+        "entra_checks": entra_checks,
+        "entra_first_seen_removed_s": entra_removed_s,
+        "achieved_cycle_seconds": round(series[-1]["t"] / cycles, 1),
+    }
 
 
 def run_trial(
@@ -292,7 +333,9 @@ def run_trial(
     trial["removal_call_seconds"] = round(t0 - t_call, 2)
     trial["removed_at"] = datetime.now(UTC).isoformat()
 
-    polled = poll_after_removal(t0, old_token, user["upn"], drive_id, file_id, canary, opts)
+    polled = poll_after_removal(
+        t0, old_token, user["upn"], drive_id, file_id, canary, opts, gc, user["object_id"], outer
+    )
     trial.update(polled)
     trial["control_after"] = classify(
         read_file_as(get_app_token(GRAPH_DEFAULT_SCOPE), drive_id, file_id, canary)
@@ -418,6 +461,11 @@ def print_results(report: dict[str, Any]) -> None:
             )
     console.print(table)
     for trial in report.get("trials", []):
+        console.print(
+            f"trial {trial['trial']}: Entra first reported the user removed at "
+            f"t={trial.get('entra_first_seen_removed_s')}s; one read cycle took about "
+            f"{trial.get('achieved_cycle_seconds')}s (asked for {report['options']['interval']}s)"
+        )
         fresh = trial.get("fresh_token")
         if fresh:
             console.print(
@@ -449,6 +497,7 @@ def main(
         raise typer.BadParameter("--mode: direct|nested; --tokens: both|old|fresh")
     report: dict[str, Any] = {
         "probe": "revocation_probe",
+        "variant": mode,
         "run_at": datetime.now(UTC).isoformat(),
         "status": "running",
         "mode": "cleanup" if cleanup else "probe",
@@ -505,7 +554,12 @@ def main(
                 "body": redact_payload(exc.body),
                 "suggested_next_probe": exc.hint,
             }
-            detail: dict[str, Any] = {"HTTP status": exc.status, "body": redact_payload(exc.body)}
+            detail: dict[str, Any] = {
+                "what": exc.label,
+                "HTTP status": exc.status,
+                "body": redact_payload(exc.body),
+                "hint": exc.hint,
+            }
         else:
             report["stopped"] = {"message": str(exc), **exc.detail}
             detail = exc.detail

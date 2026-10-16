@@ -573,6 +573,7 @@ def main(
             detail: dict[str, Any] = {
                 "HTTP status": exc.status,
                 "body": redact_payload(exc.body),
+                "what": exc.label,
                 "next probe": exc.hint,
             }
         else:
