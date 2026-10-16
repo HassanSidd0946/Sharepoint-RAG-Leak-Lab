@@ -955,6 +955,53 @@ Implementation decisions to review:
 Not decided / not implemented: the admin account's access; any time window for "should have caught up";
 Limited Access as a separate state; Setup A's own view (the oracle has none).
 
+## Generator notes (src/leaklab/generator/)
+
+Status: implemented and tested against an in-memory fake tenant (tests/generator_fakes.py). It has NOT
+yet been run against the real tenant: the live test (`uv run pytest --live tests/test_generator_live.py`)
+and the CLI (`uv run python -m leaklab.generator generate|verify|teardown`) are the first real run.
+
+Only behaviors recorded above as verified are used:
+- Graph: create user (with usageLocation) and group, license via subscribedSkus + assignLicense, member
+  add with 404 retry and "already exist" = success, folders and uploads by path, delete with 404 =
+  gone, move by PATCH parentReference, transitiveMemberOf.
+- SharePoint REST: ensureuser (plain UPN for users, `c:0t.c|tenant|<id>` for groups, retried up to 2
+  minutes on HTTP 400 "could not be found"), role definitions by name, HasUniqueRoleAssignments,
+  breakroleinheritance(copy=false), add/remove role assignment (items and `/web`), role assignments,
+  the site's associated groups. Structure is checked through REST; content is created through Graph.
+- Deliberately NOT used because not verified: listing a folder's children, listing a group's direct
+  members, resetting inheritance, removing SharePoint site users. verify() therefore checks the
+  documents one by one, memberships through each user's transitive groups, and refuses (drift) to
+  "fix" an item that should inherit but has its own permissions.
+
+Decisions to review:
+- Everything generated lives under one container folder `<prefix>lab`; the spec's folder paths are
+  relative to it (the container inherits the site root, so it is transparent to the oracle). Reason:
+  the spec's folder names have no prefix, and teardown must delete by prefix only.
+- The not-generated `admin` user is neither created nor granted anything (not even the spec's
+  root grant for it): it already has Full Control through the Owners group, and a grant to a
+  non-prefixed object could not be undone safely. It is listed in Plan.skipped.
+- Document file names are `<prefix><folder code>-<nn>.txt`; the text is rendered from
+  documents.body_template with a topic and filler derived from the seed (the spec does not define them).
+- Permissions: principals are resolved BEFORE inheritance is broken, then inheritance is broken and all
+  grants are added back to back. A re-run reconciles a unique item to exactly the spec's grants
+  (Limited Access entries are ignored, they are SharePoint's own).
+- apply_mutation() supports grant_added/removed, group_member_added/removed, inheritance_broken and
+  file_moved, and logs `confirmed_at` (epoch seconds) when Entra/REST first showed the change. It does NOT
+  support inheritance_restored (not verified). Confirmation is about STRUCTURE only; what SharePoint
+  serves, and when, is for the scenario runner to measure.
+- Group-in-group membership changes are confirmed through a witness user (a user the spec puts inside the
+  child group); without one, by the call's success alone, and the entry says so.
+- Unverified detail kept explicit in the code: the exact error for assigning a license twice (the license
+  list lags ~13s behind an assignment; a 400 mentioning "already" is tolerated, anything else raises).
+- Not handled: Entra-group grants are known to be enforced by SharePoint with long and unpredictable
+  delays (see the consistency results). The generator cannot wait that out; generate() reports
+  structure, and verify() says nothing about what SharePoint will serve.
+- Teardown leaves SharePoint's orphaned site users and Limited Access entries (removal not verified).
+  Teardown also deletes the persona users `ll-p-*` if they exist, because they are part of the spec.
+- A delete is not instantly visible to lookups (a user deleted seconds ago can still be returned and then
+  404 on use): wait a little between teardown and generate.
+
 ## Open questions
 
 - [ ] Persona sign-in works for two LICENSED users. Not yet tested: UNLICENSED personas (four in
