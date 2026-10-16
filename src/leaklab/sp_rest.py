@@ -254,6 +254,50 @@ class SharePointRest:
             "GET", f"/web/associated{kind}group", params={"$select": "Id,Title,LoginName"}
         )
 
+    def create_site_group(self, title: str, description: str = "") -> httpx.Response:
+        """POST /web/sitegroups {"Title": ..., "Description": ...}: a new SharePoint group.
+
+        UNVERIFIED: that this body works with odata=nometadata and the app-only token, and what the
+        response contains (expected: Id, Title, LoginName).
+        """
+        return self.request(
+            "POST", "/web/sitegroups", body={"Title": title, "Description": description}
+        )
+
+    def find_site_group(self, title: str) -> httpx.Response:
+        """GET /web/sitegroups?$filter=Title eq '<title>'&$select=Id,Title,LoginName.
+
+        UNVERIFIED: that $filter on Title works on sitegroups.
+        """
+        escaped = title.replace("'", "''")
+        return self.request(
+            "GET",
+            "/web/sitegroups",
+            params={"$filter": f"Title eq '{escaped}'", "$select": "Id,Title,LoginName"},
+        )
+
+    def add_user_to_site_group(self, group_id: int, logon_name: str) -> httpx.Response:
+        """POST /web/sitegroups/getbyid(<id>)/users {"LoginName": ...}.
+
+        UNVERIFIED: that it accepts the user's membership claim and returns the user.
+        """
+        return self.request(
+            "POST", f"/web/sitegroups/getbyid({group_id})/users", body={"LoginName": logon_name}
+        )
+
+    def remove_user_from_site_group(self, group_id: int, user_id: int) -> httpx.Response:
+        """POST /web/sitegroups/getbyid(<id>)/users/removebyid(<user id>).
+
+        UNVERIFIED: that this endpoint exists and works with the app-only token.
+        """
+        return self.request(
+            "POST", f"/web/sitegroups/getbyid({group_id})/users/removebyid({user_id})"
+        )
+
+    def delete_site_group(self, group_id: int) -> httpx.Response:
+        """POST /web/sitegroups/removebyid(<id>). UNVERIFIED: endpoint and effect."""
+        return self.request("POST", f"/web/sitegroups/removebyid({group_id})")
+
     def get_group_users(self, group_id: int) -> httpx.Response:
         """GET /web/sitegroups/getbyid(<id>)/users (verified for a user member).
 

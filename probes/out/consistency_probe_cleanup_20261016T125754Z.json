@@ -1,0 +1,11 @@
+{
+  "probe": "consistency_probe",
+  "run_at": "2026-10-16T12:57:54.580062+00:00",
+  "status": "failed",
+  "mode": "cleanup",
+  "output_file": "consistency_probe_cleanup_20261016T125754Z.json",
+  "steps": [],
+  "prefix": "ll-",
+  "site_url": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+  "error": "ConnectTimeout: _ssl.c:983: The handshake operation timed out"
+}

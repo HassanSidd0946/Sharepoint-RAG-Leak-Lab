@@ -3,6 +3,7 @@
 import json
 import random
 from collections.abc import Callable
+from typing import Any
 
 import httpx
 import pytest
@@ -178,3 +179,29 @@ def test_get_user_effective_permissions_path_and_quoting() -> None:
     req = requests[0]
     assert req.url.path.endswith("/web/x/getusereffectivepermissions(@u)")
     assert req.url.params["@u"] == "'i:0#.f|membership|o''brien@t.com'"
+
+
+def test_site_group_methods_paths_and_bodies() -> None:
+    seen: list[tuple[str, str, Any, dict[str, str]]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = json.loads(request.content) if request.content else None
+        seen.append((request.method, request.url.path, payload, dict(request.url.params)))
+        return httpx.Response(200, json={"value": []})
+
+    client, _, _ = make_client(handler)
+    client.create_site_group("ll-probe-spg", "d")
+    client.find_site_group("it's")
+    client.add_user_to_site_group(7, "i:0#.f|membership|a@t.com")
+    client.remove_user_from_site_group(7, 12)
+    client.delete_site_group(7)
+    base = "/sites/LeakLab/_api/web/sitegroups"
+    assert seen[0][:3] == ("POST", base, {"Title": "ll-probe-spg", "Description": "d"})
+    assert seen[1][0] == "GET" and seen[1][3]["$filter"] == "Title eq 'it''s'"
+    assert seen[2][:3] == (
+        "POST",
+        f"{base}/getbyid(7)/users",
+        {"LoginName": "i:0#.f|membership|a@t.com"},
+    )
+    assert seen[3][:2] == ("POST", f"{base}/getbyid(7)/users/removebyid(12)")
+    assert seen[4][:2] == ("POST", f"{base}/removebyid(7)")
