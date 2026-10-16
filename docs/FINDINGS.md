@@ -641,6 +641,64 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 - Probe output: probes/out/consistency_probe_run_20261016T120649Z.json
 - Docs: n/a
 
+### Three arms replicated with a brand-new user: Entra-group revocation again took about 36 minutes
+- Date: 2026-10-16 (run at 13:05 UTC; probes/out/consistency_probe_run_20261016T130544Z.json, status
+  ok, the full 45 minutes of phase 2).
+- Setup: a NEW licensed user (`ll-probe-cons3`, created minutes earlier), new names (`-c3`), the same
+  three arms as before (DIRECT, SPGROUP, ENTRA). `ensureuser` on the new Entra group needed two
+  retries (10s). Phase 1: 67 cycles over 600s: all three arms 100% allowed, 0 flips, SharePoint
+  effective permission "can read" 100%, first run of 5 allowed from 10.0s.
+- Phase 2 (195 cycles, 2711s; removals 0.95s, 0.33s and 0.36s, within 1.3s of each other):
+
+  | Arm | Pre-t0 token | Fresh token |
+  |---|---|---|
+  | DIRECT | first deny 14.3s, 10 in a row from 14.3s, 0 allowed, 194 denied (+1 network-error read) | first deny 14.3s, 0 allowed, 195 denied |
+  | SPGROUP | first deny 14.6s, 0 allowed, 195 denied | same |
+  | ENTRA | first deny **2162.4s (36.0 min)**, 179 allowed / 16 denied | first deny **2128.4s (35.5 min)**, 183 allowed / 12 denied |
+
+  After its first denials the Entra arm kept flipping: 27-44% of reads were denied in the 12 minutes
+  that followed (e.g. by 120s window: 2/16, 9/20, 2/14, 4/12, 7/14, 4/12 denied), never 10 in a row,
+  so it had NOT settled when the 45 minutes ended. SharePoint's own effective-permission answer for
+  the Entra arm was "can read" on all 195 cycles (up to 45 minutes after the removal). The structure
+  checks (every 60s) showed the removal in effect in all three arms from the first check at 13.8s.
+- Compared with the first three-arm run (p-plateng, `-c1`): first denial 35.6-36.3 min there, 35.5-36.0
+  min here; both tokens each time; in both runs the denials began at almost the same moment for the
+  token acquired before the removal and for the one acquired after it, so the token is not what
+  holds access open. Two runs, two different users, two sets of names, the same lag to within a minute.
+  The earlier runs also fit (15 and 30 minutes of uninterrupted access, no denial before 36 minutes).
+- One transport error (`ConnectError`) hit a read on the direct arm at about 1120s; it was recorded as
+  an `error` read and polling continued (this would have ended the previous run).
+- Both cleanups worked: three folders (204 each), the SharePoint group, the Entra group and the
+  throwaway user were all removed without error (`-c1` and `-c3`).
+- Probe output: probes/out/consistency_probe_run_20261016T130544Z.json
+- Docs: n/a
+
+### Three arms with a 120s steady state: the Entra arm never had access, so there was nothing to revoke
+- Date: 2026-10-16 (run at 14:38 UTC; probes/out/consistency_probe_run_20261016T143812Z.json, status
+  ok, ended early after about 2.5 minutes of phase 2).
+- Purpose: test whether the 36-minute Entra lag depends on how long the user had access before the
+  removal (`--phase1 120` instead of 600), with a brand-new user (`ll-probe-dd1`) and new names (`-d1`).
+- Result, phase 1 (13 reads per arm): DIRECT and SPGROUP 100% allowed, 0 flips, SharePoint effective
+  permission "can read" 100%. ENTRA: 0 of 13 allowed (denied from the first read at 12.2s through
+  122s), SharePoint effective permission "cannot read" 100%, while Graph listed the user in the group
+  stably from 17s.
+- Result, phase 2: all six arm-and-token series were denied from the first cycle (DIRECT 11.0s,
+  SPGROUP 11.4s, ENTRA 11.8s), 0 allowed, and the run stopped early. The ENTRA numbers mean nothing:
+  that arm had no access before the removal, so the experiment did NOT test the question.
+- What it does add: another run in which an Entra-group grant gave a brand-new user no access at all
+  (as in the two-arm run), next to runs where the same recipe gave immediate, clean access (the
+  `-c1` and `-c3` three-arm runs). Tally of the Entra-group arm for a user freshly added to a new group
+  and read from about 12s on (11 runs so far): immediate access 4 (A, n1 first use, three-arm `-c1`,
+  `-c3`); no access for the whole observation (2 to 30 minutes) 5 (B, C, D, two-arm `-c1`, `-d1`);
+  delayed or flapping 2 (n1 second use, a1). The direct and SharePoint-group arms were fine in every
+  run they were in (steady state in four runs, revocation in three).
+- Probe change: the probe now checks, before the removal, that each arm showed 5 allowed reads in a
+  row, waits up to `--baseline-wait` (300s) for arms that did not, and flags an arm without a
+  baseline as "NO (nothing to revoke)" in the results and the output file (`valid_arms`), excluding it
+  from the stop condition. Without it this run would have looked like a valid revocation result.
+- Probe output: probes/out/consistency_probe_run_20261016T143812Z.json
+- Docs: n/a
+
 ### What the two probes (and the earlier runs) say together: the instability is tied to Entra-group grants
 - Every unstable observation so far involved a grant to an ENTRA security group: new members denied
   for 5-30 minutes (runs B, C, D, c1 group arm, n1-second), coin-flip reads (n1-second, a1), and
@@ -869,21 +927,31 @@ file, file-level grant), and everything on revocation timing.
 - [ ] Adding a user/group that is already a member: the assumed error (HTTP 400, "already
   exist") is now verified (see Idempotency). Still unverified: re-creating a deleted user's UPN
   immediately (only a gap of minutes was tested; deletes lag behind lookups).
+- [ ] WHY an Entra-group grant sometimes gives no access at all (5 of 11 runs), sometimes immediate
+  access (4), sometimes delayed or flapping access (2), with an identical recipe. Not the user's age, not
+  the names, not the token. Untested: the order of calls (the SharePoint principal for the group and
+  the grant exist BEFORE the user is added to the Entra group, in every run); the time of day; the time
+  between group creation and the add. A run that adds the user to the group FIRST and creates the
+  SharePoint principal and the grant afterwards would test the order.
 - [ ] RE-CREATED NAMES: no longer a good candidate. Brand-new names (`a1`) gave a delayed first access
   and coin-flip reads; the same names re-created (`n1` twice) gave 452s and flapping; the first use of
   `n1` and of the original names was clean. What separates the clean runs from the others is
   unknown (the user's history, the time of day, the state of the service, or chance).
-- [ ] ENTRA-GROUP GRANTS vs. THE OTHER TWO (new top priority): direct and SharePoint-group grants behaved
-  consistently in the runs so far; Entra-group grants did not (see the three entries above).
-  To do: (1) repeat the three-arm probe at least twice more, ideally with a brand-new user and new
-  names, to see whether the direct and SharePoint-group arms ever misbehave; (2) a fourth arm: a
-  SharePoint group that contains the Entra group (the usual enterprise pattern); (3) nested Entra
-  groups (S2); (4) how long the Entra arm takes to settle after the first denials at about 36
-  minutes (the run ended at 39 minutes, never reaching 10 denials in a row); (5) what, if anything,
-  makes SharePoint refresh its view of Entra membership sooner (a new sign-in, an access through
-  another path, a change to the grant).
-- [ ] Cleanup of the three-arm run still pending: `consistency_probe.py --cleanup --suffix c1` failed on a
-  network error; the three folders, the Entra group and the SharePoint group may still exist.
+- [ ] ENTRA-GROUP GRANTS vs. THE OTHER TWO (top priority). Two three-arm runs agree: DIRECT and
+  SHAREPOINT-GROUP grants end within about 16s; an ENTRA-group grant keeps allowing reads for about
+  36 minutes (first denial 35.5-36.3 min, both tokens, both runs), then the reads flip (27-44%
+  denied) and had not settled after 45 minutes, while SharePoint's own effective permission still said
+  "can read". What determines the 36 minutes? A first try with `--phase1 120` was inconclusive: the Entra arm never
+  had access in that run. Experiments, each needing a new user or new names (the probe now
+  waits for a baseline and flags arms that never had access):
+  (1) vary phase 1 (`--phase1 120` vs `--phase1 1500`) on runs where the Entra arm DID get access: does the
+  first denial stay at about 36 minutes after the REMOVAL, or move with the time since the member
+  was ADDED or first read? (2) sparse
+  polling (a few reads only around 30-45 minutes) to see whether constant reading holds the access
+  open; (3) a longer phase 2 (90 minutes) to see whether, and when, denials become consistent;
+  (4) a fourth arm: a SharePoint group that CONTAINS the Entra group (the common enterprise
+  pattern); (5) a nested Entra group (S2); (6) removing the Entra group's role assignment on the
+  folder instead of the membership (S1).
 - [ ] REVOCATION TIMING (the core question for S1/S2/S6). The clean result below (new names) must be
   repeated with new names each time and `--baseline-reads 3`. Direct membership removal: SharePoint kept
   allowing reads, and its own effective-permission answer stayed "Read", for 30 minutes with old and

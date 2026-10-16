@@ -14,6 +14,9 @@ Phase 1 - steady state (--phase1, default 600s): one delegated token for the use
   --interval seconds read every arm (Graph content, canary checked) and ask SharePoint REST for
   the user's effective permissions on each arm's folder. Nothing changes. Per arm: allowed %, flip
   % (answer differs from the previous read), first run of 5 allowed in a row.
+Between the phases: an arm that never showed 5 allowed reads in a row has nothing to revoke; it
+  gets --baseline-wait seconds (default 300) more, and if it still shows no access it is flagged
+  "NO (nothing to revoke)" and left out of the stop condition and the conclusions.
 Phase 2 - revocation (--phase2, default 2700s = 45 min): a token is acquired seconds before t0
   (the "pre-t0" token); then the user is removed from every arm back to back (direct: the role
   assignment is removed; spgroup: the user is removed from the SharePoint group; entra: the user
@@ -115,6 +118,7 @@ class Opts:
     sku_part_number: str
     throwaway_user: str
     suffix: str
+    baseline_wait: float = 300.0
 
 
 class Saver:
@@ -394,6 +398,63 @@ def phase1(
     saver.write(report)
 
 
+def ensure_baseline(
+    sp: SharePointRest,
+    arms: dict[str, dict[str, Any]],
+    user: dict[str, Any],
+    drive_id: str,
+    canary: str,
+    opts: Opts,
+    report: dict[str, Any],
+    saver: Saver,
+) -> dict[str, bool]:
+    """Did each arm actually give access (RUN_LENGTH allowed reads in a row) before the removal?
+
+    An arm that never had access has nothing to revoke: its instant "denial" in phase 2 would be
+    misleading. Arms without a baseline after phase 1 get up to --baseline-wait seconds more; an arm
+    still without access is flagged and left out of the stop condition and the conclusions.
+    """
+    series = report["phase1"]["series"]
+
+    def has_run(arm: str) -> bool:
+        last = [r[arm]["tok"]["class"] for r in series][-RUN_LENGTH:]
+        return len(last) == RUN_LENGTH and all(c == "allowed" for c in last)
+
+    ok = {arm: has_run(arm) for arm in ARMS}
+    report["baseline"] = {"after_phase1": dict(ok), "extra_wait_s": 0.0}
+    missing = [a for a in ARMS if not ok[a]]
+    if not missing:
+        return ok
+    console.print(
+        f"[yellow]No stable access yet for {missing}; "
+        f"waiting up to {opts.baseline_wait:.0f}s[/yellow]"
+    )
+    token = sign_in(user["upn"], allow_device_code=False, use_cache=False)
+    extra: list[dict[str, Any]] = []
+    report["baseline"]["extra_series"] = extra
+    runs = {a: 0 for a in missing}
+    start = time.monotonic()
+    k = 0
+    while missing and time.monotonic() - start < opts.baseline_wait:
+        time.sleep(max(0.0, start + k * opts.interval - time.monotonic()))
+        row: dict[str, Any] = {"t": round(time.monotonic() - start, 1)}
+        for arm in list(missing):
+            cls, result = safe_read_once(token, drive_id, arms[arm]["file_id"], canary)
+            row[arm] = entry(cls, result)
+            runs[arm] = runs[arm] + 1 if cls == "allowed" else 0
+            if runs[arm] >= RUN_LENGTH:
+                ok[arm] = True
+                missing.remove(arm)
+        extra.append(row)
+        k += 1
+    report["baseline"]["extra_wait_s"] = round(time.monotonic() - start, 1)
+    report["baseline"]["final"] = dict(ok)
+    saver.write(report)
+    if missing:
+        console.print(f"[yellow]No baseline for {missing}: they never showed access[/yellow]")
+    return ok
+
+
 def phase2(
     gc: GraphClient,
     sp: SharePointRest,
@@ -403,6 +464,7 @@ def phase2(
     canary: str,
     opts: Opts,
     read_id: int,
+    valid: dict[str, bool],
     report: dict[str, Any],
     saver: Saver,
 ) -> None:
@@ -447,6 +509,7 @@ def phase2(
         "fresh_token_fetch_seconds": round(time.monotonic() - fresh_started, 1),
         "series": series,
         "structure_checks": structure,
+        "valid_arms": valid,
     }
     start = time.monotonic()
     last_struct = last_ckpt = last_print = -1e9
@@ -480,7 +543,12 @@ def phase2(
             last_ckpt = now
             report["phase2"]["summary"] = states
             saver.write(report)
-        done = all(s["streak"] >= SETTLED_DENIALS for arm in ARMS for s in states[arm].values())
+        done = all(
+            s["streak"] >= SETTLED_DENIALS
+            for arm in ARMS
+            if valid[arm]
+            for s in states[arm].values()
+        )
         if done:
             console.print("  every arm and token has 10 denials in a row: stopping early")
             break
@@ -531,7 +599,13 @@ def run_probe(
     t_ref = time.monotonic()
     phase1(gc, sp, arms, user, drive_id, canary, opts, t_ref, report, saver)
     read_id = int(report["ids"]["read_role_definition_id"])
-    phase2(gc, sp, arms, user, drive_id, canary, opts, read_id, report, saver)
+    valid = ensure_baseline(sp, arms, user, drive_id, canary, opts, report, saver)
+    if not any(valid.values()):
+        raise ProbeStop(
+            "No arm ever showed stable access, so there is nothing to revoke.",
+            {"baseline": report["baseline"].get("final", report["baseline"]["after_phase1"])},
+        )
+    phase2(gc, sp, arms, user, drive_id, canary, opts, read_id, valid, report, saver)
 
 
 def run_cleanup(
@@ -612,6 +686,7 @@ def print_results(report: dict[str, Any]) -> None:
         for col in (
             "Arm",
             "Token",
+            "Had access before t0?",
             "First deny (s)",
             "10 denies in a row from (s)",
             "Allowed reads after t0",
@@ -625,6 +700,9 @@ def print_results(report: dict[str, Any]) -> None:
                 table.add_row(
                     arm,
                     name,
+                    "yes"
+                    if report["phase2"].get("valid_arms", {}).get(arm)
+                    else "NO (nothing to revoke)",
                     str(st["first_denied_s"]),
                     str(st["settled_denied_s"]),
                     str(c["allowed"]),
@@ -652,6 +730,9 @@ def main(
     sku_part_number: str = typer.Option("", help="License SKU part number (if not unique)."),
     throwaway_user: str = typer.Option("", help="Use a NEW user <prefix>probe-<NAME>."),
     suffix: str = typer.Option("", help="Append -<SUFFIX> to folder, file and group names."),
+    baseline_wait: float = typer.Option(
+        300.0, help="Extra seconds to wait for an arm that shows no access after phase 1."
+    ),
     spec_path: Path = typer.Option(ROOT / "tenant_spec.yaml", help="Path to tenant_spec.yaml."),
 ) -> None:
     report: dict[str, Any] = {
@@ -696,6 +777,7 @@ def main(
             sku_part_number=sku_part_number,
             throwaway_user=throwaway_user,
             suffix=suffix,
+            baseline_wait=baseline_wait,
         )
         with GraphClient() as gc, SharePointRest(site_url) as sp:
             if cleanup:

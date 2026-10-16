@@ -214,8 +214,8 @@ class SharePointRest:
     ) -> httpx.Response:
         """POST <item>/roleassignments/removeroleassignment(principalid=..,roledefid=..).
 
-        Verified on /web (site root) 2026-10-15: 200, and the assignment was gone on re-read
-        (used by sp_probe's root-grant --cleanup).
+        Verified 2026-10-15 on /web (site root) and 2026-10-16 on a folder's list item: 200, the
+        assignment was gone on re-read and a direct grant's access ended within about 16s.
         """
         return self.request(
             "POST",
@@ -257,8 +257,8 @@ class SharePointRest:
     def create_site_group(self, title: str, description: str = "") -> httpx.Response:
         """POST /web/sitegroups {"Title": ..., "Description": ...}: a new SharePoint group.
 
-        UNVERIFIED: that this body works with odata=nometadata and the app-only token, and what the
-        response contains (expected: Id, Title, LoginName).
+        Verified 2026-10-16 (consistency_probe, two runs): works with odata=nometadata and the
+        app-only token; the response carries the group's Id.
         """
         return self.request(
             "POST", "/web/sitegroups", body={"Title": title, "Description": description}
@@ -267,7 +267,7 @@ class SharePointRest:
     def find_site_group(self, title: str) -> httpx.Response:
         """GET /web/sitegroups?$filter=Title eq '<title>'&$select=Id,Title,LoginName.
 
-        UNVERIFIED: that $filter on Title works on sitegroups.
+        Verified 2026-10-16: $filter on Title works on sitegroups.
         """
         escaped = title.replace("'", "''")
         return self.request(
@@ -279,7 +279,8 @@ class SharePointRest:
     def add_user_to_site_group(self, group_id: int, logon_name: str) -> httpx.Response:
         """POST /web/sitegroups/getbyid(<id>)/users {"LoginName": ...}.
 
-        UNVERIFIED: that it accepts the user's membership claim and returns the user.
+        Verified 2026-10-16: accepts the user's membership claim; the user then had the group's
+        access.
         """
         return self.request(
             "POST", f"/web/sitegroups/getbyid({group_id})/users", body={"LoginName": logon_name}
@@ -288,14 +289,15 @@ class SharePointRest:
     def remove_user_from_site_group(self, group_id: int, user_id: int) -> httpx.Response:
         """POST /web/sitegroups/getbyid(<id>)/users/removebyid(<user id>).
 
-        UNVERIFIED: that this endpoint exists and works with the app-only token.
+        Verified 2026-10-16: the user was gone from the group on re-read and its access ended
+        within about 16s.
         """
         return self.request(
             "POST", f"/web/sitegroups/getbyid({group_id})/users/removebyid({user_id})"
         )
 
     def delete_site_group(self, group_id: int) -> httpx.Response:
-        """POST /web/sitegroups/removebyid(<id>). UNVERIFIED: endpoint and effect."""
+        """POST /web/sitegroups/removebyid(<id>). Verified 2026-10-16: 200, the group is gone."""
         return self.request("POST", f"/web/sitegroups/removebyid({group_id})")
 
     def get_group_users(self, group_id: int) -> httpx.Response:
