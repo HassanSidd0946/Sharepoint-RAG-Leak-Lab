@@ -593,6 +593,77 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 - Probe output: probes/out/revocation_probe.json
 - Docs: n/a
 
+### Steady state, two arms (c1): a direct grant was 100% allowed, an Entra-group grant 0% for 10 minutes
+- Date: 2026-10-16 (run at 11:26 UTC; the saved file is probes/out/consistency_probe.json, status ok).
+  This was the first, two-arm version of `probes/consistency_probe.py`. Its results were not
+  reported when first asked about, and an earlier summary wrongly said the probe had not been run.
+- Setup: p-plateng (reused); folder A with Read granted DIRECTLY to the user; folder B with Read
+  granted to a new Entra security group that contains the user (Graph showed the membership stable
+  after 13.0s). One token, nothing changing, 113 read cycles over 600s, plus SharePoint's own
+  effective-permission query on each folder.
+- Result: direct grant: 113/113 allowed, 0 flips, effective permission "can read" 100%. Entra-group
+  grant: 0/113 allowed (every read `404 itemNotFound`), 0 flips, effective permission "cannot read"
+  100%, for 10 minutes while Entra listed the user in the group.
+- A second run of the same version (c2, brand-new user `cons2`) failed on a network error while
+  signing in (a read timeout to login.microsoftonline.com) and produced no data
+  (probes/out/consistency_probe.failed.json).
+- Probe output: probes/out/consistency_probe.json
+- Docs: n/a
+
+### Three arms (c1 again): direct and SharePoint-group grants revoke in about 16s; an Entra-group grant persisted 35+ minutes
+- Date: 2026-10-16 (run at 12:06 UTC; probes/out/consistency_probe_run_20261016T120649Z.json, status
+  `failed` because a network error ended the run at 39.2 of 45 minutes; the data up to then are
+  saved).
+- Setup: p-plateng; three folders with broken inheritance, one canary file each, one grant each:
+  DIRECT (the user), SPGROUP (a new SharePoint group containing the user), ENTRA (a new Entra
+  group containing the user). The three new SharePoint-group calls worked (create, add user,
+  remove user, find, grant).
+- Phase 1, steady state, 71 cycles over 605s, one token: all three arms 100% allowed, 0 flips,
+  SharePoint effective permission "can read" 100%, first run of 5 allowed reads at 12.2s.
+- Phase 2, revocation: the user was removed from all three arms back to back (Entra 1.44s,
+  SharePoint group 0.36s, direct assignment 0.41s, 1.8s from first call to last). A token acquired
+  seconds before (pre-t0) and one acquired right after (fresh, 0.4s) read every arm every cycle (a
+  cycle took about 13s, so "first deny" is accurate to about 16s). 179 cycles, up to 2353s:
+
+  | Arm | Pre-t0 token | Fresh token | SharePoint effective permission |
+  |---|---|---|---|
+  | DIRECT | first deny 16.1s; 179/179 denied, 0 allowed | same | "cannot read" from 16.1s on |
+  | SPGROUP | first deny 16.5s; 179/179 denied, 0 allowed | same | "cannot read" from 16.5s on |
+  | ENTRA | **174 of 179 allowed**; first deny 2175.5s (36.3 min), 5 denials, no run of 10 | **175 of 179 allowed**; first deny 2137.0s (35.6 min), 4 denials | **"can read" on all 179 cycles** |
+
+  After the first denials the Entra arm flipped (7 and 6 flips) and was still allowed on most reads
+  until the run ended. 36 structure checks (every 60s) showed the removals in effect everywhere from
+  the first check at 15.7s: Entra did not list the user, the SharePoint group did not contain the
+  user, and the direct assignment was gone.
+- The run stopped on `ConnectTimeout` (an SSL handshake) at about 2354s, and the `--cleanup` that
+  followed failed on the same error, so the folders and groups of this run still need cleaning up.
+  The probe now treats a network error during a read as an `error` read and keeps polling.
+- Probe output: probes/out/consistency_probe_run_20261016T120649Z.json
+- Docs: n/a
+
+### What the two probes (and the earlier runs) say together: the instability is tied to Entra-group grants
+- Every unstable observation so far involved a grant to an ENTRA security group: new members denied
+  for 5-30 minutes (runs B, C, D, c1 group arm, n1-second), coin-flip reads (n1-second, a1), and
+  revocation not honored for 15-39 minutes (run A, n1-first, the ENTRA arm above).
+- DIRECT user grants and SharePoint-group membership never showed any instability: two steady-state
+  runs (113 and 71 cycles, 100% allowed, no flips), and one revocation that took effect within
+  about 16s on both, with SharePoint's own effective permission agreeing.
+- The Entra-group arm itself was NOT always bad: in the three-arm run its steady state was 100%
+  allowed from the first read, like the other arms, and it was only the revocation that lagged (36
+  minutes before the first denial, with SharePoint's own effective permission still "can read" at 39
+  minutes). In the two-arm run, 40 minutes earlier with the same user and the same setup recipe, the
+  Entra-group arm was 100% denied for 10 minutes. So for Entra groups both the start and the end of
+  access are unpredictable (regimes: fast and clean; denied; coin flips), while the other two grant
+  types were predictable.
+- Limits: few runs (two steady-state, one revocation for direct and SharePoint-group grants), one
+  user, one tenant, one day. The SharePoint-group arm contained the user directly (not an Entra
+  group inside a SharePoint group). "No instability seen" is not proof of stability. No mechanism is
+  established; a guess consistent with the numbers (not verified) is that SharePoint keeps its own
+  cached view of a user's Entra group membership, updated lazily (the first denials came after
+  about 36 minutes), while direct assignments and SharePoint-group membership are evaluated from
+  SharePoint's own data without it.
+- Probe output: probes/out/consistency_probe.json, probes/out/consistency_probe_run_20261016T120649Z.json
+
 ### Persona sign-in with a nonexistent user fails with AADSTS50034 (no device-code fallback)
 - Date: 2026-10-15
 - Endpoint: token endpoint, username/password (ROPC) via `auth.get_persona_token`
@@ -765,6 +836,10 @@ Observed but not settled (needs a decision, or more evidence, before it becomes 
   (site collection admin vs. Owners-group member) is unverified, so there is no rule yet for which
   accounts this applies to. Options for later: exclude the admin from leak assertions, or model it
   as always allowed.
+- **Grant type matters.** Direct user grants and SharePoint-group membership took effect, and were
+  revoked, within about 16s; Entra-group grants showed delayed starts, flapping reads and a revocation
+  that was not honored for 35+ minutes (see the three-arm entries). Any oracle that assumes one
+  propagation behavior for all grant types is wrong for this tenant.
 - **Timing.** Membership became visible after about 12s in two samples, a license after up to
   about 13s, and a new member could read after 10-23s with brand-new object names but still got 403
   after 5-30 minutes in three runs that re-created deleted folder/file/group names (Entra listed the
@@ -798,13 +873,17 @@ file, file-level grant), and everything on revocation timing.
   and coin-flip reads; the same names re-created (`n1` twice) gave 452s and flapping; the first use of
   `n1` and of the original names was clean. What separates the clean runs from the others is
   unknown (the user's history, the time of day, the state of the service, or chance).
-- [ ] Inconsistent reads (the new top priority): in two runs the same user got "allowed" from some reads and
-  "denied" from others at the same time, independent of token age and of the membership removal
-  (about 50% allowed), while SharePoint's effective-permission answer was constant. Is it specific to
-  group-based grants? Run `probes/consistency_probe.py`: one token, nothing changes, one folder granted
-  directly to the user and one to a group the user is in. Then repeat with a brand-new user and new
-  names (`--throwaway-user` and `--suffix`), at a different time of day, to see whether the regime
-  changes with the user, the names, or just time.
+- [ ] ENTRA-GROUP GRANTS vs. THE OTHER TWO (new top priority): direct and SharePoint-group grants behaved
+  consistently in the runs so far; Entra-group grants did not (see the three entries above).
+  To do: (1) repeat the three-arm probe at least twice more, ideally with a brand-new user and new
+  names, to see whether the direct and SharePoint-group arms ever misbehave; (2) a fourth arm: a
+  SharePoint group that contains the Entra group (the usual enterprise pattern); (3) nested Entra
+  groups (S2); (4) how long the Entra arm takes to settle after the first denials at about 36
+  minutes (the run ended at 39 minutes, never reaching 10 denials in a row); (5) what, if anything,
+  makes SharePoint refresh its view of Entra membership sooner (a new sign-in, an access through
+  another path, a change to the grant).
+- [ ] Cleanup of the three-arm run still pending: `consistency_probe.py --cleanup --suffix c1` failed on a
+  network error; the three folders, the Entra group and the SharePoint group may still exist.
 - [ ] REVOCATION TIMING (the core question for S1/S2/S6). The clean result below (new names) must be
   repeated with new names each time and `--baseline-reads 3`. Direct membership removal: SharePoint kept
   allowing reads, and its own effective-permission answer stayed "Read", for 30 minutes with old and

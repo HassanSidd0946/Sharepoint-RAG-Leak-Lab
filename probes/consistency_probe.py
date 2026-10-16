@@ -286,18 +286,18 @@ def structure_check(
     try:
         ids = {g["id"] for g in gc.list_transitive_member_of(user["object_id"])}
         out["entra_member"] = arms["entra"]["group_id"] in ids
-    except GraphError as exc:
-        out["entra_member"] = f"error: {exc.status_code}"
+    except (GraphError, httpx.TransportError) as exc:
+        out["entra_member"] = f"error: {getattr(exc, 'status_code', type(exc).__name__)}"
     try:
         users = parse_users(sp.get_group_users(arms["spgroup"]["group_id"]))
         out["spgroup_member"] = login in users
-    except (SPRestError, ValueError) as exc:
+    except (SPRestError, ValueError, httpx.TransportError) as exc:
         out["spgroup_member"] = f"error: {type(exc).__name__}"
     try:
         data = sp.get_role_assignments(arms["direct"]["item"]).json()
         logins = {a.get("Member", {}).get("LoginName") for a in data.get("value", [])}
         out["direct_assignment_present"] = login in logins
-    except (SPRestError, ValueError) as exc:
+    except (SPRestError, ValueError, httpx.TransportError) as exc:
         out["direct_assignment_present"] = f"error: {type(exc).__name__}"
     return out
 
@@ -305,6 +305,30 @@ def structure_check(
 def parse_users(resp: httpx.Response) -> set[str]:
     data = resp.json()
     return {str(u.get("LoginName")) for u in data.get("value", [])}
+
+
+def safe_read_once(
+    token: str, drive_id: str, file_id: str, canary: str
+) -> tuple[str, dict[str, Any]]:
+    """A read that never raises on a network error: it becomes an "error" read and polling goes on.
+
+    (One SSL handshake timeout ended a 39-minute observation once; reads are safe to repeat.)
+    """
+    try:
+        return read_once(token, drive_id, file_id, canary)
+    except httpx.TransportError as exc:
+        return "error", {
+            "first_status": None,
+            "final_status": None,
+            "error_code": f"transport:{type(exc).__name__}",
+        }
+
+
+def safe_sp_view(sp: SharePointRest, item_path: str, login: str) -> bool | None:
+    try:
+        return sp_view(sp, item_path, login).get("can_read")
+    except httpx.TransportError:
+        return None
 
 
 def read_arms(
@@ -321,10 +345,10 @@ def read_arms(
     for arm in ARMS:
         row[arm] = {}
         for name, token in tokens.items():
-            cls, result = read_once(token, drive_id, arms[arm]["file_id"], canary)
+            cls, result = safe_read_once(token, drive_id, arms[arm]["file_id"], canary)
             row[arm][name] = entry(cls, result)
         if use_sp_view:
-            row[arm]["sp"] = sp_view(sp, arms[arm]["item"], login).get("can_read")
+            row[arm]["sp"] = safe_sp_view(sp, arms[arm]["item"], login)
     return row
 
 
