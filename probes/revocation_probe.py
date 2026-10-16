@@ -60,6 +60,7 @@ from sp_probe import (
     Ctx,
     Recorder,
     StepFailed,
+    assert_scenario_name,
     break_inheritance,
     create_folder,
     delete_folder,
@@ -97,6 +98,7 @@ class Opts:
     wait: float
     sku_part_number: str
     entra_check_interval: float = 30.0
+    throwaway_user: str = ""
 
 
 def out_file_for(report: dict[str, Any]) -> Path:
@@ -276,6 +278,7 @@ def run_trial(
 ) -> dict[str, Any]:
     console.print(f"[bold]Trial {n}[/bold]")
     trial: dict[str, Any] = {"trial": n}
+    report["trials"].append(trial)
     outer = groups["outer"]["id"]
     if opts.mode == "nested":
         inner = groups["inner"]["id"]
@@ -304,16 +307,28 @@ def run_trial(
     old_token = sign_in(user["upn"], allow_device_code=False, use_cache=False)
     console.print("  waiting for the first 200 read (new member access)")
     waits: list[dict[str, Any]] = []
+    trial["access_waits"] = waits
     while True:
         cls, result = read_once(old_token, drive_id, file_id, canary)
         elapsed = round(time.monotonic() - t_add, 1)
-        waits.append({"since_add_s": elapsed, "class": cls, "status": result.get("first_status")})
-        console.print(f"    t={elapsed:6.1f}s since add: {cls} ({result.get('first_status')})")
+        entra_member = outer in {g["id"] for g in gc.list_transitive_member_of(user["object_id"])}
+        waits.append(
+            {
+                "since_add_s": elapsed,
+                "class": cls,
+                "status": result.get("first_status"),
+                "code": result.get("error_code"),
+                "entra_lists_member": entra_member,
+            }
+        )
+        console.print(
+            f"    t={elapsed:6.1f}s since add: {cls} ({result.get('first_status')}); "
+            f"Entra lists member: {entra_member}"
+        )
         if cls == "allowed":
             trial["seconds_from_add_to_first_200"] = elapsed
             break
         if time.monotonic() - t_add > opts.access_timeout:
-            trial["access_waits"] = waits
             raise ProbeStop(
                 f"No 200 read within {opts.access_timeout:.0f}s of the add.", {"trial": n}
             )
@@ -343,6 +358,39 @@ def run_trial(
     return trial
 
 
+def ensure_throwaway_user(
+    gc: GraphClient,
+    ctx: Ctx,
+    short: str,
+    location: str,
+    sku_id: str,
+    wait_s: float,
+    report: dict[str, Any],
+) -> dict[str, Any]:
+    """A user named <prefix>probe-<short> that has (by design) never touched SharePoint.
+
+    Used to test whether SharePoint's per-user view of group membership is set when a user first
+    accesses it and then kept. Use a NEW name each run: an existing user is not fresh.
+    """
+    name = f"{ctx.prefix}probe-{short}"
+    assert_scenario_name(name, ctx.prefix)
+    upn = f"{name}@{ctx.domain}"
+    found = gc.get_user_by_upn(upn)
+    state = "reused"
+    if found is None:
+        found = gc.create_user(upn, name, name, ctx.password, location)
+        gc.assign_license(found["id"], sku_id)
+        state = "created"
+        console.print(f"  throwaway user {upn}: created; waiting {wait_s:.0f}s to replicate")
+        time.sleep(wait_s)
+    else:
+        console.print(
+            f"[yellow]  throwaway user {upn} already exists: NOT fresh, it may have accessed "
+            "SharePoint before. Use a new --throwaway-user name.[/yellow]"
+        )
+    return {"upn": upn, "object_id": found["id"], "state": state, "throwaway": True}
+
+
 def run_probe(
     rec: Recorder,
     gc: GraphClient,
@@ -364,8 +412,13 @@ def run_probe(
     console.print("[bold]Setup[/bold]")
     _, drive_id, library_url = resolve_site_and_drive(rec, gc, ctx.host, ctx.site_path, report)
     sku_id = choose_sku(gc.list_subscribed_skus(), opts.sku_part_number, report)
-    user = ensure_user(gc, ctx.spec, USER_ID, ctx.password, location, sku_id, report)
-    user.pop("created_at_monotonic", None)
+    if opts.throwaway_user:
+        user = ensure_throwaway_user(
+            gc, ctx, opts.throwaway_user, location, sku_id, opts.wait, report
+        )
+    else:
+        user = ensure_user(gc, ctx.spec, USER_ID, ctx.password, location, sku_id, report)
+        user.pop("created_at_monotonic", None)
     user["license_wait"] = wait_license_visible(gc, user["object_id"], sku_id, opts.license_timeout)
     report["user"] = user
 
@@ -400,20 +453,18 @@ def run_probe(
     snapshot(rec, sp, "folder after grant", folder_item, report)
     report["ids"] = {"drive_id": drive_id, "folder_id": folder["id"], "file_id": file["id"]}
 
-    report["trials"] = trials = []
+    report["trials"] = []
     for n in range(1, opts.trials + 1):
-        trials.append(
-            run_trial(
-                n,
-                gc,
-                opts=opts,
-                groups=groups,
-                user=user,
-                drive_id=drive_id,
-                file_id=str(file["id"]),
-                canary=canary,
-                report=report,
-            )
+        run_trial(
+            n,
+            gc,
+            opts=opts,
+            groups=groups,
+            user=user,
+            drive_id=drive_id,
+            file_id=str(file["id"]),
+            canary=canary,
+            report=report,
         )
 
 
@@ -423,6 +474,7 @@ def run_cleanup(
     sp: SharePointRest,
     ctx: Ctx,
     delete_users: bool,
+    throwaway: str,
     report: dict[str, Any],
 ) -> None:
     p = ctx.prefix
@@ -430,9 +482,15 @@ def run_cleanup(
     delete_folder(rec, gc, drive_id, f"{p}sp-revoc-folder", ctx, report)
     delete_groups(gc, [f"{p}probe-revoc", f"{p}probe-revoc-inner"], ctx, report)
     if delete_users:
-        found = gc.get_user_by_upn(user_upn(ctx.spec, USER_ID))
-        if found is not None:
-            delete_or_gone("user", USER_ID, partial(gc.delete_user, found["id"]), report)
+        targets = [(USER_ID, user_upn(ctx.spec, USER_ID))]
+        if throwaway:  # only the named throwaway user, never p-plateng
+            name = f"{p}probe-{throwaway}"
+            assert_scenario_name(name, p)
+            targets = [(name, f"{name}@{ctx.domain}")]
+        for label, upn in targets:
+            found = gc.get_user_by_upn(upn)
+            if found is not None:
+                delete_or_gone("user", label, partial(gc.delete_user, found["id"]), report)
 
 
 def print_results(report: dict[str, Any]) -> None:
@@ -461,6 +519,8 @@ def print_results(report: dict[str, Any]) -> None:
             )
     console.print(table)
     for trial in report.get("trials", []):
+        if "achieved_cycle_seconds" not in trial:
+            continue  # the trial stopped before polling started
         console.print(
             f"trial {trial['trial']}: Entra first reported the user removed at "
             f"t={trial.get('entra_first_seen_removed_s')}s; one read cycle took about "
@@ -491,6 +551,10 @@ def main(
     license_timeout: float = typer.Option(300.0, help="Max seconds to wait for the license."),
     wait: float = typer.Option(15.0, help="Seconds to wait after creating the group."),
     sku_part_number: str = typer.Option("", help="License SKU part number (if not unique)."),
+    throwaway_user: str = typer.Option(
+        "",
+        help="Use a NEW user <prefix>probe-<NAME> instead of p-plateng (never touched SharePoint).",
+    ),
     spec_path: Path = typer.Option(ROOT / "tenant_spec.yaml", help="Path to tenant_spec.yaml."),
 ) -> None:
     if mode not in ("direct", "nested") or tokens not in ("both", "old", "fresh"):
@@ -538,10 +602,11 @@ def main(
             license_timeout=license_timeout,
             wait=wait,
             sku_part_number=sku_part_number,
+            throwaway_user=throwaway_user,
         )
         with GraphClient() as gc, SharePointRest(site_url) as sp:
             if cleanup:
-                run_cleanup(rec, gc, sp, ctx, delete_users, report)
+                run_cleanup(rec, gc, sp, ctx, delete_users, opts.throwaway_user, report)
             else:
                 run_probe(rec, gc, sp, ctx, opts, report)
     except (StepFailed, ProbeStop) as exc:

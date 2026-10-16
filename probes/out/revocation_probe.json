@@ -1,7 +1,7 @@
 {
   "probe": "revocation_probe",
   "variant": "direct",
-  "run_at": "2026-10-16T08:58:14.959445+00:00",
+  "run_at": "2026-10-16T09:49:37.052889+00:00",
   "status": "failed",
   "mode": "probe",
   "steps": [
@@ -15,7 +15,7 @@
         "createdDateTime": "2026-10-15T15:14:24.83Z",
         "description": "Test site for RAG security benchmark.",
         "id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
-        "lastModifiedDateTime": "2026-10-16T08:02:57Z",
+        "lastModifiedDateTime": "2026-10-16T09:49:35Z",
         "name": "LeakLab",
         "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
         "displayName": "LeakLab",
@@ -35,7 +35,7 @@
         "createdDateTime": "2026-10-11T20:37:43Z",
         "description": "",
         "id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
-        "lastModifiedDateTime": "2026-10-16T08:02:57Z",
+        "lastModifiedDateTime": "2026-10-16T09:49:35Z",
         "name": "Documents",
         "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents",
         "driveType": "documentLibrary",
@@ -52,11 +52,11 @@
           }
         },
         "quota": {
-          "deleted": 4592,
-          "remaining": 27487788689397,
+          "deleted": 6053,
+          "remaining": 27487788686638,
           "state": "normal",
           "total": 27487790694400,
-          "used": 2000411
+          "used": 2001709
         }
       }
     },
@@ -74,14 +74,14 @@
       "operation": "create folder ll-sp-revoc-folder",
       "endpoint": "POST <parent>/children",
       "status": 201,
-      "summary": "id=01RQLOFTT77IJVP5RDOBGLGWHFNM5E6VQ4",
+      "summary": "id=01RQLOFTVD4LXPBZSAAFDZM5KOMS6GKOOK",
       "response": {
         "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/root/children/$entity",
-        "@odata.etag": "\"{5713FA7F-23F6-4C70-B358-E56B3A4F561C},1\"",
-        "eTag": "\"{5713FA7F-23F6-4C70-B358-E56B3A4F561C},1\"",
-        "lastModifiedDateTime": "2026-10-16T08:58:43Z",
-        "createdDateTime": "2026-10-16T08:58:43Z",
-        "id": "01RQLOFTT77IJVP5RDOBGLGWHFNM5E6VQ4",
+        "@odata.etag": "\"{F0EEE2A3-40E6-4701-9675-4E64BC6539CA},1\"",
+        "eTag": "\"{F0EEE2A3-40E6-4701-9675-4E64BC6539CA},1\"",
+        "lastModifiedDateTime": "2026-10-16T09:50:23Z",
+        "createdDateTime": "2026-10-16T09:50:23Z",
+        "id": "01RQLOFTVD4LXPBZSAAFDZM5KOMS6GKOOK",
         "name": "ll-sp-revoc-folder",
         "size": 0,
         "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-revoc-folder",
@@ -123,8 +123,8 @@
           }
         },
         "fileSystemInfo": {
-          "createdDateTime": "2026-10-16T08:58:43Z",
-          "lastModifiedDateTime": "2026-10-16T08:58:43Z"
+          "createdDateTime": "2026-10-16T09:50:23Z",
+          "lastModifiedDateTime": "2026-10-16T09:50:23Z"
         },
         "folder": {
           "childCount": 0
@@ -138,17 +138,17 @@
       "operation": "upload ll-revoc.txt",
       "endpoint": "PUT <folder>:/<file>:/content",
       "status": 201,
-      "summary": "id=01RQLOFTVZAKFAEAQ7QVGYEV75ZTBFUWRA",
+      "summary": "id=01RQLOFTSHBE6LPFECTJDIXBFLBL52D5TY",
       "response": {
         "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/items/$entity",
         "@microsoft.graph.downloadUrl": "<redacted>",
-        "createdDateTime": "2026-10-16T08:58:43Z",
-        "eTag": "\"{028A02B9-1F02-4D85-8257-FDCCC25A5A20},1\"",
-        "id": "01RQLOFTVZAKFAEAQ7QVGYEV75ZTBFUWRA",
-        "lastModifiedDateTime": "2026-10-16T08:58:43Z",
+        "createdDateTime": "2026-10-16T09:50:24Z",
+        "eTag": "\"{B73C0947-8294-469A-8B84-AB0AFBA1F678},1\"",
+        "id": "01RQLOFTSHBE6LPFECTJDIXBFLBL52D5TY",
+        "lastModifiedDateTime": "2026-10-16T09:50:24Z",
         "name": "ll-revoc.txt",
         "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-revoc-folder/ll-revoc.txt",
-        "cTag": "\"c:{028A02B9-1F02-4D85-8257-FDCCC25A5A20},1\"",
+        "cTag": "\"c:{B73C0947-8294-469A-8B84-AB0AFBA1F678},1\"",
         "isAuthoritative": false,
         "size": 68,
         "createdBy": {
@@ -172,7 +172,7 @@
         "parentReference": {
           "driveType": "documentLibrary",
           "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
-          "id": "01RQLOFTT77IJVP5RDOBGLGWHFNM5E6VQ4",
+          "id": "01RQLOFTVD4LXPBZSAAFDZM5KOMS6GKOOK",
           "name": "ll-sp-revoc-folder",
           "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:/ll-sp-revoc-folder",
           "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7"
@@ -184,8 +184,8 @@
           }
         },
         "fileSystemInfo": {
-          "createdDateTime": "2026-10-16T08:58:43Z",
-          "lastModifiedDateTime": "2026-10-16T08:58:43Z"
+          "createdDateTime": "2026-10-16T09:50:24Z",
+          "lastModifiedDateTime": "2026-10-16T09:50:24Z"
         },
         "shared": {
           "scope": "users"
@@ -204,27 +204,12 @@
     {
       "operation": "ensureuser (revocation group)",
       "endpoint": "POST /_api/web/ensureuser",
-      "status": 400,
-      "summary": "HTTP 400 (allowed)",
-      "response": {
-        "odata.error": {
-          "code": "-2146232832, Microsoft.SharePoint.SPException",
-          "message": {
-            "lang": "en-US",
-            "value": "The specified user c:0t.c|tenant|ac3de38e-610e-4bfe-924f-a09c6224c02c could not be found."
-          }
-        }
-      }
-    },
-    {
-      "operation": "ensureuser (revocation group)",
-      "endpoint": "POST /_api/web/ensureuser",
       "status": 200,
-      "summary": "Id=20 LoginName=c:0t.c|tenant|ac3de38e-610e-4bfe-924f-a09c6224c02c type=4",
+      "summary": "Id=22 LoginName=c:0t.c|tenant|c0b26b39-39fd-4869-b930-ed65f3bd4322 type=4",
       "response": {
-        "Id": 20,
+        "Id": 22,
         "IsHiddenInUI": false,
-        "LoginName": "c:0t.c|tenant|ac3de38e-610e-4bfe-924f-a09c6224c02c",
+        "LoginName": "c:0t.c|tenant|c0b26b39-39fd-4869-b930-ed65f3bd4322",
         "Title": "ll-probe-revoc",
         "PrincipalType": 4,
         "Email": "",
@@ -303,9 +288,9 @@
         "value": [
           {
             "Member": {
-              "Id": 20,
+              "Id": 22,
               "IsHiddenInUI": false,
-              "LoginName": "c:0t.c|tenant|ac3de38e-610e-4bfe-924f-a09c6224c02c",
+              "LoginName": "c:0t.c|tenant|c0b26b39-39fd-4869-b930-ed65f3bd4322",
               "Title": "ll-probe-revoc",
               "PrincipalType": 4,
               "Email": "",
@@ -330,7 +315,7 @@
                 "RoleTypeKind": 2
               }
             ],
-            "PrincipalId": 20
+            "PrincipalId": 22
           }
         ]
       }
@@ -351,12 +336,13 @@
     "license_timeout": 300.0,
     "wait": 15.0,
     "sku_part_number": "",
-    "entra_check_interval": 30.0
+    "entra_check_interval": 30.0,
+    "throwaway_user": "rev1"
   },
   "ids": {
     "drive_id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
-    "folder_id": "01RQLOFTT77IJVP5RDOBGLGWHFNM5E6VQ4",
-    "file_id": "01RQLOFTVZAKFAEAQ7QVGYEV75ZTBFUWRA"
+    "folder_id": "01RQLOFTVD4LXPBZSAAFDZM5KOMS6GKOOK",
+    "file_id": "01RQLOFTSHBE6LPFECTJDIXBFLBL52D5TY"
   },
   "subscribed_skus": [
     {
@@ -379,18 +365,13 @@
     "availableUnits": 22
   },
   "user": {
-    "spec_id": "p-plateng",
-    "upn": "ll-p-plateng@leaklabdev.onmicrosoft.com",
-    "licensed_in_spec": true,
-    "state": "reused",
-    "object_id": "d375d082-52ed-4c0d-883a-d0310af283e1",
-    "license": "already assigned",
-    "assigned_sku_ids_after": [
-      "3b555118-da6a-4418-894f-7df1e2096870"
-    ],
+    "upn": "ll-probe-rev1@leaklabdev.onmicrosoft.com",
+    "object_id": "1beb7ae1-2bbf-4bfc-b786-4e6a8dd32783",
+    "state": "created",
+    "throwaway": true,
     "license_wait": {
       "visible": true,
-      "after_s": 0.3
+      "after_s": 1.0
     }
   },
   "memberships": [
@@ -402,14 +383,14 @@
   ],
   "groups": {
     "ll-probe-revoc": {
-      "id": "ac3de38e-610e-4bfe-924f-a09c6224c02c",
+      "id": "c0b26b39-39fd-4869-b930-ed65f3bd4322",
       "state": "created"
     }
   },
   "ensureuser_waits": {
     "revocation group": {
-      "attempts": 2,
-      "seconds": 5.8
+      "attempts": 1,
+      "seconds": 0.6
     }
   },
   "snapshots": {
@@ -418,7 +399,7 @@
       "assignments": [
         {
           "member": "ll-probe-revoc",
-          "login": "c:0t.c|tenant|ac3de38e-610e-4bfe-924f-a09c6224c02c",
+          "login": "c:0t.c|tenant|c0b26b39-39fd-4869-b930-ed65f3bd4322",
           "principal_type": 4,
           "roles": [
             "Read"
@@ -427,7 +408,272 @@
       ]
     }
   },
-  "trials": [],
+  "trials": [
+    {
+      "trial": 1,
+      "membership_stable": {
+        "stable": true,
+        "after_s": 11.4,
+        "polls": [
+          {
+            "elapsed_s": 0.6,
+            "probe_groups_seen": 0,
+            "ok": false
+          },
+          {
+            "elapsed_s": 6.1,
+            "probe_groups_seen": 1,
+            "ok": true
+          },
+          {
+            "elapsed_s": 11.4,
+            "probe_groups_seen": 1,
+            "ok": true
+          }
+        ]
+      },
+      "access_waits": [
+        {
+          "since_add_s": 18.2,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 30.0,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 37.7,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 45.9,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 54.3,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 63.6,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 71.6,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 78.9,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 87.4,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 97.0,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 105.2,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 114.4,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 123.0,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 133.6,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 140.9,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 153.2,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 164.8,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 173.4,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 181.5,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 189.7,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 196.7,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 207.1,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 217.0,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 225.6,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 234.5,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 242.1,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 249.4,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 257.5,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 265.5,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 273.1,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 280.9,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 288.4,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 296.5,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        },
+        {
+          "since_add_s": 305.4,
+          "class": "denied",
+          "status": 403,
+          "code": "accessDenied",
+          "entra_lists_member": true
+        }
+      ]
+    }
+  ],
   "stopped": {
     "message": "No 200 read within 300s of the add.",
     "trial": 1

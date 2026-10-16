@@ -399,6 +399,66 @@ endpoint, what we expected, what actually happened, and a doc link if any.
   the failed nested attempt.
 - Docs: n/a
 
+### A newly added member got 403 on every read for 5+ minutes (variable, unlike the earlier runs)
+- Date: 2026-10-16
+- Probe: `probes/revocation_probe.py --trials 1 --poll-timeout 1800`, direct mode, right after
+  `--cleanup` (so the group, folder and grant were created from scratch).
+- Setup facts: `ensureuser` on the new group needed one retry ("not found yet", 5s) although the probe
+  had waited 15s after creating the group. Graph's `transitiveMemberOf` showed p-plateng in the group
+  from about 11s after the add (0/1, 0/1, 1/1, 1/1 at 0.3s, 6.1s, 11.4s, 17.0s).
+- Actual: with a token acquired after that, EVERY read was denied (403) for 306s after the add: 42
+  reads, about 7s apart, no 200. The probe stopped at its 300s access timeout. Whether the read would
+  ever have succeeded is unknown.
+- Contrast: in the earlier direct run (also a freshly created group in trial 1, then re-adding the
+  same user in trial 2) the first 200 came 16.7s and 10.5s after the add. So the delay before a NEW
+  member can read varies from about 10s to more than 5 minutes between runs of the same probe.
+- Together with the revocation result (access persisted 15+ minutes after removal), SharePoint's view
+  of group membership lagged the directory in BOTH directions, by large and variable amounts, with
+  fresh tokens each time. The cause is not established; nothing here is a verified explanation.
+- Data note: this run's 42 read results were not saved (a stopped trial was not stored); they exist
+  only in the terminal output. The probe now stores a trial as soon as it starts and records, for each
+  read while waiting, whether Entra lists the member.
+- Probe output: terminal output only (probes/out/revocation_probe.json has the setup, no trial data)
+- Docs: n/a
+
+### A new member was still denied after 30 minutes while Entra listed them as a member
+- Date: 2026-10-16
+- Probe: `probes/revocation_probe.py --trials 1 --access-timeout 1800 --poll-timeout 1800`, direct
+  mode, right after `--cleanup`; same user (p-plateng), a freshly created group, folder and grant.
+- Actual (saved in probes/out/revocation_probe.json): Graph showed the user in the group stably from
+  17.0s after the add, and `ensureuser` resolved the group on the first attempt (0.4s). Then 218
+  reads, from 21.2s to 1804.7s after the add, were ALL denied: HTTP 403, code `accessDenied`, never a
+  200. For every one of those reads Entra listed the user as a member. The probe stopped at its
+  1800s access timeout.
+- The three direct-mode runs so far, all with p-plateng and a freshly created group:
+
+  | Run | New member's first 200 | After removal |
+  |---|---|---|
+  | A (2 trials) | 16.7s and 10.5s after the add | still allowed for 15+ minutes, old and fresh token |
+  | B | none in 306s (stopped) | not reached |
+  | C | none in 1805s (stopped), Entra lists member | not reached |
+
+  What changed between A and B/C is not in the code path that talks to SharePoint (later changes only
+  added Entra checks, saved data and options). A ran first; B and C ran after it, on new groups.
+- HYPOTHESIS (not verified; the data are only consistent with it): SharePoint keeps its own per-user
+  view of the user's Entra group membership, fixes it at the user's first access (or when it
+  expires) and keeps it for a long time (30+ minutes). That would explain all three runs: in A the
+  user's view was built fresh at the first read, so the new group was included (200 in seconds), and
+  then it stayed frozen (the removal was not reflected for 15+ minutes; the re-add made no
+  difference); in B and C the frozen view came from run A and did not include the NEW group (a
+  new object id), so every read was denied although Entra lists the membership. Earlier probes fit
+  too: p-plateng read through nested groups on its first access, shortly after being created.
+- A test that can refute it: `--throwaway-user NAME` runs the same trial with a brand-new user that has
+  never touched SharePoint. The hypothesis predicts a first 200 within about 10-20s for that user
+  and, after a removal, access that persists; a brand-new user that is ALSO denied for a long time
+  would contradict it. Other explanations are not excluded (something about the new group's
+  SharePoint principal or grant).
+- Why it matters if it holds: SharePoint's own enforcement can be stale in both directions, and by
+  how much would depend on when each user last accessed it, not on when the permission changed.
+- Probe output: probes/out/revocation_probe.json (run C, status `failed` because it stopped at the
+  timeout; the data are complete)
+- Docs: n/a
+
 ### Persona sign-in with a nonexistent user fails with AADSTS50034 (no device-code fallback)
 - Date: 2026-10-15
 - Endpoint: token endpoint, username/password (ROPC) via `auth.get_persona_token`
@@ -572,7 +632,8 @@ Observed but not settled (needs a decision, or more evidence, before it becomes 
   accounts this applies to. Options for later: exclude the admin from leak assertions, or model it
   as always allowed.
 - **Timing.** Membership became visible after about 12s in two samples, a license after up to
-  about 13s, and a new member could read after 10-17s. Removing a member was NOT reflected in real
+  about 13s, and a new member could read after 10-17s in two trials but still got 403 after 30
+  minutes in later runs (Entra listed the member throughout). Removing a member was NOT reflected in real
   reads for at least about 15 minutes (2 trials, old and fresh tokens alike; see "Revocation"). So
   "who can read right now in SharePoint" lags the directory state by a window whose upper bound is
   unknown. The oracle should not encode a time window until that bound is measured, and the question
@@ -597,6 +658,10 @@ file, file-level grant), and everything on revocation timing.
 - [ ] Adding a user/group that is already a member: the assumed error (HTTP 400, "already
   exist") is now verified (see Idempotency). Still unverified: re-creating a deleted user's UPN
   immediately (only a gap of minutes was tested; deletes lag behind lookups).
+- [ ] VARIABLE PROPAGATION of a NEW membership to SharePoint reads: 10-17s in two trials, then never
+  within 306s and 1805s in two later runs (Entra listed the member). What decides it (a brand-new group, the `ensureuser` retry, the
+  first access by that user, something else)? Next: `--throwaway-user NAME` with a brand-new
+  user each time, to test the "per-user view fixed at first access" hypothesis (see above).
 - [ ] REVOCATION TIMING (the core question for S1/S2/S6). Direct membership removal: still allowed
   after 15 minutes, old and fresh tokens (see above); no upper bound yet. To do: (1) a long, sparse
   poll (hours) to find when, or whether, it turns 403; (2) re-run with the Entra check now in the
