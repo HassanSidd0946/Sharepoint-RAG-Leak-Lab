@@ -84,7 +84,8 @@ from sp_probe import (
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "probes" / "out"
 USER_ID = "p-plateng"
-STABLE_DENIALS = 3  # consecutive denied reads that count as a "stable denial"
+STABLE_DENIALS = 3  # consecutive denied reads that count as a "stable denial" (first run of 3)
+SETTLED_DENIALS = 10  # polling stops only when EVERY token has this many denials in a row
 CANARY_PREFIX = "CANARY-REV-"
 
 console = Console()
@@ -106,6 +107,7 @@ class Opts:
     entra_check_interval: float = 30.0
     throwaway_user: str = ""
     suffix: str = ""
+    baseline_reads: int = 3
 
 
 def out_file_for(report: dict[str, Any]) -> Path:
@@ -150,6 +152,7 @@ def new_state() -> dict[str, Any]:
         "run_start_s": None,
         "first_denied_s": None,
         "stable_denied_s": None,
+        "settled_denied_s": None,
         "flapped": False,
         "seen_denied": False,
         "last_status": None,
@@ -169,6 +172,8 @@ def update_state(state: dict[str, Any], cls: str, t: float, status: Any) -> None
             state["run_start_s"] = t
         if state["streak"] >= STABLE_DENIALS and state["stable_denied_s"] is None:
             state["stable_denied_s"] = state["run_start_s"]
+        if state["streak"] >= SETTLED_DENIALS and state["settled_denied_s"] is None:
+            state["settled_denied_s"] = state["run_start_s"]
     else:
         if cls == "allowed" and state["seen_denied"]:
             state["flapped"] = True  # access came BACK after a denial
@@ -196,6 +201,16 @@ def sp_view(sp: SharePointRest, item_path: str, login: str) -> dict[str, Any]:
     except (SPRestError, KeyError, TypeError, ValueError) as exc:
         return {"error": f"{type(exc).__name__}: {str(exc)[:200]}"}
     return {"low": low, "can_read": (low & VIEW_AND_OPEN_MASK) == VIEW_AND_OPEN_MASK}
+
+
+def entry(cls: str, result: dict[str, Any]) -> dict[str, Any]:
+    """One token's outcome in one read cycle (first = Graph's answer, final = the download)."""
+    return {
+        "class": cls,
+        "status": result.get("first_status"),
+        "final": result.get("final_status"),
+        "code": result.get("error_code"),
+    }
 
 
 def poll_after_removal(
@@ -238,11 +253,7 @@ def poll_after_removal(
         for name in list(tokens):
             cls, result = read_once(tokens[name], drive_id, file_id, canary)
             t = round(time.monotonic() - t0, 1)
-            row[name] = {
-                "class": cls,
-                "status": result.get("first_status"),
-                "code": result.get("error_code"),
-            }
+            row[name] = entry(cls, result)
             update_state(states[name], cls, t, result.get("first_status"))
         if k == 0 and use_fresh:
             started = time.monotonic() - t0
@@ -255,11 +266,7 @@ def poll_after_removal(
             }
             cls, result = read_once(token, drive_id, file_id, canary)
             t = round(time.monotonic() - t0, 1)
-            row["fresh"] = {
-                "class": cls,
-                "status": result.get("first_status"),
-                "code": result.get("error_code"),
-            }
+            row["fresh"] = entry(cls, result)
             update_state(states["fresh"], cls, t, result.get("first_status"))
         row["sp"] = sp_view(sp, item_path, login)
         row["t"] = round(time.monotonic() - t0, 1)
@@ -278,11 +285,11 @@ def poll_after_removal(
             shown = "  ".join(f"{n}={row[n]['class']}({row[n]['status']})" for n in tokens)
             shown += f"  SharePoint says can read: {row['sp'].get('can_read')}"
             console.print(f"  t={row['t']:6.1f}s  {shown}")
-        if all(s["stable_denied_s"] is not None for s in states.values()):
+        if all(s["streak"] >= SETTLED_DENIALS for s in states.values()):
             break
         if time.monotonic() - t0 >= opts.poll_timeout:
             console.print(
-                "[yellow]poll timeout reached before every token was stably denied[/yellow]"
+                "[yellow]poll timeout reached before every token was settled in denial[/yellow]"
             )
             break
         k += 1
@@ -345,6 +352,7 @@ def run_trial(
     console.print("  waiting for the first 200 read (new member access)")
     waits: list[dict[str, Any]] = []
     trial["access_waits"] = waits
+    run_of_200 = 0
     while True:
         cls, result = read_once(old_token, drive_id, file_id, canary)
         elapsed = round(time.monotonic() - t_add, 1)
@@ -355,6 +363,7 @@ def run_trial(
                 "since_add_s": elapsed,
                 "class": cls,
                 "status": result.get("first_status"),
+                "final": result.get("final_status"),
                 "code": result.get("error_code"),
                 "entra_lists_member": entra_member,
                 "sp_view": sp_state,
@@ -366,8 +375,15 @@ def run_trial(
             f"SharePoint says can read: {sp_state.get('can_read')}"
         )
         if cls == "allowed":
-            trial["seconds_from_add_to_first_200"] = elapsed
-            break
+            run_of_200 += 1
+            trial.setdefault("seconds_from_add_to_first_200", elapsed)
+            if run_of_200 >= opts.baseline_reads:
+                trial["baseline_established_at_s"] = elapsed
+                break
+            time.sleep(3.0)
+            continue
+        run_of_200 = 0
+        trial.pop("seconds_from_add_to_first_200", None)  # keep the first 200 of the FINAL run
         if time.monotonic() - t_add > opts.access_timeout:
             raise ProbeStop(
                 f"No 200 read within {opts.access_timeout:.0f}s of the add.", {"trial": n}
@@ -569,6 +585,7 @@ def print_results(report: dict[str, Any]) -> None:
         "First 200 after add (s)",
         "First 403 (s)",
         "Stable denial (s)",
+        "Settled denial (s)",
         "Reads (ok/denied/err)",
         "Came back?",
     ):
@@ -582,6 +599,7 @@ def print_results(report: dict[str, Any]) -> None:
                 str(trial.get("seconds_from_add_to_first_200")),
                 str(st["first_denied_s"]),
                 str(st["stable_denied_s"]),
+                str(st["settled_denied_s"]),
                 f"{c['allowed']}/{c['denied']}/{c['error']}",
                 "YES" if st["flapped"] else "no",
             )
@@ -619,6 +637,9 @@ def main(
     license_timeout: float = typer.Option(300.0, help="Max seconds to wait for the license."),
     wait: float = typer.Option(15.0, help="Seconds to wait after creating the group."),
     sku_part_number: str = typer.Option("", help="License SKU part number (if not unique)."),
+    baseline_reads: int = typer.Option(
+        3, help="Allowed reads IN A ROW required before the membership is removed."
+    ),
     suffix: str = typer.Option(
         "", help="Append -<SUFFIX> to folder, file and group names (new names rule out reuse)."
     ),
@@ -675,6 +696,7 @@ def main(
             sku_part_number=sku_part_number,
             throwaway_user=throwaway_user,
             suffix=suffix,
+            baseline_reads=baseline_reads,
         )
         with GraphClient() as gc, SharePointRest(site_url) as sp:
             if cleanup:

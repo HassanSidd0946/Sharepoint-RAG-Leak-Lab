@@ -511,13 +511,51 @@ endpoint, what we expected, what actually happened, and a doc link if any.
     with a brand-new user). That makes re-use of the deleted FOLDER PATH (and file name) the leading
     candidate for the "new member denied" runs; the per-user explanation is out. The mechanism is
     unknown. `access_probe` worked while re-using only group names (from graph_probe), so group-name
-    reuse alone does not look responsible. Not yet run: the same suffix twice in a row (cleanup, then
+    reuse alone does not look responsible. Run afterwards (see "Re-created names" below): the same suffix twice in a row (cleanup, then
     re-create the same names), which would test this directly.
   - Revocation: two independent setups (run A, 15+ minutes; n1, 30 minutes) show the same thing, now
     confirmed by SharePoint's own effective-permission answer.
 - Working practice, not a rule about SharePoint: until the name-reuse question is settled, give every
   generated folder, file and group a name not used before in the tenant (a run suffix), and expect
   teardown/regenerate cycles that re-create the same paths to be unreliable.
+- Probe output: probes/out/revocation_probe.json
+- Docs: n/a
+
+### Re-created names (same suffix twice): SharePoint reported NO permissions for the member for 7+ minutes
+- Date: 2026-10-16
+- Probe: `--cleanup --suffix n1`, then `probes/revocation_probe.py --suffix n1 --trials 1 --access-timeout 600`:
+  the same folder, file and group names as the previous successful run, re-created minutes after
+  they were deleted. (The data are in probes/out/revocation_probe.json, status ok.)
+- Adding the member: Graph showed the user in the group stably after about 19s. 43 reads from 33.5s
+  to 452.1s after the add: 41 were HTTP 404 `itemNotFound`, 1 was a 302 whose download then failed
+  with `accessDenied`, and the LAST one (452.1s) was allowed. SharePoint's own effective-permission
+  answer for the user was `Low = 0` (no permissions at all) on all 43 reads, and Entra listed the user
+  as a member on all of them. (The same names, used the first time, had given a first 200 at 22.8s
+  and `Low = 138612833`, the Read mask, from the start.)
+- After that single allowed read the probe removed the member (a design flaw, fixed below). Entra
+  dropped the membership by 9.5s. Over the next 183s (21 cycles) reads FLAPPED: old token 10 allowed /
+  11 denied, fresh token 11 allowed / 10 denied, and the two tokens disagreed within the same cycle
+  (e.g. at t=25.0s old allowed, fresh denied; at t=74.6s old denied, fresh allowed). Some "denied"
+  results were a 302 from Graph followed by `accessDenied` at download, others `404 itemNotFound`.
+  SharePoint's effective-permission answer stayed `Low = 0` throughout, so reads succeeded
+  intermittently while SharePoint's own query said "no permissions".
+- NOT a valid revocation measurement: the baseline was one 200 followed immediately by the removal,
+  and polling stopped early (at 183s) because the old token had three denials in a row although the
+  fresh one had already flipped back to allowed. Treat the post-removal numbers as an observation of
+  inconsistency only. The probe now requires `--baseline-reads` (default 3) allowed reads in a row
+  before removing, polls until EVERY token has 10 denials in a row, and stores each read's final
+  (download) status.
+- Tally of the first access of a newly added member, same user (p-plateng) except where noted:
+  brand-new names: 16.7s and 10.5s (run A), 22.8s (n1, first time), 2 of 2 within 23s; re-created
+  names: no 200 in 306s, none in 1805s, none in 305s (brand-new user), 452s with flapping afterwards
+  (n1, second time), 4 of 4 delayed or failed. Small numbers, not randomized, each re-created run
+  followed a cleanup by minutes: strongly suggestive of an effect of RE-CREATING deleted names, not
+  proof, and the mechanism is unknown.
+- What can be said regardless of the explanation: (1) SharePoint's effective permissions can say
+  "no permissions" for a user that Entra lists in a group holding the only grant, for many minutes;
+  (2) reads for the same user at the same moment can come out differently (two tokens; and a Graph
+  302 that SharePoint then refuses); (3) neither is explained by token age. A guess, not a finding:
+  more than one server may be answering with different cached state.
 - Probe output: probes/out/revocation_probe.json
 - Docs: n/a
 
@@ -722,14 +760,18 @@ file, file-level grant), and everything on revocation timing.
 - [ ] Adding a user/group that is already a member: the assumed error (HTTP 400, "already
   exist") is now verified (see Idempotency). Still unverified: re-creating a deleted user's UPN
   immediately (only a gap of minutes was tested; deletes lag behind lookups).
-- [ ] RE-CREATED NAMES (leading candidate for "new member denied"): new folder/file/group names worked
-  twice (first 200 in 10-23s), re-created names failed three times (305-1805s without a 200, Entra
-  listing the member). Test directly: `--cleanup --suffix n1`, then run `--suffix n1` AGAIN
-  (same names, re-created). Predicted: denied. Then find which part matters (folder path, file name,
-  group name) and whether purging the deleted folder from the recycle bin (Graph `permanentDelete`,
+- [ ] RE-CREATED NAMES: tested once more: new names, first use, worked at once; the SAME names re-created
+  were delayed 452s and then gave inconsistent reads (see "Re-created names"). Still unknown which
+  element matters (folder path, file name, group name) and why. Separate them: new folder + file
+  names with a RE-USED group name; re-used folder + file names with a NEW group name; and
+  whether purging the deleted folder from the recycle bin first (Graph `permanentDelete`,
   unverified) avoids it. This matters for the lab itself, because teardown/regenerate cycles
   re-create the same paths.
-- [ ] REVOCATION TIMING (the core question for S1/S2/S6). Direct membership removal: SharePoint kept
+- [ ] Inconsistent reads: why the same user, at the same moment, gets allowed from one token and
+  denied from another, and why a Graph 302 can end in `accessDenied` at download. Repeat with
+  `--tokens old` only and `--tokens fresh` only to see whether querying both together matters.
+- [ ] REVOCATION TIMING (the core question for S1/S2/S6). The clean result below (new names) must be
+  repeated with new names each time and `--baseline-reads 3`. Direct membership removal: SharePoint kept
   allowing reads, and its own effective-permission answer stayed "Read", for 30 minutes with old and
   fresh tokens, although Entra dropped the membership within 37s (two setups, see above). Still open:
   (1) when, or whether, it ever turns 403 (a long, sparse poll, hours); (2) what makes SharePoint

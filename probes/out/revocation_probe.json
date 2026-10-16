@@ -1,7 +1,7 @@
 {
   "probe": "revocation_probe",
   "variant": "direct",
-  "run_at": "2026-10-16T10:42:59.365826+00:00",
+  "run_at": "2026-10-16T11:01:09.110822+00:00",
   "status": "ok",
   "mode": "probe",
   "steps": [
@@ -15,7 +15,7 @@
         "createdDateTime": "2026-10-15T15:14:24.83Z",
         "description": "Test site for RAG security benchmark.",
         "id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
-        "lastModifiedDateTime": "2026-10-16T10:42:58Z",
+        "lastModifiedDateTime": "2026-10-16T10:43:29Z",
         "name": "LeakLab",
         "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
         "displayName": "LeakLab",
@@ -35,7 +35,7 @@
         "createdDateTime": "2026-10-11T20:37:43Z",
         "description": "",
         "id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
-        "lastModifiedDateTime": "2026-10-16T10:42:58Z",
+        "lastModifiedDateTime": "2026-10-16T10:43:25Z",
         "name": "Documents",
         "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents",
         "driveType": "documentLibrary",
@@ -53,15 +53,15 @@
         },
         "quota": {
           "deleted": 7519,
-          "remaining": 27487788684596,
+          "remaining": 27487788684307,
           "state": "normal",
           "total": 27487790694400,
-          "used": 2002285
+          "used": 2002574
         }
       }
     },
     {
-      "operation": "find folder ll-sp-revoc-folder-n1",
+      "operation": "find folder ll-sp-revoc-folder-a1",
       "endpoint": "GET <folder lookup>",
       "status": 404,
       "summary": "HTTP 404 (allowed)",
@@ -71,20 +71,20 @@
       }
     },
     {
-      "operation": "create folder ll-sp-revoc-folder-n1",
+      "operation": "create folder ll-sp-revoc-folder-a1",
       "endpoint": "POST <parent>/children",
       "status": 201,
-      "summary": "id=01RQLOFTVTPXFJRDM2F5DLIS46L5N4EW5X",
+      "summary": "id=01RQLOFTSGOHWWMTLIDBGKUZHWMEAPAEG2",
       "response": {
         "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/root/children/$entity",
-        "@odata.etag": "\"{98CA7DB3-9A8D-462F-B44B-9E5F5BC25BB7},1\"",
-        "eTag": "\"{98CA7DB3-9A8D-462F-B44B-9E5F5BC25BB7},1\"",
-        "lastModifiedDateTime": "2026-10-16T10:43:25Z",
-        "createdDateTime": "2026-10-16T10:43:25Z",
-        "id": "01RQLOFTVTPXFJRDM2F5DLIS46L5N4EW5X",
-        "name": "ll-sp-revoc-folder-n1",
+        "@odata.etag": "\"{66ED7146-684D-4C18-AA64-F66100F010DA},1\"",
+        "eTag": "\"{66ED7146-684D-4C18-AA64-F66100F010DA},1\"",
+        "lastModifiedDateTime": "2026-10-16T11:01:35Z",
+        "createdDateTime": "2026-10-16T11:01:35Z",
+        "id": "01RQLOFTSGOHWWMTLIDBGKUZHWMEAPAEG2",
+        "name": "ll-sp-revoc-folder-a1",
         "size": 0,
-        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-revoc-folder-n1",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-revoc-folder-a1",
         "commentSettings": {
           "commentingDisabled": {
             "isDisabled": false
@@ -123,8 +123,8 @@
           }
         },
         "fileSystemInfo": {
-          "createdDateTime": "2026-10-16T10:43:25Z",
-          "lastModifiedDateTime": "2026-10-16T10:43:25Z"
+          "createdDateTime": "2026-10-16T11:01:35Z",
+          "lastModifiedDateTime": "2026-10-16T11:01:35Z"
         },
         "folder": {
           "childCount": 0
@@ -135,20 +135,20 @@
       }
     },
     {
-      "operation": "upload ll-revoc-n1.txt",
+      "operation": "upload ll-revoc-a1.txt",
       "endpoint": "PUT <folder>:/<file>:/content",
       "status": 201,
-      "summary": "id=01RQLOFTQY26PDOIC7IRAYX24FLDNL2E4A",
+      "summary": "id=01RQLOFTXY3XFJJ3ZS6NDKWOSV3MUCDXQ3",
       "response": {
         "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/items/$entity",
         "@microsoft.graph.downloadUrl": "<redacted>",
-        "createdDateTime": "2026-10-16T10:43:25Z",
-        "eTag": "\"{379ED718-5F20-4144-8BEB-8558DABD1380},1\"",
-        "id": "01RQLOFTQY26PDOIC7IRAYX24FLDNL2E4A",
-        "lastModifiedDateTime": "2026-10-16T10:43:25Z",
-        "name": "ll-revoc-n1.txt",
-        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-revoc-folder-n1/ll-revoc-n1.txt",
-        "cTag": "\"c:{379ED718-5F20-4144-8BEB-8558DABD1380},1\"",
+        "createdDateTime": "2026-10-16T11:01:36Z",
+        "eTag": "\"{94CADDF8-32EF-46F3-AB3A-55DB2821DE1B},1\"",
+        "id": "01RQLOFTXY3XFJJ3ZS6NDKWOSV3MUCDXQ3",
+        "lastModifiedDateTime": "2026-10-16T11:01:36Z",
+        "name": "ll-revoc-a1.txt",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-revoc-folder-a1/ll-revoc-a1.txt",
+        "cTag": "\"c:{94CADDF8-32EF-46F3-AB3A-55DB2821DE1B},1\"",
         "isAuthoritative": false,
         "size": 68,
         "createdBy": {
@@ -172,9 +172,9 @@
         "parentReference": {
           "driveType": "documentLibrary",
           "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
-          "id": "01RQLOFTVTPXFJRDM2F5DLIS46L5N4EW5X",
-          "name": "ll-sp-revoc-folder-n1",
-          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:/ll-sp-revoc-folder-n1",
+          "id": "01RQLOFTSGOHWWMTLIDBGKUZHWMEAPAEG2",
+          "name": "ll-sp-revoc-folder-a1",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:/ll-sp-revoc-folder-a1",
           "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7"
         },
         "file": {
@@ -184,8 +184,8 @@
           }
         },
         "fileSystemInfo": {
-          "createdDateTime": "2026-10-16T10:43:25Z",
-          "lastModifiedDateTime": "2026-10-16T10:43:25Z"
+          "createdDateTime": "2026-10-16T11:01:36Z",
+          "lastModifiedDateTime": "2026-10-16T11:01:36Z"
         },
         "shared": {
           "scope": "users"
@@ -205,12 +205,12 @@
       "operation": "ensureuser (revocation group)",
       "endpoint": "POST /_api/web/ensureuser",
       "status": 200,
-      "summary": "Id=24 LoginName=c:0t.c|tenant|5dc08498-6dd9-4d85-a6c0-d31dc5099918 type=4",
+      "summary": "Id=25 LoginName=c:0t.c|tenant|76da7854-33e2-4007-b4ad-e63aa1431a68 type=4",
       "response": {
-        "Id": 24,
+        "Id": 25,
         "IsHiddenInUI": false,
-        "LoginName": "c:0t.c|tenant|5dc08498-6dd9-4d85-a6c0-d31dc5099918",
-        "Title": "ll-probe-revoc-n1",
+        "LoginName": "c:0t.c|tenant|76da7854-33e2-4007-b4ad-e63aa1431a68",
+        "Title": "ll-probe-revoc-a1",
         "PrincipalType": 4,
         "Email": "",
         "Expiration": "",
@@ -283,15 +283,15 @@
       "operation": "REST roleassignments: folder after grant",
       "endpoint": "GET <item>/roleassignments?$expand=Member,RoleDefinitionBindings",
       "status": 200,
-      "summary": "ll-probe-revoc-n1 -> ['Read']",
+      "summary": "ll-probe-revoc-a1 -> ['Read']",
       "response": {
         "value": [
           {
             "Member": {
-              "Id": 24,
+              "Id": 25,
               "IsHiddenInUI": false,
-              "LoginName": "c:0t.c|tenant|5dc08498-6dd9-4d85-a6c0-d31dc5099918",
-              "Title": "ll-probe-revoc-n1",
+              "LoginName": "c:0t.c|tenant|76da7854-33e2-4007-b4ad-e63aa1431a68",
+              "Title": "ll-probe-revoc-a1",
               "PrincipalType": 4,
               "Email": "",
               "Expiration": "",
@@ -315,7 +315,7 @@
                 "RoleTypeKind": 2
               }
             ],
-            "PrincipalId": 24
+            "PrincipalId": 25
           }
         ]
       }
@@ -361,12 +361,13 @@
     "sku_part_number": "",
     "entra_check_interval": 30.0,
     "throwaway_user": "",
-    "suffix": "n1"
+    "suffix": "a1",
+    "baseline_reads": 3
   },
   "ids": {
     "drive_id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
-    "folder_id": "01RQLOFTVTPXFJRDM2F5DLIS46L5N4EW5X",
-    "file_id": "01RQLOFTQY26PDOIC7IRAYX24FLDNL2E4A"
+    "folder_id": "01RQLOFTSGOHWWMTLIDBGKUZHWMEAPAEG2",
+    "file_id": "01RQLOFTXY3XFJJ3ZS6NDKWOSV3MUCDXQ3"
   },
   "subscribed_skus": [
     {
@@ -400,7 +401,7 @@
     ],
     "license_wait": {
       "visible": true,
-      "after_s": 0.3
+      "after_s": 0.5
     }
   },
   "memberships": [
@@ -411,15 +412,15 @@
     }
   ],
   "groups": {
-    "ll-probe-revoc-n1": {
-      "id": "5dc08498-6dd9-4d85-a6c0-d31dc5099918",
+    "ll-probe-revoc-a1": {
+      "id": "76da7854-33e2-4007-b4ad-e63aa1431a68",
       "state": "created"
     }
   },
   "ensureuser_waits": {
     "revocation group": {
       "attempts": 1,
-      "seconds": 1.0
+      "seconds": 0.9
     },
     "user (SharePoint principal)": {
       "attempts": 1,
@@ -431,8 +432,8 @@
       "unique": true,
       "assignments": [
         {
-          "member": "ll-probe-revoc-n1",
-          "login": "c:0t.c|tenant|5dc08498-6dd9-4d85-a6c0-d31dc5099918",
+          "member": "ll-probe-revoc-a1",
+          "login": "c:0t.c|tenant|76da7854-33e2-4007-b4ad-e63aa1431a68",
           "principal_type": 4,
           "roles": [
             "Read"
@@ -447,25 +448,35 @@
       "trial": 1,
       "membership_stable": {
         "stable": true,
-        "after_s": 19.0,
+        "after_s": 28.8,
         "polls": [
           {
-            "elapsed_s": 0.5,
+            "elapsed_s": 1.0,
             "probe_groups_seen": 0,
             "ok": false
           },
           {
-            "elapsed_s": 5.9,
+            "elapsed_s": 6.3,
             "probe_groups_seen": 0,
             "ok": false
           },
           {
-            "elapsed_s": 13.0,
+            "elapsed_s": 12.0,
+            "probe_groups_seen": 0,
+            "ok": false
+          },
+          {
+            "elapsed_s": 17.8,
+            "probe_groups_seen": 0,
+            "ok": false
+          },
+          {
+            "elapsed_s": 23.5,
             "probe_groups_seen": 1,
             "ok": true
           },
           {
-            "elapsed_s": 19.0,
+            "elapsed_s": 28.8,
             "probe_groups_seen": 1,
             "ok": true
           }
@@ -473,9 +484,10 @@
       },
       "access_waits": [
         {
-          "since_add_s": 33.5,
+          "since_add_s": 32.4,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -484,9 +496,10 @@
           }
         },
         {
-          "since_add_s": 44.2,
+          "since_add_s": 40.4,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -495,9 +508,10 @@
           }
         },
         {
-          "since_add_s": 53.6,
+          "since_add_s": 49.5,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -506,9 +520,10 @@
           }
         },
         {
-          "since_add_s": 63.0,
+          "since_add_s": 58.7,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -517,9 +532,10 @@
           }
         },
         {
-          "since_add_s": 73.9,
+          "since_add_s": 67.8,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -528,9 +544,10 @@
           }
         },
         {
-          "since_add_s": 82.6,
+          "since_add_s": 76.9,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -539,9 +556,10 @@
           }
         },
         {
-          "since_add_s": 93.4,
+          "since_add_s": 84.7,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -550,9 +568,10 @@
           }
         },
         {
-          "since_add_s": 101.8,
+          "since_add_s": 92.5,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -561,9 +580,10 @@
           }
         },
         {
-          "since_add_s": 110.8,
+          "since_add_s": 101.1,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -572,9 +592,10 @@
           }
         },
         {
-          "since_add_s": 120.3,
+          "since_add_s": 110.9,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -583,9 +604,10 @@
           }
         },
         {
-          "since_add_s": 131.1,
+          "since_add_s": 119.5,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -594,9 +616,22 @@
           }
         },
         {
-          "since_add_s": 140.5,
+          "since_add_s": 130.2,
+          "class": "allowed",
+          "status": 302,
+          "final": 200,
+          "code": null,
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 138.4,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -605,317 +640,10 @@
           }
         },
         {
-          "since_add_s": 150.7,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 160.2,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 169.4,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 179.5,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 190.1,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 200.6,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 210.6,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 224.9,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 235.1,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 249.1,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 258.5,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 268.8,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 277.3,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 288.3,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 297.6,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 305.8,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 314.2,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 323.6,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 333.2,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 342.2,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 351.2,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 361.8,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 371.3,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 380.8,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 389.3,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 399.6,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 409.2,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 421.0,
-          "class": "denied",
-          "status": 404,
-          "code": "itemNotFound",
-          "entra_lists_member": true,
-          "sp_view": {
-            "low": 0,
-            "can_read": false
-          }
-        },
-        {
-          "since_add_s": 431.6,
+          "since_add_s": 147.7,
           "class": "denied",
           "status": 302,
+          "final": 403,
           "code": "accessDenied",
           "entra_lists_member": true,
           "sp_view": {
@@ -924,9 +652,34 @@
           }
         },
         {
-          "since_add_s": 440.5,
+          "since_add_s": 157.6,
+          "class": "allowed",
+          "status": 302,
+          "final": 200,
+          "code": null,
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 166.4,
+          "class": "allowed",
+          "status": 302,
+          "final": 200,
+          "code": null,
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 173.9,
           "class": "denied",
           "status": 404,
+          "final": 404,
           "code": "itemNotFound",
           "entra_lists_member": true,
           "sp_view": {
@@ -935,445 +688,3104 @@
           }
         },
         {
-          "since_add_s": 452.1,
+          "since_add_s": 182.6,
+          "class": "denied",
+          "status": 404,
+          "final": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 194.6,
           "class": "allowed",
           "status": 302,
+          "final": 200,
           "code": null,
           "entra_lists_member": true,
           "sp_view": {
             "low": 0,
             "can_read": false
           }
+        },
+        {
+          "since_add_s": 203.8,
+          "class": "allowed",
+          "status": 302,
+          "final": 200,
+          "code": null,
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 211.3,
+          "class": "allowed",
+          "status": 302,
+          "final": 200,
+          "code": null,
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 138612833,
+            "can_read": true
+          }
         }
       ],
-      "seconds_from_add_to_first_200": 452.1,
+      "seconds_from_add_to_first_200": 194.6,
+      "baseline_established_at_s": 211.3,
       "control_before": "allowed",
-      "removal_call_seconds": 1.0,
-      "removed_at": "2026-10-16T10:51:11.854449+00:00",
+      "removal_call_seconds": 0.39,
+      "removed_at": "2026-10-16T11:05:15.587292+00:00",
       "series": [
         {
           "old": {
             "class": "allowed",
             "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 9.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "denied",
-            "status": 302,
-            "code": "accessDenied"
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 25.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
+            "final": 200,
             "code": null
           },
           "fresh": {
             "class": "denied",
             "status": 404,
+            "final": 404,
             "code": "itemNotFound"
           },
           "sp": {
-            "low": 0,
-            "can_read": false
+            "low": 138612833,
+            "can_read": true
           },
-          "t": 38.2
-        },
-        {
-          "old": {
-            "class": "denied",
-            "status": 302,
-            "code": "accessDenied"
-          },
-          "fresh": {
-            "class": "denied",
-            "status": 404,
-            "code": "itemNotFound"
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 43.2
-        },
-        {
-          "old": {
-            "class": "denied",
-            "status": 302,
-            "code": "accessDenied"
-          },
-          "fresh": {
-            "class": "denied",
-            "status": 302,
-            "code": "accessDenied"
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 51.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 63.2
+          "t": 8.4
         },
         {
           "old": {
             "class": "denied",
             "status": 404,
+            "final": 404,
             "code": "itemNotFound"
           },
           "fresh": {
-            "class": "denied",
+            "class": "allowed",
             "status": 302,
-            "code": "accessDenied"
+            "final": 200,
+            "code": null
           },
           "sp": {
-            "low": 0,
-            "can_read": false
+            "low": 138612833,
+            "can_read": true
           },
-          "t": 69.4
+          "t": 16.4
         },
         {
           "old": {
             "class": "denied",
             "status": 404,
-            "code": "itemNotFound"
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 74.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "denied",
-            "status": 302,
-            "code": "accessDenied"
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 88.1
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 102.6
-        },
-        {
-          "old": {
-            "class": "denied",
-            "status": 404,
-            "code": "itemNotFound"
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 111.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "denied",
-            "status": 302,
-            "code": "accessDenied"
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 121.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "denied",
-            "status": 302,
-            "code": "accessDenied"
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 129.6
-        },
-        {
-          "old": {
-            "class": "denied",
-            "status": 404,
-            "code": "itemNotFound"
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 136.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "denied",
-            "status": 404,
-            "code": "itemNotFound"
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 141.6
-        },
-        {
-          "old": {
-            "class": "denied",
-            "status": 404,
-            "code": "itemNotFound"
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 146.6
-        },
-        {
-          "old": {
-            "class": "denied",
-            "status": 302,
-            "code": "accessDenied"
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 154.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 162.0
-        },
-        {
-          "old": {
-            "class": "denied",
-            "status": 302,
-            "code": "accessDenied"
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 0,
-            "can_read": false
-          },
-          "t": 170.6
-        },
-        {
-          "old": {
-            "class": "denied",
-            "status": 404,
+            "final": 404,
             "code": "itemNotFound"
           },
           "fresh": {
             "class": "denied",
             "status": 404,
+            "final": 404,
             "code": "itemNotFound"
           },
           "sp": {
-            "low": 0,
-            "can_read": false
+            "low": 138612833,
+            "can_read": true
           },
-          "t": 173.4
+          "t": 20.6
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 25.3
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 32.3
         },
         {
           "old": {
             "class": "denied",
             "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 37.6
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 40.8
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 44.3
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 49.2
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 56.3
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
             "code": "accessDenied"
           },
           "fresh": {
             "class": "allowed",
             "status": 302,
+            "final": 200,
             "code": null
           },
           "sp": {
-            "low": 0,
-            "can_read": false
+            "low": 138612833,
+            "can_read": true
           },
-          "t": 183.0
+          "t": 63.5
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 68.3
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 71.8
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 76.9
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 81.4
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 86.0
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 93.9
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 100.9
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 104.0
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 111.2
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 117.3
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 122.2
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 127.6
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 134.1
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 144.7
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 150.6
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 155.2
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 161.4
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 165.6
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 172.6
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 178.8
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 184.0
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 189.2
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 193.7
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 198.9
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 206.3
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 211.4
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 218.0
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 222.5
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 226.6
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 230.2
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 238.5
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 244.7
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 251.7
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 258.6
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 262.7
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 270.0
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 276.3
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 286.5
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 289.6
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 296.3
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 303.7
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 308.4
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 315.7
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 321.0
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 324.6
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 328.1
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 332.5
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 341.0
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 348.2
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 353.0
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 356.7
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 362.3
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 367.5
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 372.5
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 375.6
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 379.3
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 384.1
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 390.4
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 395.6
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 399.9
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 406.0
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 410.3
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 417.7
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 422.6
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 429.1
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 434.0
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 439.2
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 444.0
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 449.9
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 457.8
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 464.0
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 468.8
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 473.1
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 479.2
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 484.2
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 489.6
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 495.8
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 503.5
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 508.2
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 514.2
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 521.0
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 527.6
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 537.3
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 545.0
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 551.7
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 556.6
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 563.2
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 571.2
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 576.3
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 583.4
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 588.3
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 592.8
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 597.8
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 605.8
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 611.3
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 618.1
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 625.2
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 632.9
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 641.0
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 646.2
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 651.0
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 656.2
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 663.0
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 671.7
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 676.6
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 682.8
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 690.9
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 696.4
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 704.2
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 709.2
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 714.1
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 720.5
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 729.1
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 735.8
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 741.2
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 748.5
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 755.7
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 761.1
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 769.7
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 774.8
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 779.5
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 784.6
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 791.3
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 800.4
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 806.5
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 810.2
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 815.5
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 822.1
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 829.4
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 836.8
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 842.1
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 847.4
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 404,
+            "final": 404,
+            "code": "itemNotFound"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 851.3
+        },
+        {
+          "old": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "fresh": {
+            "class": "denied",
+            "status": 302,
+            "final": 403,
+            "code": "accessDenied"
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 856.7
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 865.2
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 870.4
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 876.6
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 881.6
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 890.1
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 898.3
+        },
+        {
+          "old": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "fresh": {
+            "class": "allowed",
+            "status": 302,
+            "final": 200,
+            "code": null
+          },
+          "sp": {
+            "low": 138612833,
+            "can_read": true
+          },
+          "t": 903.4
         }
       ],
       "summary": {
         "old": {
-          "reads": 21,
+          "reads": 152,
           "classes": {
-            "allowed": 10,
-            "denied": 11,
+            "allowed": 71,
+            "denied": 81,
             "error": 0
           },
-          "streak": 3,
-          "run_start_s": 164.4,
-          "first_denied_s": 41.1,
-          "stable_denied_s": 164.4,
+          "streak": 0,
+          "run_start_s": 848.8,
+          "first_denied_s": 10.9,
+          "stable_denied_s": 10.9,
+          "settled_denied_s": null,
           "flapped": true,
           "seen_denied": true,
           "last_status": 302
         },
         "fresh": {
-          "reads": 21,
+          "reads": 152,
           "classes": {
-            "allowed": 11,
-            "denied": 10,
+            "allowed": 81,
+            "denied": 71,
             "error": 0
           },
           "streak": 0,
-          "run_start_s": 173.0,
-          "first_denied_s": 23.5,
-          "stable_denied_s": 23.5,
+          "run_start_s": 850.9,
+          "first_denied_s": 6.6,
+          "stable_denied_s": 20.2,
+          "settled_denied_s": null,
           "flapped": true,
           "seen_denied": true,
           "last_status": 302
         }
       },
       "fresh_token": {
-        "fetch_started_s": 3.8,
-        "acquired_at_s": 5.4
+        "fetch_started_s": 2.8,
+        "acquired_at_s": 5.0
       },
       "entra_checks": [
         {
-          "t": 9.5,
+          "t": 8.4,
           "still_member": false
         },
         {
-          "t": 43.2,
+          "t": 40.8,
           "still_member": false
         },
         {
-          "t": 74.6,
+          "t": 71.8,
           "still_member": false
         },
         {
-          "t": 111.8,
+          "t": 104.0,
           "still_member": false
         },
         {
-          "t": 146.6,
+          "t": 134.1,
           "still_member": false
         },
         {
-          "t": 183.0,
+          "t": 165.6,
+          "still_member": false
+        },
+        {
+          "t": 198.9,
+          "still_member": false
+        },
+        {
+          "t": 230.2,
+          "still_member": false
+        },
+        {
+          "t": 262.7,
+          "still_member": false
+        },
+        {
+          "t": 296.3,
+          "still_member": false
+        },
+        {
+          "t": 328.1,
+          "still_member": false
+        },
+        {
+          "t": 362.3,
+          "still_member": false
+        },
+        {
+          "t": 395.6,
+          "still_member": false
+        },
+        {
+          "t": 429.1,
+          "still_member": false
+        },
+        {
+          "t": 464.0,
+          "still_member": false
+        },
+        {
+          "t": 495.8,
+          "still_member": false
+        },
+        {
+          "t": 527.6,
+          "still_member": false
+        },
+        {
+          "t": 563.2,
+          "still_member": false
+        },
+        {
+          "t": 597.8,
+          "still_member": false
+        },
+        {
+          "t": 632.9,
+          "still_member": false
+        },
+        {
+          "t": 663.0,
+          "still_member": false
+        },
+        {
+          "t": 696.4,
+          "still_member": false
+        },
+        {
+          "t": 729.1,
+          "still_member": false
+        },
+        {
+          "t": 761.1,
+          "still_member": false
+        },
+        {
+          "t": 791.3,
+          "still_member": false
+        },
+        {
+          "t": 822.1,
+          "still_member": false
+        },
+        {
+          "t": 856.7,
+          "still_member": false
+        },
+        {
+          "t": 890.1,
           "still_member": false
         }
       ],
-      "entra_first_seen_removed_s": 9.5,
-      "sp_first_not_readable_s": 9.5,
-      "achieved_cycle_seconds": 9.2,
+      "entra_first_seen_removed_s": 8.4,
+      "sp_first_not_readable_s": null,
+      "achieved_cycle_seconds": 6.0,
       "control_after": "allowed"
     }
   ]
