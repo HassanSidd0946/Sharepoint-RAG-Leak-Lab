@@ -1,7 +1,7 @@
 {
   "probe": "revocation_probe",
   "variant": "direct",
-  "run_at": "2026-10-16T10:04:14.208731+00:00",
+  "run_at": "2026-10-16T10:42:59.365826+00:00",
   "status": "ok",
   "mode": "probe",
   "steps": [
@@ -15,7 +15,7 @@
         "createdDateTime": "2026-10-15T15:14:24.83Z",
         "description": "Test site for RAG security benchmark.",
         "id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
-        "lastModifiedDateTime": "2026-10-16T10:04:13Z",
+        "lastModifiedDateTime": "2026-10-16T10:42:58Z",
         "name": "LeakLab",
         "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
         "displayName": "LeakLab",
@@ -35,7 +35,7 @@
         "createdDateTime": "2026-10-11T20:37:43Z",
         "description": "",
         "id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
-        "lastModifiedDateTime": "2026-10-16T10:04:13Z",
+        "lastModifiedDateTime": "2026-10-16T10:42:58Z",
         "name": "Documents",
         "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents",
         "driveType": "documentLibrary",
@@ -52,11 +52,11 @@
           }
         },
         "quota": {
-          "deleted": 6787,
-          "remaining": 27487788685616,
+          "deleted": 7519,
+          "remaining": 27487788684596,
           "state": "normal",
           "total": 27487790694400,
-          "used": 2001997
+          "used": 2002285
         }
       }
     },
@@ -74,14 +74,14 @@
       "operation": "create folder ll-sp-revoc-folder-n1",
       "endpoint": "POST <parent>/children",
       "status": 201,
-      "summary": "id=01RQLOFTS2QHNG6GJGPJF23IALIP6WZHFR",
+      "summary": "id=01RQLOFTVTPXFJRDM2F5DLIS46L5N4EW5X",
       "response": {
         "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/root/children/$entity",
-        "@odata.etag": "\"{6FDA815A-2619-4B7A-ADA0-0B43FD6C9CB1},1\"",
-        "eTag": "\"{6FDA815A-2619-4B7A-ADA0-0B43FD6C9CB1},1\"",
-        "lastModifiedDateTime": "2026-10-16T10:04:41Z",
-        "createdDateTime": "2026-10-16T10:04:41Z",
-        "id": "01RQLOFTS2QHNG6GJGPJF23IALIP6WZHFR",
+        "@odata.etag": "\"{98CA7DB3-9A8D-462F-B44B-9E5F5BC25BB7},1\"",
+        "eTag": "\"{98CA7DB3-9A8D-462F-B44B-9E5F5BC25BB7},1\"",
+        "lastModifiedDateTime": "2026-10-16T10:43:25Z",
+        "createdDateTime": "2026-10-16T10:43:25Z",
+        "id": "01RQLOFTVTPXFJRDM2F5DLIS46L5N4EW5X",
         "name": "ll-sp-revoc-folder-n1",
         "size": 0,
         "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-revoc-folder-n1",
@@ -123,8 +123,8 @@
           }
         },
         "fileSystemInfo": {
-          "createdDateTime": "2026-10-16T10:04:41Z",
-          "lastModifiedDateTime": "2026-10-16T10:04:41Z"
+          "createdDateTime": "2026-10-16T10:43:25Z",
+          "lastModifiedDateTime": "2026-10-16T10:43:25Z"
         },
         "folder": {
           "childCount": 0
@@ -138,17 +138,17 @@
       "operation": "upload ll-revoc-n1.txt",
       "endpoint": "PUT <folder>:/<file>:/content",
       "status": 201,
-      "summary": "id=01RQLOFTW3SAHDJ3P3S5GZUUX23IOCAWX5",
+      "summary": "id=01RQLOFTQY26PDOIC7IRAYX24FLDNL2E4A",
       "response": {
         "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/items/$entity",
         "@microsoft.graph.downloadUrl": "<redacted>",
-        "createdDateTime": "2026-10-16T10:04:42Z",
-        "eTag": "\"{340E90DB-FBED-4D97-9A52-FADA1C205AFD},1\"",
-        "id": "01RQLOFTW3SAHDJ3P3S5GZUUX23IOCAWX5",
-        "lastModifiedDateTime": "2026-10-16T10:04:42Z",
+        "createdDateTime": "2026-10-16T10:43:25Z",
+        "eTag": "\"{379ED718-5F20-4144-8BEB-8558DABD1380},1\"",
+        "id": "01RQLOFTQY26PDOIC7IRAYX24FLDNL2E4A",
+        "lastModifiedDateTime": "2026-10-16T10:43:25Z",
         "name": "ll-revoc-n1.txt",
         "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-revoc-folder-n1/ll-revoc-n1.txt",
-        "cTag": "\"c:{340E90DB-FBED-4D97-9A52-FADA1C205AFD},1\"",
+        "cTag": "\"c:{379ED718-5F20-4144-8BEB-8558DABD1380},1\"",
         "isAuthoritative": false,
         "size": 68,
         "createdBy": {
@@ -172,7 +172,7 @@
         "parentReference": {
           "driveType": "documentLibrary",
           "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
-          "id": "01RQLOFTS2QHNG6GJGPJF23IALIP6WZHFR",
+          "id": "01RQLOFTVTPXFJRDM2F5DLIS46L5N4EW5X",
           "name": "ll-sp-revoc-folder-n1",
           "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:/ll-sp-revoc-folder-n1",
           "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7"
@@ -184,8 +184,8 @@
           }
         },
         "fileSystemInfo": {
-          "createdDateTime": "2026-10-16T10:04:42Z",
-          "lastModifiedDateTime": "2026-10-16T10:04:42Z"
+          "createdDateTime": "2026-10-16T10:43:25Z",
+          "lastModifiedDateTime": "2026-10-16T10:43:25Z"
         },
         "shared": {
           "scope": "users"
@@ -205,11 +205,11 @@
       "operation": "ensureuser (revocation group)",
       "endpoint": "POST /_api/web/ensureuser",
       "status": 200,
-      "summary": "Id=23 LoginName=c:0t.c|tenant|b0e3082a-3bfb-43d4-b79d-8faeca4b70bc type=4",
+      "summary": "Id=24 LoginName=c:0t.c|tenant|5dc08498-6dd9-4d85-a6c0-d31dc5099918 type=4",
       "response": {
-        "Id": 23,
+        "Id": 24,
         "IsHiddenInUI": false,
-        "LoginName": "c:0t.c|tenant|b0e3082a-3bfb-43d4-b79d-8faeca4b70bc",
+        "LoginName": "c:0t.c|tenant|5dc08498-6dd9-4d85-a6c0-d31dc5099918",
         "Title": "ll-probe-revoc-n1",
         "PrincipalType": 4,
         "Email": "",
@@ -288,9 +288,9 @@
         "value": [
           {
             "Member": {
-              "Id": 23,
+              "Id": 24,
               "IsHiddenInUI": false,
-              "LoginName": "c:0t.c|tenant|b0e3082a-3bfb-43d4-b79d-8faeca4b70bc",
+              "LoginName": "c:0t.c|tenant|5dc08498-6dd9-4d85-a6c0-d31dc5099918",
               "Title": "ll-probe-revoc-n1",
               "PrincipalType": 4,
               "Email": "",
@@ -315,7 +315,7 @@
                 "RoleTypeKind": 2
               }
             ],
-            "PrincipalId": 23
+            "PrincipalId": 24
           }
         ]
       }
@@ -353,9 +353,9 @@
     "tokens": "both",
     "trials": 1,
     "interval": 2.0,
-    "poll_timeout": 1800.0,
+    "poll_timeout": 900.0,
     "stable_timeout": 180.0,
-    "access_timeout": 1800.0,
+    "access_timeout": 600.0,
     "license_timeout": 300.0,
     "wait": 15.0,
     "sku_part_number": "",
@@ -365,8 +365,8 @@
   },
   "ids": {
     "drive_id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
-    "folder_id": "01RQLOFTS2QHNG6GJGPJF23IALIP6WZHFR",
-    "file_id": "01RQLOFTW3SAHDJ3P3S5GZUUX23IOCAWX5"
+    "folder_id": "01RQLOFTVTPXFJRDM2F5DLIS46L5N4EW5X",
+    "file_id": "01RQLOFTQY26PDOIC7IRAYX24FLDNL2E4A"
   },
   "subscribed_skus": [
     {
@@ -412,18 +412,18 @@
   ],
   "groups": {
     "ll-probe-revoc-n1": {
-      "id": "b0e3082a-3bfb-43d4-b79d-8faeca4b70bc",
+      "id": "5dc08498-6dd9-4d85-a6c0-d31dc5099918",
       "state": "created"
     }
   },
   "ensureuser_waits": {
     "revocation group": {
       "attempts": 1,
-      "seconds": 0.5
+      "seconds": 1.0
     },
     "user (SharePoint principal)": {
       "attempts": 1,
-      "seconds": 0.5
+      "seconds": 0.4
     }
   },
   "snapshots": {
@@ -432,7 +432,7 @@
       "assignments": [
         {
           "member": "ll-probe-revoc-n1",
-          "login": "c:0t.c|tenant|b0e3082a-3bfb-43d4-b79d-8faeca4b70bc",
+          "login": "c:0t.c|tenant|5dc08498-6dd9-4d85-a6c0-d31dc5099918",
           "principal_type": 4,
           "roles": [
             "Read"
@@ -447,25 +447,25 @@
       "trial": 1,
       "membership_stable": {
         "stable": true,
-        "after_s": 17.1,
+        "after_s": 19.0,
         "polls": [
           {
-            "elapsed_s": 0.3,
+            "elapsed_s": 0.5,
             "probe_groups_seen": 0,
             "ok": false
           },
           {
-            "elapsed_s": 5.6,
+            "elapsed_s": 5.9,
             "probe_groups_seen": 0,
             "ok": false
           },
           {
-            "elapsed_s": 11.7,
+            "elapsed_s": 13.0,
             "probe_groups_seen": 1,
             "ok": true
           },
           {
-            "elapsed_s": 17.1,
+            "elapsed_s": 19.0,
             "probe_groups_seen": 1,
             "ok": true
           }
@@ -473,21 +473,483 @@
       },
       "access_waits": [
         {
-          "since_add_s": 22.8,
+          "since_add_s": 33.5,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 44.2,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 53.6,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 63.0,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 73.9,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 82.6,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 93.4,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 101.8,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 110.8,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 120.3,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 131.1,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 140.5,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 150.7,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 160.2,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 169.4,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 179.5,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 190.1,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 200.6,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 210.6,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 224.9,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 235.1,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 249.1,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 258.5,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 268.8,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 277.3,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 288.3,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 297.6,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 305.8,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 314.2,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 323.6,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 333.2,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 342.2,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 351.2,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 361.8,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 371.3,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 380.8,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 389.3,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 399.6,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 409.2,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 421.0,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 431.6,
+          "class": "denied",
+          "status": 302,
+          "code": "accessDenied",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 440.5,
+          "class": "denied",
+          "status": 404,
+          "code": "itemNotFound",
+          "entra_lists_member": true,
+          "sp_view": {
+            "low": 0,
+            "can_read": false
+          }
+        },
+        {
+          "since_add_s": 452.1,
           "class": "allowed",
           "status": 302,
           "code": null,
           "entra_lists_member": true,
           "sp_view": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           }
         }
       ],
-      "seconds_from_add_to_first_200": 22.8,
+      "seconds_from_add_to_first_200": 452.1,
       "control_before": "allowed",
-      "removal_call_seconds": 0.39,
-      "removed_at": "2026-10-16T10:05:16.040074+00:00",
+      "removal_call_seconds": 1.0,
+      "removed_at": "2026-10-16T10:51:11.854449+00:00",
       "series": [
         {
           "old": {
@@ -501,10 +963,10 @@
             "code": null
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 6.1
+          "t": 9.5
         },
         {
           "old": {
@@ -513,3194 +975,15 @@
             "code": null
           },
           "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 13.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 20.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 28.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 36.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 47.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 56.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 65.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 72.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 80.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 88.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 95.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 103.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 111.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 116.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 123.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 130.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 136.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 146.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 154.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 163.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 170.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 180.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 186.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 193.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 202.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 211.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 221.1
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 231.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 239.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 249.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 257.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 266.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 273.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 281.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 288.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 296.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 306.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 315.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 322.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 327.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 334.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 339.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 350.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 357.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 364.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 372.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 379.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 387.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 401.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 406.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 413.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 421.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 429.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 439.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 447.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 454.1
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 463.1
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 470.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 477.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 487.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 494.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 502.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 509.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 514.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 526.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 533.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 540.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 547.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 556.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 563.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 571.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 604.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 618.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 626.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 634.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 649.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 654.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 663.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 668.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 676.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 681.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 688.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 694.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 702.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 710.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 716.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 725.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 732.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 741.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 748.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 755.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 762.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 770.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 778.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 783.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 792.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 798.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 810.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 818.1
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 825.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 835.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 843.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 854.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 861.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 870.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 878.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 889.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 896.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 903.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 911.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 923.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 932.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 943.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 953.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 962.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 970.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 979.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 987.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 994.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1003.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1015.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1027.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1035.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1044.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1052.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1065.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1082.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1095.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1105.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1114.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1122.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1131.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1143.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1151.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1159.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1169.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1177.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1185.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1192.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1200.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1209.1
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1218.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1225.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1235.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1247.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1254.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1262.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1270.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1278.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1289.6
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1297.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1309.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1318.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1326.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1332.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1343.8
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1353.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1361.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1371.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1378.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1387.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1394.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1401.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1407.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1413.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1422.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1430.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1435.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1441.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1450.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1467.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1485.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1495.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1503.0
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1512.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1519.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1527.4
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1533.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1545.3
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1552.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1560.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1568.9
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1577.5
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1586.2
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1596.1
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1610.1
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
+            "class": "denied",
             "status": 302,
-            "code": null
-          },
-          "sp": {
-            "low": 138612833,
-            "can_read": true
-          },
-          "t": 1616.7
-        },
-        {
-          "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
-          },
-          "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
+            "code": "accessDenied"
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1624.8
+          "t": 25.0
         },
         {
           "old": {
@@ -3709,49 +992,49 @@
             "code": null
           },
           "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
+            "class": "denied",
+            "status": 404,
+            "code": "itemNotFound"
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1631.6
+          "t": 38.2
         },
         {
           "old": {
-            "class": "allowed",
+            "class": "denied",
             "status": 302,
-            "code": null
+            "code": "accessDenied"
           },
           "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
+            "class": "denied",
+            "status": 404,
+            "code": "itemNotFound"
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1639.9
+          "t": 43.2
         },
         {
           "old": {
-            "class": "allowed",
+            "class": "denied",
             "status": 302,
-            "code": null
+            "code": "accessDenied"
           },
           "fresh": {
-            "class": "allowed",
+            "class": "denied",
             "status": 302,
-            "code": null
+            "code": "accessDenied"
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1649.5
+          "t": 51.5
         },
         {
           "old": {
@@ -3765,33 +1048,33 @@
             "code": null
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1658.3
+          "t": 63.2
         },
         {
           "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
+            "class": "denied",
+            "status": 404,
+            "code": "itemNotFound"
           },
           "fresh": {
-            "class": "allowed",
+            "class": "denied",
             "status": 302,
-            "code": null
+            "code": "accessDenied"
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1666.2
+          "t": 69.4
         },
         {
           "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
+            "class": "denied",
+            "status": 404,
+            "code": "itemNotFound"
           },
           "fresh": {
             "class": "allowed",
@@ -3799,10 +1082,10 @@
             "code": null
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1674.5
+          "t": 74.6
         },
         {
           "old": {
@@ -3811,15 +1094,15 @@
             "code": null
           },
           "fresh": {
-            "class": "allowed",
+            "class": "denied",
             "status": 302,
-            "code": null
+            "code": "accessDenied"
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1683.1
+          "t": 88.1
         },
         {
           "old": {
@@ -3833,16 +1116,16 @@
             "code": null
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1691.3
+          "t": 102.6
         },
         {
           "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
+            "class": "denied",
+            "status": 404,
+            "code": "itemNotFound"
           },
           "fresh": {
             "class": "allowed",
@@ -3850,10 +1133,10 @@
             "code": null
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1700.1
+          "t": 111.8
         },
         {
           "old": {
@@ -3862,15 +1145,15 @@
             "code": null
           },
           "fresh": {
-            "class": "allowed",
+            "class": "denied",
             "status": 302,
-            "code": null
+            "code": "accessDenied"
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1717.1
+          "t": 121.5
         },
         {
           "old": {
@@ -3879,21 +1162,21 @@
             "code": null
           },
           "fresh": {
-            "class": "allowed",
+            "class": "denied",
             "status": 302,
-            "code": null
+            "code": "accessDenied"
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1726.0
+          "t": 129.6
         },
         {
           "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
+            "class": "denied",
+            "status": 404,
+            "code": "itemNotFound"
           },
           "fresh": {
             "class": "allowed",
@@ -3901,10 +1184,10 @@
             "code": null
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1735.0
+          "t": 136.6
         },
         {
           "old": {
@@ -3913,21 +1196,21 @@
             "code": null
           },
           "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
+            "class": "denied",
+            "status": 404,
+            "code": "itemNotFound"
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1743.2
+          "t": 141.6
         },
         {
           "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
+            "class": "denied",
+            "status": 404,
+            "code": "itemNotFound"
           },
           "fresh": {
             "class": "allowed",
@@ -3935,16 +1218,16 @@
             "code": null
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1753.2
+          "t": 146.6
         },
         {
           "old": {
-            "class": "allowed",
+            "class": "denied",
             "status": 302,
-            "code": null
+            "code": "accessDenied"
           },
           "fresh": {
             "class": "allowed",
@@ -3952,10 +1235,10 @@
             "code": null
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1762.2
+          "t": 154.2
         },
         {
           "old": {
@@ -3969,16 +1252,16 @@
             "code": null
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1770.1
+          "t": 162.0
         },
         {
           "old": {
-            "class": "allowed",
+            "class": "denied",
             "status": 302,
-            "code": null
+            "code": "accessDenied"
           },
           "fresh": {
             "class": "allowed",
@@ -3986,33 +1269,33 @@
             "code": null
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1780.7
+          "t": 170.6
         },
         {
           "old": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
+            "class": "denied",
+            "status": 404,
+            "code": "itemNotFound"
           },
           "fresh": {
-            "class": "allowed",
-            "status": 302,
-            "code": null
+            "class": "denied",
+            "status": 404,
+            "code": "itemNotFound"
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1787.3
+          "t": 173.4
         },
         {
           "old": {
-            "class": "allowed",
+            "class": "denied",
             "status": 302,
-            "code": null
+            "code": "accessDenied"
           },
           "fresh": {
             "class": "allowed",
@@ -4020,265 +1303,77 @@
             "code": null
           },
           "sp": {
-            "low": 138612833,
-            "can_read": true
+            "low": 0,
+            "can_read": false
           },
-          "t": 1800.8
+          "t": 183.0
         }
       ],
       "summary": {
         "old": {
-          "reads": 208,
+          "reads": 21,
           "classes": {
-            "allowed": 208,
-            "denied": 0,
+            "allowed": 10,
+            "denied": 11,
             "error": 0
           },
-          "streak": 0,
-          "run_start_s": null,
-          "first_denied_s": null,
-          "stable_denied_s": null,
-          "flapped": false,
-          "seen_denied": false,
+          "streak": 3,
+          "run_start_s": 164.4,
+          "first_denied_s": 41.1,
+          "stable_denied_s": 164.4,
+          "flapped": true,
+          "seen_denied": true,
           "last_status": 302
         },
         "fresh": {
-          "reads": 208,
+          "reads": 21,
           "classes": {
-            "allowed": 208,
-            "denied": 0,
+            "allowed": 11,
+            "denied": 10,
             "error": 0
           },
           "streak": 0,
-          "run_start_s": null,
-          "first_denied_s": null,
-          "stable_denied_s": null,
-          "flapped": false,
-          "seen_denied": false,
+          "run_start_s": 173.0,
+          "first_denied_s": 23.5,
+          "stable_denied_s": 23.5,
+          "flapped": true,
+          "seen_denied": true,
           "last_status": 302
         }
       },
       "fresh_token": {
-        "fetch_started_s": 2.4,
-        "acquired_at_s": 2.8
+        "fetch_started_s": 3.8,
+        "acquired_at_s": 5.4
       },
       "entra_checks": [
         {
-          "t": 6.1,
-          "still_member": true
-        },
-        {
-          "t": 36.8,
+          "t": 9.5,
           "still_member": false
         },
         {
-          "t": 72.4,
+          "t": 43.2,
           "still_member": false
         },
         {
-          "t": 103.4,
+          "t": 74.6,
           "still_member": false
         },
         {
-          "t": 136.2,
+          "t": 111.8,
           "still_member": false
         },
         {
-          "t": 170.5,
+          "t": 146.6,
           "still_member": false
         },
         {
-          "t": 202.0,
-          "still_member": false
-        },
-        {
-          "t": 239.9,
-          "still_member": false
-        },
-        {
-          "t": 273.2,
-          "still_member": false
-        },
-        {
-          "t": 306.8,
-          "still_member": false
-        },
-        {
-          "t": 339.9,
-          "still_member": false
-        },
-        {
-          "t": 372.3,
-          "still_member": false
-        },
-        {
-          "t": 406.8,
-          "still_member": false
-        },
-        {
-          "t": 439.4,
-          "still_member": false
-        },
-        {
-          "t": 470.4,
-          "still_member": false
-        },
-        {
-          "t": 502.6,
-          "still_member": false
-        },
-        {
-          "t": 533.3,
-          "still_member": false
-        },
-        {
-          "t": 563.5,
-          "still_member": false
-        },
-        {
-          "t": 604.8,
-          "still_member": false
-        },
-        {
-          "t": 634.9,
-          "still_member": false
-        },
-        {
-          "t": 668.7,
-          "still_member": false
-        },
-        {
-          "t": 702.0,
-          "still_member": false
-        },
-        {
-          "t": 732.9,
-          "still_member": false
-        },
-        {
-          "t": 770.8,
-          "still_member": false
-        },
-        {
-          "t": 810.2,
-          "still_member": false
-        },
-        {
-          "t": 843.8,
-          "still_member": false
-        },
-        {
-          "t": 878.3,
-          "still_member": false
-        },
-        {
-          "t": 911.2,
-          "still_member": false
-        },
-        {
-          "t": 943.3,
-          "still_member": false
-        },
-        {
-          "t": 979.3,
-          "still_member": false
-        },
-        {
-          "t": 1015.0,
-          "still_member": false
-        },
-        {
-          "t": 1052.8,
-          "still_member": false
-        },
-        {
-          "t": 1095.9,
-          "still_member": false
-        },
-        {
-          "t": 1131.6,
-          "still_member": false
-        },
-        {
-          "t": 1169.0,
-          "still_member": false
-        },
-        {
-          "t": 1200.2,
-          "still_member": false
-        },
-        {
-          "t": 1235.4,
-          "still_member": false
-        },
-        {
-          "t": 1270.2,
-          "still_member": false
-        },
-        {
-          "t": 1309.5,
-          "still_member": false
-        },
-        {
-          "t": 1343.8,
-          "still_member": false
-        },
-        {
-          "t": 1378.7,
-          "still_member": false
-        },
-        {
-          "t": 1413.7,
-          "still_member": false
-        },
-        {
-          "t": 1450.5,
-          "still_member": false
-        },
-        {
-          "t": 1485.4,
-          "still_member": false
-        },
-        {
-          "t": 1519.7,
-          "still_member": false
-        },
-        {
-          "t": 1552.9,
-          "still_member": false
-        },
-        {
-          "t": 1586.2,
-          "still_member": false
-        },
-        {
-          "t": 1616.7,
-          "still_member": false
-        },
-        {
-          "t": 1649.5,
-          "still_member": false
-        },
-        {
-          "t": 1683.1,
-          "still_member": false
-        },
-        {
-          "t": 1717.1,
-          "still_member": false
-        },
-        {
-          "t": 1753.2,
-          "still_member": false
-        },
-        {
-          "t": 1787.3,
+          "t": 183.0,
           "still_member": false
         }
       ],
-      "entra_first_seen_removed_s": 36.8,
-      "sp_first_not_readable_s": null,
-      "achieved_cycle_seconds": 8.7,
+      "entra_first_seen_removed_s": 9.5,
+      "sp_first_not_readable_s": 9.5,
+      "achieved_cycle_seconds": 9.2,
       "control_after": "allowed"
     }
   ]

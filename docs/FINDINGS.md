@@ -479,12 +479,46 @@ endpoint, what we expected, what actually happened, and a doc link if any.
   `graph_probe`, so group-name reuse alone does not obviously break access.
 - Status: no explanation is established. Candidates not yet separated: re-use of a deleted folder
   path; something about the time of day or service state; the licence/profile state of the user.
-- Next experiment (now supported by the probe): `--suffix NAME` gives the folder, file and groups new
+- (Done in the next entry: new names worked.) Next experiment (now supported by the probe): `--suffix NAME` gives the folder, file and groups new
   names; every read cycle also records SharePoint's own effective-permission answer for the user
   (`GET .../getusereffectivepermissions`, UNVERIFIED endpoint), which shows whether SharePoint itself
   thinks the user can read, independently of the Graph read path.
 - Probe output: probes/out/revocation_probe.json (status `failed`: it stopped at the timeout; the
   data are complete)
+- Docs: n/a
+
+### With brand-new object names a new member reads in 22.8s; removal still not honored for 30 minutes
+- Date: 2026-10-16
+- Probe: `probes/revocation_probe.py --suffix n1 --trials 1 --access-timeout 1800 --poll-timeout 1800`
+  (direct mode, p-plateng reused, NEW folder, file and group names: `...-n1`). Complete data in
+  probes/out/revocation_probe.json (status ok).
+- Adding the member: Graph showed the user in the group stably after about 17s; the first real read
+  was allowed 22.8s after the add (HTTP 302 then 200 with the canary). At the same moment SharePoint's
+  own effective-permission answer was "can read".
+- Removing the member (`DELETE .../members/{user}/$ref`, 0.39s): Entra reported the user removed at
+  the second check, 36.8s after the call (the first check, at 6.1s, still listed the user). Then, for
+  1800.8s (30 minutes), 208 cycles: every read with the OLD token and every read with a FRESH token
+  (fetched 2.8s after the removal) was allowed (208/0/0 each, no denial, no flapping); app-only
+  control reads allowed before and after. A read cycle took 8.7s, so the resolution is about 9s.
+- SharePoint's own view agrees: `getusereffectivepermissions` for the user on the folder returned
+  `Low = 138612833` on all 208 cycles, exactly the Read role's `BasePermissions.Low` seen earlier.
+  So the continued access is not an artifact of the Graph content path; SharePoint itself still
+  treated the user as having Read 30 minutes after Entra had dropped the membership (within 37s).
+  (The endpoint is now verified: it works on a folder's list item with the app-only token.)
+- Which of the earlier observations this explains (candidates, not proof):
+  - New object names worked twice (runs A and n1: first 200 in 10-23s, even for the long-used user
+    p-plateng); re-created names failed three times (B, C, D: no 200 in 306s, 1805s and 305s, the last
+    with a brand-new user). That makes re-use of the deleted FOLDER PATH (and file name) the leading
+    candidate for the "new member denied" runs; the per-user explanation is out. The mechanism is
+    unknown. `access_probe` worked while re-using only group names (from graph_probe), so group-name
+    reuse alone does not look responsible. Not yet run: the same suffix twice in a row (cleanup, then
+    re-create the same names), which would test this directly.
+  - Revocation: two independent setups (run A, 15+ minutes; n1, 30 minutes) show the same thing, now
+    confirmed by SharePoint's own effective-permission answer.
+- Working practice, not a rule about SharePoint: until the name-reuse question is settled, give every
+  generated folder, file and group a name not used before in the tenant (a run suffix), and expect
+  teardown/regenerate cycles that re-create the same paths to be unreliable.
+- Probe output: probes/out/revocation_probe.json
 - Docs: n/a
 
 ### Persona sign-in with a nonexistent user fails with AADSTS50034 (no device-code fallback)
@@ -660,9 +694,11 @@ Observed but not settled (needs a decision, or more evidence, before it becomes 
   accounts this applies to. Options for later: exclude the admin from leak assertions, or model it
   as always allowed.
 - **Timing.** Membership became visible after about 12s in two samples, a license after up to
-  about 13s, and a new member could read after 10-17s in two trials but still got 403 after 30
-  minutes in later runs (Entra listed the member throughout). Removing a member was NOT reflected in real
-  reads for at least about 15 minutes (2 trials, old and fresh tokens alike; see "Revocation"). So
+  about 13s, and a new member could read after 10-23s with brand-new object names but still got 403
+  after 5-30 minutes in three runs that re-created deleted folder/file/group names (Entra listed the
+  member throughout). Removing a member was NOT reflected in real
+  reads, nor in SharePoint's own effective-permission answer, for at least 30 minutes (old and fresh
+  tokens alike; two setups; Entra had dropped the membership within 37s; see "Revocation"). So
   "who can read right now in SharePoint" lags the directory state by a window whose upper bound is
   unknown. The oracle should not encode a time window until that bound is measured, and the question
   of what the oracle should compare against (directory state vs. real reads) is open.
@@ -686,18 +722,21 @@ file, file-level grant), and everything on revocation timing.
 - [ ] Adding a user/group that is already a member: the assumed error (HTTP 400, "already
   exist") is now verified (see Idempotency). Still unverified: re-creating a deleted user's UPN
   immediately (only a gap of minutes was tested; deletes lag behind lookups).
-- [ ] VARIABLE PROPAGATION of a NEW membership to SharePoint reads: 10-17s in two trials, then never
-  within 306s and 1805s in two later runs (Entra listed the member). What decides it (a brand-new group, the `ensureuser` retry, the
-  first access by that user, something else)? The brand-new-user test (denied for 305s) did not support the "per-user
-  view fixed at first access" hypothesis. Next: `--suffix NEW` (new folder/file/group names) and read
-  the SharePoint effective-permissions column.
-- [ ] REVOCATION TIMING (the core question for S1/S2/S6). Direct membership removal: still allowed
-  after 15 minutes, old and fresh tokens (see above); no upper bound yet. To do: (1) a long, sparse
-  poll (hours) to find when, or whether, it turns 403; (2) re-run with the Entra check now in the
-  probe to confirm Entra dropped the membership early; (3) nested removal (`--mode nested`, S2);
-  (4) removing the folder's role assignment instead (S1); (5) another read path, e.g. SharePoint REST
-  with a SharePoint-audience token or `GetUserEffectivePermissions`, to see whether the delay is in
-  SharePoint or in the Graph content path.
+- [ ] RE-CREATED NAMES (leading candidate for "new member denied"): new folder/file/group names worked
+  twice (first 200 in 10-23s), re-created names failed three times (305-1805s without a 200, Entra
+  listing the member). Test directly: `--cleanup --suffix n1`, then run `--suffix n1` AGAIN
+  (same names, re-created). Predicted: denied. Then find which part matters (folder path, file name,
+  group name) and whether purging the deleted folder from the recycle bin (Graph `permanentDelete`,
+  unverified) avoids it. This matters for the lab itself, because teardown/regenerate cycles
+  re-create the same paths.
+- [ ] REVOCATION TIMING (the core question for S1/S2/S6). Direct membership removal: SharePoint kept
+  allowing reads, and its own effective-permission answer stayed "Read", for 30 minutes with old and
+  fresh tokens, although Entra dropped the membership within 37s (two setups, see above). Still open:
+  (1) when, or whether, it ever turns 403 (a long, sparse poll, hours); (2) what makes SharePoint
+  refresh its view (a new sign-in, an access through another path, a change to the grant itself);
+  (3) nested removal (`--mode nested`, S2); (4) removing the folder's role assignment instead of the
+  membership (S1), which does not depend on group membership at all; (5) removal of the user from
+  a group nested elsewhere vs. direct, with new names each time.
 - [ ] Why the admin keeps access to a unique-permission folder: site collection admin, or any
   member of LeakLab Owners (whose role assignment was removed from the folder)? Test a non-admin
   member of LeakLab Owners, then fix the oracle rule for the admin account.

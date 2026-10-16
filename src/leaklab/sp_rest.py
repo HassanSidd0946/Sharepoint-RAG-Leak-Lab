@@ -227,8 +227,9 @@ class SharePointRest:
         """GET <item>/getusereffectivepermissions(@u)?@u='<logon name>': SharePoint's own opinion.
 
         Returns the user's BasePermissions as {"Low": "<uint32>", "High": "<uint32>"} (possibly
-        wrapped in "value"). UNVERIFIED: that the endpoint exists on a list item, accepts the
-        app-only token, and the exact response shape.
+        wrapped in "value"). Verified 2026-10-16: works on a folder's list item with the app-only
+        token; for a user with Read it returned Low=138612833, the same value as the Read role's
+        BasePermissions.Low.
         """
         escaped = logon_name.replace("'", "''")
         return self.request(
