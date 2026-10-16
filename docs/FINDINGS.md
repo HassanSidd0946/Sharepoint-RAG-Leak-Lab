@@ -969,10 +969,40 @@ Status: implemented, tested against an in-memory fake tenant (tests/generator_fa
 - teardown removed the root assignment, the container, 7 groups and all 11 users (including the two
   that existed before: they are part of the spec). The two persona probes users must be recreated by
   the next run that needs them.
-Not exercised by that run (so still only fake-tested): the 404 and ensureuser retry paths (no event shows
-whether they triggered), license assignment for NEWLY created users (the only licensed users, p-intern
-and p-plateng, already existed with licenses), apply_mutation and the mutation log against the real
-tenant, and drift handling.
+Not exercised by that run (so only fake-tested at the time): the retry paths (no event showed whether
+they triggered), license assignment for NEWLY created users, apply_mutation and the mutation log against
+the real tenant, and drift handling. The mutation run below covers all but drift handling.
+
+### apply_mutation on the real tenant (2026-10-16, probes/mutation_probe.py)
+Result file: probes/out/mutation_probe_20261016T165809Z.json. Fresh generate (11 users, 7 groups, 17
+members, 7 folders, 37 files created) + verify: OK, no issue. Then three mutations, one at a time, each
+re-checked with the probe's own REST/Entra reads (not the check inside apply_mutation); teardown at the
+end removed everything (1 root assignment, the container, 7 groups, 11 users).
+- S4 file_moved (f-direct-share General -> Board): Graph shows the file in Board and gone from General;
+  REST: still unique, grants unchanged (ceo and hr, Read). Oracle: no change for any persona (the file keeps
+  its own grants, as the oracle rule says), so S4 changes WHERE the file lives, not who should read it.
+- S1 grant_removed (grp-engineering on Engineering): removed 1 role binding; REST: Engineering has no
+  real grant left, still unique, Platform-Secrets still has grp-eng-platform Read. Oracle: p-plateng loses
+  the Engineering documents (17 -> 11 canaries); it keeps Platform-Secrets via grp-eng-platform.
+- S2 group_member_removed (grp-eng-platform out of grp-engineering): confirmed through witness user
+  p-plateng (2 consecutive reads); independent check: p-plateng no longer transitively in
+  grp-engineering, still in grp-eng-platform, u-eng1 still in grp-engineering. Oracle: p-plateng loses the
+  6 General documents (11 -> 5), i.e. what reached it through grp-engineering -> grp-all-staff.
+- confirmed_at was recorded for all three (epoch seconds). Confirmation was immediate for S4 and S1 (first
+  check true; confirmed_at is the time of that first check, i.e. the structure showed the change within
+  ~1s of the call) and 2.4s after execution for S2. The oracle consumed log.oracle_mutations() and its
+  before/after views are in the JSON.
+- Retries that fired: member-add 404 (is_member_add_not_ready) 2 times, both while the new groups were
+  being filled. The ensureuser "could not be found" retry did NOT fire in this run (so it remains seen
+  only in probes and fake-tested). No other retries.
+- License assignment for newly created users WORKED: ll-p-intern and ll-p-plateng were both new
+  (their earlier copies were deleted by teardown) and Graph showed the SKU on both. The tolerated
+  "already assigned" error path was not exercised, and its exact error text is still UNVERIFIED.
+- Limits: these confirm STRUCTURE only. Nothing here says when SharePoint starts serving or withholding
+  content after each change (that is the scenario runner's job; S1 and S2 revoke Entra-group grants, the
+  slow case above). Drift handling and inheritance_restored (unsupported) are still untested live.
+- No code fix was needed. The only change made was instrumentation: retries are now recorded as "retry"
+  events (retry_call `on_retry`, Env.retry).
 
 Only behaviors recorded above as verified are used:
 - Graph: create user (with usageLocation) and group, license via subscribedSkus + assignLicense, member

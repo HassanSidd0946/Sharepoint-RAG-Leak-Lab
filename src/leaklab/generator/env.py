@@ -91,6 +91,13 @@ class Env:
     def retry(
         self, op: Callable[[], Any], retryable: Callable[[Exception], bool], timeout_s: float
     ) -> Any:
+        def note(exc: Exception) -> None:
+            self.event(
+                "retry",
+                rule=getattr(retryable, "__name__", "retryable"),
+                status=getattr(exc, "status_code", None),
+            )
+
         return retry_call(
             op,
             retryable=retryable,
@@ -98,6 +105,7 @@ class Env:
             interval_s=self.settings.retry_interval_s,
             sleep=self.sleep,
             clock=self.clock,
+            on_retry=note,
         )
 
     # -- the library ---------------------------------------------------------------------------

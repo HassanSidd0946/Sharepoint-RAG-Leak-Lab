@@ -46,10 +46,12 @@ def retry_call[T](
     interval_s: float = RETRY_INTERVAL_S,
     sleep: Callable[[float], None] = time.sleep,
     clock: Callable[[], float] = time.monotonic,
+    on_retry: Callable[[Exception], None] | None = None,
 ) -> T:
     """Call `op`; on a retryable error wait and try again until `timeout_s` has passed.
 
     Any other error, and the last retryable error once the time is up, is raised unchanged.
+    `on_retry` (optional) is told about each error that is about to be retried.
     """
     start = clock()
     while True:
@@ -58,6 +60,8 @@ def retry_call[T](
         except Exception as exc:
             if not retryable(exc) or clock() - start + interval_s > timeout_s:
                 raise
+            if on_retry is not None:
+                on_retry(exc)
             sleep(interval_s)
 
 

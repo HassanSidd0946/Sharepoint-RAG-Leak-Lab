@@ -1,0 +1,690 @@
+{
+  "started_utc": "20261016T165809Z",
+  "steps": [
+    {
+      "scenario": "S4-move-into-restricted",
+      "log_entry": {
+        "seq": 1,
+        "mutation": {
+          "type": "file_moved",
+          "params": {
+            "file": "f-direct-share",
+            "to_folder": "Board"
+          },
+          "confirmed_at": null
+        },
+        "requested_at": 1792170066.8911,
+        "executed_at": 1792170067.9339762,
+        "confirmed_at": 1792170067.9339762,
+        "status": "confirmed",
+        "note": ""
+      },
+      "confirm_latency_s": 0.0,
+      "recheck": {
+        "ok": true,
+        "in_board": true,
+        "in_general": false,
+        "has_unique_permissions": true,
+        "grants_before_move": [
+          [
+            "i:0#.f|membership|ll-p-ceo@leaklabdev.onmicrosoft.com",
+            "Read"
+          ],
+          [
+            "i:0#.f|membership|ll-p-hr@leaklabdev.onmicrosoft.com",
+            "Read"
+          ]
+        ],
+        "grants_after_move": [
+          [
+            "i:0#.f|membership|ll-p-ceo@leaklabdev.onmicrosoft.com",
+            "Read"
+          ],
+          [
+            "i:0#.f|membership|ll-p-hr@leaklabdev.onmicrosoft.com",
+            "Read"
+          ]
+        ],
+        "rest_item_path": "/web/GetFileByServerRelativeUrl('/sites/LeakLab/Shared%20Documents/ll-lab/Board/offer-letter-draft.txt')/ListItemAllFields",
+        "checked_at": 1792170074.6212928
+      },
+      "oracle_before": {
+        "p-ceo": [
+          "Board",
+          "Board",
+          "Board",
+          "Board",
+          "special:f-direct-share"
+        ],
+        "p-finana": [
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-finlead": [
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-hr": [
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "HR",
+          "HR",
+          "HR",
+          "HR",
+          "HR",
+          "special:f-direct-share"
+        ],
+        "p-intern": [
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-plateng": [
+          "Engineering",
+          "Engineering",
+          "Engineering",
+          "Engineering",
+          "Engineering",
+          "Engineering",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ]
+      },
+      "oracle_after": {
+        "p-ceo": [
+          "Board",
+          "Board",
+          "Board",
+          "Board",
+          "special:f-direct-share"
+        ],
+        "p-finana": [
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-finlead": [
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-hr": [
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "HR",
+          "HR",
+          "HR",
+          "HR",
+          "HR",
+          "special:f-direct-share"
+        ],
+        "p-intern": [
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-plateng": [
+          "Engineering",
+          "Engineering",
+          "Engineering",
+          "Engineering",
+          "Engineering",
+          "Engineering",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ]
+      },
+      "oracle_diff": {},
+      "events": [
+        {
+          "t": 1792170067.934,
+          "event": "mutation",
+          "type": "file_moved",
+          "status": "confirmed",
+          "confirmed_at": 1792170067.9339762
+        }
+      ]
+    },
+    {
+      "scenario": "S1-parent-revocation",
+      "log_entry": {
+        "seq": 2,
+        "mutation": {
+          "type": "grant_removed",
+          "params": {
+            "target": "Engineering",
+            "principal_kind": "entra_group",
+            "principal_ref": "grp-engineering"
+          },
+          "confirmed_at": null
+        },
+        "requested_at": 1792170074.6321008,
+        "executed_at": 1792170075.3457613,
+        "confirmed_at": 1792170075.3457613,
+        "status": "confirmed",
+        "note": "removed 1 role binding(s)"
+      },
+      "confirm_latency_s": 0.0,
+      "recheck": {
+        "ok": true,
+        "engineering_grants_now": [],
+        "platform_secrets_grants_now": [
+          [
+            "c:0t.c|tenant|96896109-a50d-43d4-9a24-58113d8c625a",
+            "Read"
+          ]
+        ],
+        "engineering_still_unique": true,
+        "checked_at": 1792170080.6755009
+      },
+      "oracle_before": {
+        "p-ceo": [
+          "Board",
+          "Board",
+          "Board",
+          "Board",
+          "special:f-direct-share"
+        ],
+        "p-finana": [
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-finlead": [
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-hr": [
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "HR",
+          "HR",
+          "HR",
+          "HR",
+          "HR",
+          "special:f-direct-share"
+        ],
+        "p-intern": [
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-plateng": [
+          "Engineering",
+          "Engineering",
+          "Engineering",
+          "Engineering",
+          "Engineering",
+          "Engineering",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ]
+      },
+      "oracle_after": {
+        "p-ceo": [
+          "Board",
+          "Board",
+          "Board",
+          "Board",
+          "special:f-direct-share"
+        ],
+        "p-finana": [
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-finlead": [
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-hr": [
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "HR",
+          "HR",
+          "HR",
+          "HR",
+          "HR",
+          "special:f-direct-share"
+        ],
+        "p-intern": [
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-plateng": [
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ]
+      },
+      "oracle_diff": {
+        "p-plateng": {
+          "lost": [
+            "Engineering"
+          ],
+          "gained": []
+        }
+      },
+      "events": [
+        {
+          "t": 1792170075.757,
+          "event": "mutation",
+          "type": "grant_removed",
+          "status": "confirmed",
+          "confirmed_at": 1792170075.3457613
+        }
+      ]
+    },
+    {
+      "scenario": "S2-nested-group-removal",
+      "log_entry": {
+        "seq": 3,
+        "mutation": {
+          "type": "group_member_removed",
+          "params": {
+            "group": "grp-engineering",
+            "member_kind": "entra_group",
+            "member_ref": "grp-eng-platform"
+          },
+          "confirmed_at": null
+        },
+        "requested_at": 1792170080.6755009,
+        "executed_at": 1792170082.0897598,
+        "confirmed_at": 1792170084.5026703,
+        "status": "confirmed",
+        "note": "witness user p-plateng"
+      },
+      "confirm_latency_s": 2.41,
+      "recheck": {
+        "ok": true,
+        "p_plateng_in_grp_engineering": false,
+        "p_plateng_in_grp_eng_platform": true,
+        "u_eng1_in_grp_engineering": true,
+        "checked_at": 1792170092.0899668
+      },
+      "oracle_before": {
+        "p-ceo": [
+          "Board",
+          "Board",
+          "Board",
+          "Board",
+          "special:f-direct-share"
+        ],
+        "p-finana": [
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-finlead": [
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-hr": [
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "HR",
+          "HR",
+          "HR",
+          "HR",
+          "HR",
+          "special:f-direct-share"
+        ],
+        "p-intern": [
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-plateng": [
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ]
+      },
+      "oracle_after": {
+        "p-ceo": [
+          "Board",
+          "Board",
+          "Board",
+          "Board",
+          "special:f-direct-share"
+        ],
+        "p-finana": [
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-finlead": [
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "Finance/Leadership",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-hr": [
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "HR",
+          "HR",
+          "HR",
+          "HR",
+          "HR",
+          "special:f-direct-share"
+        ],
+        "p-intern": [
+          "General",
+          "General",
+          "General",
+          "General",
+          "General",
+          "General"
+        ],
+        "p-plateng": [
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets",
+          "Engineering/Platform-Secrets"
+        ]
+      },
+      "oracle_diff": {
+        "p-plateng": {
+          "lost": [
+            "General"
+          ],
+          "gained": []
+        }
+      },
+      "events": [
+        {
+          "t": 1792170087.382,
+          "event": "mutation",
+          "type": "group_member_removed",
+          "status": "confirmed",
+          "confirmed_at": 1792170084.5026703
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "generate_counts": {
+    "users_created": 11,
+    "licenses_assigned": 2,
+    "groups_created": 7,
+    "members_added": 17,
+    "folders_created": 7,
+    "files_created": 37,
+    "inheritance_broken": 7,
+    "assignments_added": 9,
+    "root_assignments_added": 1
+  },
+  "generate_warnings": [],
+  "verify_ok": true,
+  "verify_issues": [],
+  "licenses": [
+    {
+      "upn": "ll-p-intern@leaklabdev.onmicrosoft.com",
+      "newly_created_in_this_run": true,
+      "has_license_in_graph": true
+    },
+    {
+      "upn": "ll-p-plateng@leaklabdev.onmicrosoft.com",
+      "newly_created_in_this_run": true,
+      "has_license_in_graph": true
+    }
+  ],
+  "retries_fired": {
+    "is_member_add_not_ready (status 404)": 2
+  },
+  "oracle_mutations": [
+    {
+      "type": "file_moved",
+      "params": {
+        "file": "f-direct-share",
+        "to_folder": "Board"
+      },
+      "confirmed_at": 1792170067.9339762
+    },
+    {
+      "type": "grant_removed",
+      "params": {
+        "target": "Engineering",
+        "principal_kind": "entra_group",
+        "principal_ref": "grp-engineering"
+      },
+      "confirmed_at": 1792170075.3457613
+    },
+    {
+      "type": "group_member_removed",
+      "params": {
+        "group": "grp-engineering",
+        "member_kind": "entra_group",
+        "member_ref": "grp-eng-platform"
+      },
+      "confirmed_at": 1792170084.5026703
+    }
+  ],
+  "teardown_counts": {
+    "root_assignments_removed": 1,
+    "container_deleted": 1,
+    "groups_deleted": 7,
+    "users_deleted": 11
+  }
+}
