@@ -20,6 +20,7 @@ dev = [
     "ruff",
     "mypy",
     "types-PyYAML",
+    "hypothesis>=6.170.0",
 ]
 
 [build-system]

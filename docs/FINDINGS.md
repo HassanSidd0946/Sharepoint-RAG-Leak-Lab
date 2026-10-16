@@ -912,6 +912,49 @@ Observed but not settled (needs a decision, or more evidence, before it becomes 
 Still not probed: real READS for the cases above that were only listed (nested folders, moved
 file, file-level grant), and everything on revocation timing.
 
+## Oracle implementation notes (src/leaklab/oracle/)
+
+What the oracle encodes, and what it deliberately does not. Everything encoded comes from
+"Oracle rules supported by verified results"; the choices below are implementation decisions, listed
+so they can be challenged.
+
+Encoded (each has unit tests and, where it is a general rule, a Hypothesis property checked against
+an independent brute-force reference):
+- Nested Entra-group expansion (any depth); a user grant; roles `read`, `edit` and `full_control` count
+  as read access, `limited_access` and any unknown role do not.
+- Unique permissions list only their own grants; inheriting items take their parent's effective grants;
+  top-level folders take the site-root grants.
+- A moved special file keeps its own grants; one without its own grants follows the folder it is in.
+- Only users with `persona: true` are evaluated. Site admins are NOT evaluated (the open decision about
+  the admin account is not guessed).
+- Fail closed: an unknown principal kind never matches (and is logged); a mutation the oracle cannot
+  interpret (unknown folder, group or file, grant on an item that inherits, breaking inheritance on the
+  root) raises OracleError instead of being ignored.
+
+Implementation decisions to review:
+- Intent changes at `confirmed_at`. A mutation with `confirmed_at = None` has no effect. Mutations with
+  the same time apply in list order.
+- A grant mutation on an item that still inherits is an error (break inheritance first), because that is
+  what SharePoint needs; `inheritance_broken` without `copy_role_assignments` leaves the item with no
+  grants (verified: nothing is copied).
+- A membership cycle created by a mutation is tolerated (the expansion terminates). Whether Entra would
+  allow such a cycle is not known.
+- The oracle gives the SAME answer for every grant type. It does NOT model the observed difference
+  between grant types: direct and SharePoint-group changes took effect within about 16s, Entra-group
+  changes took about 36 minutes to be revoked and were sometimes not applied at all. That difference
+  belongs to what SYSTEMS do, not to what access SHOULD be; the scoring module measures it as time to
+  conformance, per system, instead of baking a delay into the oracle.
+- Scoring: LEAK (served while intent denies; wins over LOCKOUT), LOCKOUT (withheld while intent allows),
+  OK. Reads in the window right after an intent change count, so the propagation lag shows up as leak
+  or lockout reads and as time_to_conformance. Convergence = N consecutive conforming reads (N
+  configurable, default 10) that last to the end of the segment (`require_stable_tail`, default on), with
+  an optional cap; a segment shorter than N reads is INSUFFICIENT_DATA, not a failure.
+- Because single reads were unreliable in this tenant (coin-flip regime), N consecutive reads and the
+  stable-tail rule are what keep a lucky streak from being counted as convergence.
+
+Not decided / not implemented: the admin account's access; any time window for "should have caught up";
+Limited Access as a separate state; Setup A's own view (the oracle has none).
+
 ## Open questions
 
 - [ ] Persona sign-in works for two LICENSED users. Not yet tested: UNLICENSED personas (four in
