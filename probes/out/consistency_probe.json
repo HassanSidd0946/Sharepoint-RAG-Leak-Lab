@@ -1,0 +1,2490 @@
+{
+  "probe": "consistency_probe",
+  "run_at": "2026-10-16T11:26:22.556022+00:00",
+  "status": "ok",
+  "mode": "probe",
+  "steps": [
+    {
+      "operation": "resolve site",
+      "endpoint": "GET /sites/leaklabdev.sharepoint.com:/sites/LeakLab",
+      "status": 200,
+      "summary": "id=leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#sites/$entity",
+        "createdDateTime": "2026-10-15T15:14:24.83Z",
+        "description": "Test site for RAG security benchmark.",
+        "id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+        "lastModifiedDateTime": "2026-10-16T11:20:29Z",
+        "name": "LeakLab",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+        "displayName": "LeakLab",
+        "root": {},
+        "siteCollection": {
+          "hostname": "leaklabdev.sharepoint.com"
+        }
+      }
+    },
+    {
+      "operation": "resolve drive",
+      "endpoint": "GET /sites/{site-id}/drive",
+      "status": 200,
+      "summary": "id=b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX name=Documents",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives/$entity",
+        "createdDateTime": "2026-10-11T20:37:43Z",
+        "description": "",
+        "id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+        "lastModifiedDateTime": "2026-10-16T11:20:29Z",
+        "name": "Documents",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents",
+        "driveType": "documentLibrary",
+        "createdBy": {
+          "user": {
+            "displayName": "System Account"
+          }
+        },
+        "owner": {
+          "user": {
+            "email": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+            "id": "1a993a79-1c75-44b0-8ad4-e87488148353",
+            "displayName": "Hassan Siddiqui"
+          }
+        },
+        "quota": {
+          "deleted": 8251,
+          "remaining": 27487788683285,
+          "state": "normal",
+          "total": 27487790694400,
+          "used": 2002864
+        }
+      }
+    },
+    {
+      "operation": "role definitions",
+      "endpoint": "GET /_api/web/roledefinitions",
+      "status": 200,
+      "summary": "6 roles",
+      "response": {
+        "value": [
+          {
+            "Id": 1073741829,
+            "Name": "Full Control",
+            "RoleTypeKind": 5
+          },
+          {
+            "Id": 1073741828,
+            "Name": "Design",
+            "RoleTypeKind": 4
+          },
+          {
+            "Id": 1073741830,
+            "Name": "Edit",
+            "RoleTypeKind": 6
+          },
+          {
+            "Id": 1073741827,
+            "Name": "Contribute",
+            "RoleTypeKind": 3
+          },
+          {
+            "Id": 1073741826,
+            "Name": "Read",
+            "RoleTypeKind": 2
+          },
+          {
+            "Id": 1073741825,
+            "Name": "Limited Access",
+            "RoleTypeKind": 1
+          }
+        ]
+      }
+    },
+    {
+      "operation": "find folder ll-sp-cons-user-c1",
+      "endpoint": "GET <folder lookup>",
+      "status": 404,
+      "summary": "HTTP 404 (allowed)",
+      "response": {
+        "code": "itemNotFound",
+        "message": "The resource could not be found."
+      }
+    },
+    {
+      "operation": "create folder ll-sp-cons-user-c1",
+      "endpoint": "POST <parent>/children",
+      "status": 201,
+      "summary": "id=01RQLOFTWTQMR5MGE6LJF3IS2HGTZTXNN4",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/root/children/$entity",
+        "@odata.etag": "\"{D62383D3-9E18-4B5A-B44B-4734F33BB5BC},1\"",
+        "eTag": "\"{D62383D3-9E18-4B5A-B44B-4734F33BB5BC},1\"",
+        "lastModifiedDateTime": "2026-10-16T11:26:51Z",
+        "createdDateTime": "2026-10-16T11:26:51Z",
+        "id": "01RQLOFTWTQMR5MGE6LJF3IS2HGTZTXNN4",
+        "name": "ll-sp-cons-user-c1",
+        "size": 0,
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-cons-user-c1",
+        "commentSettings": {
+          "commentingDisabled": {
+            "isDisabled": false
+          }
+        },
+        "createdBy": {
+          "application": {
+            "displayName": "Microsoft Graph",
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "lastModifiedBy": {
+          "application": {
+            "displayName": "Microsoft Graph",
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "parentReference": {
+          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+          "driveType": "documentLibrary",
+          "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:",
+          "sharepointIds": {
+            "listId": "ff0e6594-cb34-49ef-983f-38c811eb5cd7",
+            "listItemUniqueId": "d883dfed-07bb-44c2-a812-6a1c516d8594",
+            "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7",
+            "siteUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+            "tenantId": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+            "webId": "5c429f61-a18b-46e8-aa4f-0768964b1577"
+          }
+        },
+        "fileSystemInfo": {
+          "createdDateTime": "2026-10-16T11:26:51Z",
+          "lastModifiedDateTime": "2026-10-16T11:26:51Z"
+        },
+        "folder": {
+          "childCount": 0
+        },
+        "shared": {
+          "scope": "unknown"
+        }
+      }
+    },
+    {
+      "operation": "upload ll-cons-user-c1.txt",
+      "endpoint": "PUT <folder>:/<file>:/content",
+      "status": 201,
+      "summary": "id=01RQLOFTT6RHWDEPYEFVD2EOBY3M624MTC",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/items/$entity",
+        "@microsoft.graph.downloadUrl": "<redacted>",
+        "createdDateTime": "2026-10-16T11:26:52Z",
+        "eTag": "\"{32EC897E-043F-472D-A238-38DB3DAE3262},1\"",
+        "id": "01RQLOFTT6RHWDEPYEFVD2EOBY3M624MTC",
+        "lastModifiedDateTime": "2026-10-16T11:26:52Z",
+        "name": "ll-cons-user-c1.txt",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-cons-user-c1/ll-cons-user-c1.txt",
+        "cTag": "\"c:{32EC897E-043F-472D-A238-38DB3DAE3262},1\"",
+        "isAuthoritative": false,
+        "size": 73,
+        "createdBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "lastModifiedBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "parentReference": {
+          "driveType": "documentLibrary",
+          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+          "id": "01RQLOFTWTQMR5MGE6LJF3IS2HGTZTXNN4",
+          "name": "ll-sp-cons-user-c1",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:/ll-sp-cons-user-c1",
+          "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7"
+        },
+        "file": {
+          "mimeType": "text/plain",
+          "hashes": {
+            "quickXorHash": "lAZqBVDWhnpq0EO8dd5XuHVCB3o="
+          }
+        },
+        "fileSystemInfo": {
+          "createdDateTime": "2026-10-16T11:26:52Z",
+          "lastModifiedDateTime": "2026-10-16T11:26:52Z"
+        },
+        "shared": {
+          "scope": "users"
+        }
+      }
+    },
+    {
+      "operation": "break inheritance (user folder)",
+      "endpoint": "POST <item>/breakroleinheritance(copyRoleAssignments=false,clearSubscopes=true)",
+      "status": 200,
+      "summary": "ok",
+      "response": {
+        "odata.null": true
+      }
+    },
+    {
+      "operation": "find folder ll-sp-cons-group-c1",
+      "endpoint": "GET <folder lookup>",
+      "status": 404,
+      "summary": "HTTP 404 (allowed)",
+      "response": {
+        "code": "itemNotFound",
+        "message": "The resource could not be found."
+      }
+    },
+    {
+      "operation": "create folder ll-sp-cons-group-c1",
+      "endpoint": "POST <parent>/children",
+      "status": 201,
+      "summary": "id=01RQLOFTTMPI4D5R47YRAIRFUVPS67LDF3",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/root/children/$entity",
+        "@odata.etag": "\"{3E387A6C-9FC7-40C4-8896-957CBDF58CBB},1\"",
+        "eTag": "\"{3E387A6C-9FC7-40C4-8896-957CBDF58CBB},1\"",
+        "lastModifiedDateTime": "2026-10-16T11:26:54Z",
+        "createdDateTime": "2026-10-16T11:26:54Z",
+        "id": "01RQLOFTTMPI4D5R47YRAIRFUVPS67LDF3",
+        "name": "ll-sp-cons-group-c1",
+        "size": 0,
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-cons-group-c1",
+        "commentSettings": {
+          "commentingDisabled": {
+            "isDisabled": false
+          }
+        },
+        "createdBy": {
+          "application": {
+            "displayName": "Microsoft Graph",
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "lastModifiedBy": {
+          "application": {
+            "displayName": "Microsoft Graph",
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "parentReference": {
+          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+          "driveType": "documentLibrary",
+          "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:",
+          "sharepointIds": {
+            "listId": "ff0e6594-cb34-49ef-983f-38c811eb5cd7",
+            "listItemUniqueId": "d883dfed-07bb-44c2-a812-6a1c516d8594",
+            "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7",
+            "siteUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+            "tenantId": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+            "webId": "5c429f61-a18b-46e8-aa4f-0768964b1577"
+          }
+        },
+        "fileSystemInfo": {
+          "createdDateTime": "2026-10-16T11:26:54Z",
+          "lastModifiedDateTime": "2026-10-16T11:26:54Z"
+        },
+        "folder": {
+          "childCount": 0
+        },
+        "shared": {
+          "scope": "unknown"
+        }
+      }
+    },
+    {
+      "operation": "upload ll-cons-group-c1.txt",
+      "endpoint": "PUT <folder>:/<file>:/content",
+      "status": 201,
+      "summary": "id=01RQLOFTUHXNNLCJ5RWRHZ6O3J6FKHP3VP",
+      "response": {
+        "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#drives('b%218tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX')/items/$entity",
+        "@microsoft.graph.downloadUrl": "<redacted>",
+        "createdDateTime": "2026-10-16T11:26:54Z",
+        "eTag": "\"{B15ABB87-B127-4FB4-9F3B-69F15477EEAF},1\"",
+        "id": "01RQLOFTUHXNNLCJ5RWRHZ6O3J6FKHP3VP",
+        "lastModifiedDateTime": "2026-10-16T11:26:54Z",
+        "name": "ll-cons-group-c1.txt",
+        "webUrl": "https://leaklabdev.sharepoint.com/sites/LeakLab/Shared%20Documents/ll-sp-cons-group-c1/ll-cons-group-c1.txt",
+        "cTag": "\"c:{B15ABB87-B127-4FB4-9F3B-69F15477EEAF},1\"",
+        "isAuthoritative": false,
+        "size": 74,
+        "createdBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "lastModifiedBy": {
+          "application": {
+            "id": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+            "displayName": "Microsoft Graph"
+          },
+          "user": {
+            "displayName": "SharePoint App"
+          }
+        },
+        "parentReference": {
+          "driveType": "documentLibrary",
+          "driveId": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+          "id": "01RQLOFTTMPI4D5R47YRAIRFUVPS67LDF3",
+          "name": "ll-sp-cons-group-c1",
+          "path": "/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/root:/ll-sp-cons-group-c1",
+          "siteId": "dd19dbf2-de8f-489b-afcc-cb3a611ceaa7"
+        },
+        "file": {
+          "mimeType": "text/plain",
+          "hashes": {
+            "quickXorHash": "tOE+Ob/2gmBdG9O9yPGxRHGi3ic="
+          }
+        },
+        "fileSystemInfo": {
+          "createdDateTime": "2026-10-16T11:26:54Z",
+          "lastModifiedDateTime": "2026-10-16T11:26:54Z"
+        },
+        "shared": {
+          "scope": "users"
+        }
+      }
+    },
+    {
+      "operation": "break inheritance (group folder)",
+      "endpoint": "POST <item>/breakroleinheritance(copyRoleAssignments=false,clearSubscopes=true)",
+      "status": 200,
+      "summary": "ok",
+      "response": {
+        "odata.null": true
+      }
+    },
+    {
+      "operation": "ensureuser (user)",
+      "endpoint": "POST /_api/web/ensureuser",
+      "status": 200,
+      "summary": "Id=12 LoginName=i:0#.f|membership|ll-p-plateng@leaklabdev.onmicrosoft.com type=1",
+      "response": {
+        "Id": 12,
+        "IsHiddenInUI": false,
+        "LoginName": "i:0#.f|membership|ll-p-plateng@leaklabdev.onmicrosoft.com",
+        "Title": "Paul Platform",
+        "PrincipalType": 1,
+        "Email": "ll-p-plateng@leaklabdev.onmicrosoft.com",
+        "Expiration": "",
+        "IsEmailAuthenticationGuestUser": false,
+        "IsShareByEmailGuestUser": false,
+        "IsSiteAdmin": false,
+        "UserId": {
+          "NameId": "1003200657026fe0",
+          "NameIdIssuer": "urn:federation:microsoftonline"
+        },
+        "UserPrincipalName": "ll-p-plateng@leaklabdev.onmicrosoft.com"
+      }
+    },
+    {
+      "operation": "grant Read to the USER",
+      "endpoint": "POST <item>/roleassignments/addroleassignment(principalid,roledefid)",
+      "status": 200,
+      "summary": "ok",
+      "response": {
+        "odata.null": true
+      }
+    },
+    {
+      "operation": "ensureuser (group)",
+      "endpoint": "POST /_api/web/ensureuser",
+      "status": 200,
+      "summary": "Id=26 LoginName=c:0t.c|tenant|3ea75499-2323-41e9-9c81-33df65f6ad40 type=4",
+      "response": {
+        "Id": 26,
+        "IsHiddenInUI": false,
+        "LoginName": "c:0t.c|tenant|3ea75499-2323-41e9-9c81-33df65f6ad40",
+        "Title": "ll-probe-cons-c1",
+        "PrincipalType": 4,
+        "Email": "",
+        "Expiration": "",
+        "IsEmailAuthenticationGuestUser": false,
+        "IsShareByEmailGuestUser": false,
+        "IsSiteAdmin": false,
+        "UserId": null,
+        "UserPrincipalName": null
+      }
+    },
+    {
+      "operation": "grant Read to the GROUP",
+      "endpoint": "POST <item>/roleassignments/addroleassignment(principalid,roledefid)",
+      "status": 200,
+      "summary": "ok",
+      "response": {
+        "odata.null": true
+      }
+    }
+  ],
+  "prefix": "ll-",
+  "site_url": "https://leaklabdev.sharepoint.com/sites/LeakLab",
+  "canary": "CANARY-CON-e2b509",
+  "options": {
+    "duration": 600.0,
+    "interval": 5.0,
+    "stable_timeout": 180.0,
+    "license_timeout": 300.0,
+    "wait": 15.0,
+    "sku_part_number": "",
+    "throwaway_user": "",
+    "suffix": "c1"
+  },
+  "ids": {
+    "site_id": "leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577",
+    "drive_id": "b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX",
+    "drive_name": "Documents",
+    "library_server_relative_url": "/sites/LeakLab/Shared Documents",
+    "read_role_definition_id": 1073741826
+  },
+  "subscribed_skus": [
+    {
+      "skuPartNumber": "O365_BUSINESS_ESSENTIALS",
+      "skuId": "3b555118-da6a-4418-894f-7df1e2096870",
+      "appliesTo": "User",
+      "capabilityStatus": "Enabled",
+      "enabledUnits": 25,
+      "consumedUnits": 4,
+      "availableUnits": 21
+    }
+  ],
+  "chosen_sku": {
+    "skuPartNumber": "O365_BUSINESS_ESSENTIALS",
+    "skuId": "3b555118-da6a-4418-894f-7df1e2096870",
+    "appliesTo": "User",
+    "capabilityStatus": "Enabled",
+    "enabledUnits": 25,
+    "consumedUnits": 4,
+    "availableUnits": 21
+  },
+  "user": {
+    "spec_id": "p-plateng",
+    "upn": "ll-p-plateng@leaklabdev.onmicrosoft.com",
+    "licensed_in_spec": true,
+    "state": "reused",
+    "object_id": "d375d082-52ed-4c0d-883a-d0310af283e1",
+    "license": "already assigned",
+    "assigned_sku_ids_after": [
+      "3b555118-da6a-4418-894f-7df1e2096870"
+    ],
+    "license_wait": {
+      "visible": true,
+      "after_s": 0.5
+    }
+  },
+  "groups": {
+    "ll-probe-cons-c1": {
+      "id": "3ea75499-2323-41e9-9c81-33df65f6ad40",
+      "state": "created"
+    }
+  },
+  "ensureuser_waits": {
+    "user": {
+      "attempts": 1,
+      "seconds": 0.5
+    },
+    "group": {
+      "attempts": 1,
+      "seconds": 0.4
+    }
+  },
+  "memberships": [
+    {
+      "what": "user in group",
+      "added": true,
+      "attempts": 1
+    }
+  ],
+  "membership_stable": {
+    "stable": true,
+    "after_s": 13.0,
+    "polls": [
+      {
+        "elapsed_s": 0.3,
+        "probe_groups_seen": 0,
+        "ok": false
+      },
+      {
+        "elapsed_s": 6.2,
+        "probe_groups_seen": 1,
+        "ok": true
+      },
+      {
+        "elapsed_s": 13.0,
+        "probe_groups_seen": 1,
+        "ok": true
+      }
+    ]
+  },
+  "series": [
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 20.6
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 25.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 30.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 36.7
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 41.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 46.7
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 51.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 56.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 61.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 67.4
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 71.7
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 76.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 82.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 88.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 92.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 96.9
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 101.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 105.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 110.1
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 115.1
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 120.4
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 125.6
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 129.9
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 134.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 140.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 144.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 150.6
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 156.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 162.3
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 167.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 173.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 178.3
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 185.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 190.9
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 196.6
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 201.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 206.3
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 211.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 216.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 221.1
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 226.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 231.3
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 240.7
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 246.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 251.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 256.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 261.4
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 270.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 275.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 280.3
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 285.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 291.3
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 297.3
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 302.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 307.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 312.9
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 318.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 322.9
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 327.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 331.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 337.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 342.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 348.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 353.7
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 358.9
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 363.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 369.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 376.9
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 382.9
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 388.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 392.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 399.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 405.1
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 410.6
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 415.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 420.9
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 427.1
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 433.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 438.3
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 444.7
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 450.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 456.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 465.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 470.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 476.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 480.6
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 487.6
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 492.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 496.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 501.5
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 507.4
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 512.3
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 517.2
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 521.9
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 528.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 533.3
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 539.6
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 543.9
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 549.3
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 554.1
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 559.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 564.4
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 569.4
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 574.3
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 578.4
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 583.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 588.7
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 593.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 597.1
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 601.7
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 607.0
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 612.8
+    },
+    {
+      "user": {
+        "class": "allowed",
+        "status": 302,
+        "final": 200,
+        "code": null,
+        "sp": true
+      },
+      "group": {
+        "class": "denied",
+        "status": 404,
+        "final": 404,
+        "code": "itemNotFound",
+        "sp": false
+      },
+      "t": 617.9
+    }
+  ],
+  "summary": {
+    "user": {
+      "reads": 113,
+      "allowed": 113,
+      "allowed_pct": 100.0,
+      "flips": 0,
+      "flip_pct": 0.0,
+      "first_run_of_5_allowed_s": 20.6,
+      "longest_allowed_run": 113,
+      "sharepoint_can_read_pct": 100.0
+    },
+    "group": {
+      "reads": 113,
+      "allowed": 0,
+      "allowed_pct": 0.0,
+      "flips": 0,
+      "flip_pct": 0.0,
+      "first_run_of_5_allowed_s": null,
+      "longest_allowed_run": 0,
+      "sharepoint_can_read_pct": 0.0
+    }
+  }
+}

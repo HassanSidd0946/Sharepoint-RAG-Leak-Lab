@@ -559,6 +559,40 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 - Probe output: probes/out/revocation_probe.json
 - Docs: n/a
 
+### Brand-new names did NOT help: reads were coin flips (name reuse is not the explanation)
+- Date: 2026-10-16
+- Probe: `probes/revocation_probe.py --suffix a1 --trials 1 --access-timeout 600`, direct mode,
+  p-plateng, a NEW folder, file and group (`...-a1`, never used before), `--baseline-reads 3`.
+  Complete data in probes/out/revocation_probe.json (status ok).
+- Adding the member: Graph showed the user in the group stably after 29s. Reads while waiting (21 reads,
+  32s to 211s after the add): 14 `404 itemNotFound` from Graph, 1 302 that ended in `403 accessDenied`
+  at the download, 6 allowed; allowed and denied alternated (first allowed read at 194.6s, the
+  baseline of 3 allowed in a row only at 211.3s). SharePoint's effective-permission answer was "no
+  permissions" until the last of those reads (211.3s) and "can read" (`Low = 138612833`) from then on.
+- After the removal (Entra dropped the membership by 8.4s): 152 cycles over 903s. Old token: 71
+  allowed / 81 denied; fresh token (fetched 5.0s after removal): 81 allowed / 71 denied. The old
+  token's answer flipped on 70 of 151 consecutive cycles (46%), the fresh token's on 69. In a cycle
+  the two tokens agreed on only about half the cycles: (old, fresh) = (denied, allowed) 42, (denied,
+  denied) 39, (allowed, allowed) 39, (allowed, denied) 32, i.e. roughly independent coin flips with
+  about a 50% chance of "allowed" per read. Of the 304 reads over both tokens: 152 allowed (`302`
+  then `200`), 84 `404 itemNotFound` from Graph, and 68 a `302` whose download ended in
+  `403 accessDenied`. SharePoint's effective-permission answer said "can read"
+  on all 152 cycles, i.e. it kept saying so for 15 minutes after the removal. App-only control reads
+  were allowed.
+- So the earlier explanation that RE-USING names causes the trouble is not supported: this run used
+  names never used before and showed the same delayed, flapping behavior as the re-created-names run.
+  The two clean runs (A and n1-first: every read allowed, effective permission "can read" from the
+  start) remain unexplained.
+- Regimes seen so far for the same user in the same tenant, direct-mode runs: every read allowed
+  (2 runs); every read denied for 5-30 minutes (3 runs); roughly half of the reads allowed, at random
+  (2 runs: n1-second and this one). Revocation could only be assessed in the first regime, and there
+  it did not happen for 15-30 minutes.
+- What this means for measurement: a single read is not a reliable "has access / has no access"
+  signal in this tenant. Any harness that decides leak or no-leak from one read needs repeated
+  reads, and even then the regime matters. Nothing here is a decision about the oracle.
+- Probe output: probes/out/revocation_probe.json
+- Docs: n/a
+
 ### Persona sign-in with a nonexistent user fails with AADSTS50034 (no device-code fallback)
 - Date: 2026-10-15
 - Endpoint: token endpoint, username/password (ROPC) via `auth.get_persona_token`
@@ -760,16 +794,17 @@ file, file-level grant), and everything on revocation timing.
 - [ ] Adding a user/group that is already a member: the assumed error (HTTP 400, "already
   exist") is now verified (see Idempotency). Still unverified: re-creating a deleted user's UPN
   immediately (only a gap of minutes was tested; deletes lag behind lookups).
-- [ ] RE-CREATED NAMES: tested once more: new names, first use, worked at once; the SAME names re-created
-  were delayed 452s and then gave inconsistent reads (see "Re-created names"). Still unknown which
-  element matters (folder path, file name, group name) and why. Separate them: new folder + file
-  names with a RE-USED group name; re-used folder + file names with a NEW group name; and
-  whether purging the deleted folder from the recycle bin first (Graph `permanentDelete`,
-  unverified) avoids it. This matters for the lab itself, because teardown/regenerate cycles
-  re-create the same paths.
-- [ ] Inconsistent reads: why the same user, at the same moment, gets allowed from one token and
-  denied from another, and why a Graph 302 can end in `accessDenied` at download. Repeat with
-  `--tokens old` only and `--tokens fresh` only to see whether querying both together matters.
+- [ ] RE-CREATED NAMES: no longer a good candidate. Brand-new names (`a1`) gave a delayed first access
+  and coin-flip reads; the same names re-created (`n1` twice) gave 452s and flapping; the first use of
+  `n1` and of the original names was clean. What separates the clean runs from the others is
+  unknown (the user's history, the time of day, the state of the service, or chance).
+- [ ] Inconsistent reads (the new top priority): in two runs the same user got "allowed" from some reads and
+  "denied" from others at the same time, independent of token age and of the membership removal
+  (about 50% allowed), while SharePoint's effective-permission answer was constant. Is it specific to
+  group-based grants? Run `probes/consistency_probe.py`: one token, nothing changes, one folder granted
+  directly to the user and one to a group the user is in. Then repeat with a brand-new user and new
+  names (`--throwaway-user` and `--suffix`), at a different time of day, to see whether the regime
+  changes with the user, the names, or just time.
 - [ ] REVOCATION TIMING (the core question for S1/S2/S6). The clean result below (new names) must be
   repeated with new names each time and `--baseline-reads 3`. Direct membership removal: SharePoint kept
   allowing reads, and its own effective-permission answer stayed "Read", for 30 minutes with old and
