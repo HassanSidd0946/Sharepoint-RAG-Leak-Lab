@@ -29,3 +29,12 @@ def parse_key(key: str) -> tuple[str, str, str]:
     if len(parts) != 3:
         raise ValueError(f"not a SharePoint library document key: {text[:80]!r}")
     return parts[0], parts[1], parts[2]
+
+
+def item_id_of_key(key: str) -> str:
+    """The Graph drive item id behind an index key: the key's item part without the indexer's
+    extra suffix. ValueError if the key has another shape (the caller must then drop the hit)."""
+    item = parse_key(key)[2]
+    if not item.endswith(INDEXER_ITEM_SUFFIX) or len(item) < 2:
+        raise ValueError("item part does not end with the indexer suffix")
+    return item[: -len(INDEXER_ITEM_SUFFIX)]

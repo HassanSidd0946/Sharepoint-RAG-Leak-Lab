@@ -261,16 +261,39 @@ def test_a_failed_poll_keeps_the_old_state_and_the_last_success(make_repo: Facto
 def test_stale_state_denies_with_a_reason(make_repo: Factory) -> None:
     w = World(make_repo(), max_age_s=30.0)
     uid, doc = w.uid("p-plateng"), w.doc_id(CAN["General"][0])
-    assert w.reader.decide(uid, doc).reason == "stale_membership"  # nothing polled yet
+    assert w.reader.decide(uid, doc).reason == "stale_acl"  # nothing polled yet
     w.sync()
     assert w.reader.decide(uid, doc).allowed and w.reader.freshness().fresh
     w.clock.sleep(31.0)
-    assert w.reader.decide(uid, doc).reason == "stale_membership"
+    assert w.reader.decide(uid, doc).reason == "stale_acl"  # both stale: nothing is trusted
     assert w.reader.readable(uid) == set()
     w.membership.poll_once()  # membership fresh again, the ACL store still stale
     assert w.reader.decide(uid, doc).reason == "stale_acl"
     w.acl.poll_once()
     assert w.reader.decide(uid, doc).allowed
+
+
+def test_a_stale_membership_state_denies_group_grants_but_keeps_direct_ones(
+    make_repo: Factory,
+) -> None:
+    w = World(make_repo(), max_age_s=12.0)
+    w.sync()
+    via_group, direct = w.doc_id(CAN["General"][0]), w.doc_id(CAN["S1-Direct"][0])
+    uid = w.uid("p-plateng")
+    assert w.reader.decide(uid, via_group).via is not None
+    assert w.reader.decide(uid, direct).via == f"user:{w.repo.upn_of(uid)}"
+    for _ in range(3):  # membership polls fail, ACL polls keep succeeding
+        w.group_src.fail_next = ConnectionError("down")
+        w.clock.sleep(5.0)
+        w.membership.poll_once()
+        w.acl.poll_once()
+    fresh = w.reader.freshness()
+    assert fresh.acl_fresh and not fresh.membership_fresh
+    assert w.reader.decide(uid, via_group).reason == "stale_membership"
+    assert w.reader.decide(uid, direct).allowed  # a grant that names the user needs no groups
+    readable = w.reader.readable(uid)
+    assert direct in readable and via_group not in readable
+    assert all((w.reader.decide(uid, d).via or "").startswith("user:") for d in readable)
 
 
 def test_a_run_of_failed_polls_makes_the_state_go_stale_and_deny(make_repo: Factory) -> None:
@@ -291,7 +314,7 @@ def test_unknown_documents_and_users_are_denied(make_repo: Factory) -> None:
     w.sync()
     assert w.reader.decide(w.uid("p-plateng"), "no-such-doc").reason == "no_such_document"
     stranger = w.reader.decide("not-a-user", w.doc_id(CAN["Board"][0]))
-    assert not stranger.allowed and stranger.reason == "no_matching_grant"
+    assert not stranger.allowed and stranger.reason == "unknown_principal"
 
 
 def test_readable_lists_exactly_the_files_a_user_may_read(make_repo: Factory) -> None:

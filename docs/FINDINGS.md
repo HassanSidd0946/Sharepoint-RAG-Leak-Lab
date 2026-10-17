@@ -1472,6 +1472,103 @@ id. Fix: directory.py covers every user in an edge OR named by a user grant. Reg
 - Nested Entra groups inside SharePoint groups are not expanded (unverified; also not by Azure AI Search): they deny.
 - The reader does not talk to Graph or SharePoint: a user the directory could not resolve has no UPN, so user grants deny for them.
 
+## Setup B: service API (src/leaklab/setup_b/api/), Prompt 19b
+
+### Probe: Setup B's own index, and token validation (2026-10-17; probes/search_index_b_probe.py)
+Why a second index: the service (app-only) token sees 0 documents in `ll-sp-index` (permissionFilterOption enabled; see the Setup A
+probes above), so Setup B cannot post-filter anything there. Decision (user): a SECOND index over the SAME SharePoint data source,
+identical to `ll-sp-index` except permissionFilterOption. Setup A is untouched.
+- probes/out/search_acl_index_b_create_20261017T143226Z.json: `ll-sp-index-b` was created (HTTP 201) from the SAME body as `ll-sp-index`
+  (same fields, same `permissionFilter` attributes on UserIds/GroupIds, same analyzers/defaults, same schema) with ONLY
+  `permissionFilterOption: "disabled"`; the first variant was accepted, so there is NO difference other than that option.
+- A second indexer `ll-sp-indexer-b` on the SAME data source `ll-sp-datasource`, same body and the same `PT5M` schedule, was accepted
+  (HTTP 201). Its first run: 14:32:06.9 -> 14:32:20.9 (14 s), success, 43 items processed, 0 failed.
+- Queried with the SERVICE token only (driver app, `https://search.azure.com/.default`, no x-ms-query-source-authorization):
+  `search=*` returned all 43 documents (`@odata.count` 43), against 0 for `ll-sp-index`. The index statistics endpoint still said
+  `documentCount: 0` right after the run (the same lagging counter as in `ll-sp-index`).
+- Keys in index-b parse with `setup_a/keys.parse_key` for all 43 documents and the item part ends in "5" for all 43, as in
+  `ll-sp-index`: the drive item id is the key's item part minus that last character (empirical, as already recorded).
+- Each index has its OWN indexer, so the two indexes refresh on their own 5-minute cycles (the cycles are offset by when each indexer
+  was created). CAVEAT: content freshness of the two is comparable, not simultaneous, and a new or changed document can appear in
+  one index minutes before the other. The runner's "not_indexed" handling therefore has to be per system.
+- The ACL fields of index-b (UserIds/GroupIds) hold the same snapshot the indexer stored for index-a. Setup B NEVER decides from them
+  (they are stale snapshots); /explain may show them for comparison only.
+
+### Probe: persona token validation (probes/out/search_acl_token_20261017T143117Z.json)
+- A persona token for scope `https://search.azure.com/.default` has `aud` = `https://search.azure.com`, `scp` = `user_impersonation`,
+  `iss` = `https://sts.windows.net/<tid>/`, `tid`, `oid`, `upn`, `appid` (the persona app), header `alg` RS256 and a `kid`.
+- The tenant's keys at `https://login.microsoftonline.com/<tid>/discovery/v2.0/keys` returned 5 keys including this token's `kid`;
+  PyJWT verified the signature (RS256), issuer and audience; the same token with another audience raised InvalidAudienceError.
+- There is no API app registration (the driver app has no right to create one), so Setup B's API accepts tokens whose audience is a
+  CONFIGURED value, by default `https://search.azure.com` (the tokens the runner already has). Consequence: any token issued for
+  Azure AI Search to a user of this tenant is accepted by /query. Acceptable in the test tenant; a real deployment needs its own
+  audience. UNVERIFIED: that v2.0-format tokens (iss `login.microsoftonline.com/<tid>/v2.0`) behave the same: both issuers are accepted.
+
+### What was built (src/leaklab/setup_b/api/, setup_b/system.py; threat model in docs/ARCHITECTURE.md)
+- POST /query {persona_token, query, k}: validate the token (RS256 signature from the tenant JWKS, issuer, tid, audience, exp, a USER
+  token with oid/upn/scp), search `ll-sp-index-b` with the service identity for k*5 hits, decide EVERY hit with the state reader
+  (acl_store x membership_store; the index ACL fields are never read), write all decisions + one summary record to the hash-chained
+  log (if that fails the request fails), return the first k allowed hits (doc id, name, content).
+- GET /health: ok | degraded (reasons, ages) | down. GET /explain?user=&doc=: the path that allows or denies (groups chain, matching
+  grants, scope), plus the index's stale ACL snapshot "for comparison only". GET /metrics: poller lag, decision counters, recall numbers.
+  /explain and /metrics need an operator key (disabled if none is configured). `debug` stats only if the server allows them.
+- Decision log: Postgres table `leaklab_api.decisions`, sha256 chain (previous hash + canonical JSON), advisory-locked appends, `verify()`
+  finds the first broken record; stores user oid, doc id, allowed, reason, request id, counts; never tokens, query text (sha256 only) or content.
+- Degraded mode (state/access.py): membership stale -> group-based grants denied, grants naming the user still honored; ACL stale ->
+  everything denied (STRICTER than the prompt, which only names group-based grants: a revoked direct grant would otherwise be honored
+  from stale state); unknown principal -> denied (`unknown_principal`).
+- Adapter `setup_b`: POST /query with the persona's token and the exact-phrase query; served = canary string in a returned document. It uses
+  the debug stats' pre-filter count: an exact phrase matching nothing (fetched == 0) is `not_indexed` (served=None), never a denial; without
+  debug stats the read is an error (`no_debug_stats`), never a denial. Journal events: `system_health` (status changes) and
+  `postfilter_recall` (broad query "*" at k = 3, 5, 10 for every persona: fetched, allowed in the window, returned, readable among ALL
+  matches, shortfall, lost vs an unlimited window), sampled at start and every 5 minutes. The report carries `system_labels`
+  ("Setup B queries a separate, unfiltered index over the same SharePoint data source; Setup A uses the ACL-filtered index."),
+  `postfilter_recall` and `system_health`.
+- The runner builds Setup B with a FRESH state schema per run (first sync ~43 s), the pollers and the API in the same process
+  (127.0.0.1, random port); Setup A and Setup B share one persona-token cache (Entra throttles repeated password sign-ins).
+
+### Verification (Prompt 19b)
+- 575 tests pass (4 live skipped by default): token validation (wrong audience/tenant/issuer, expired, foreign key, unknown kid, `none` and
+  HS256 downgrade, app-only token, missing identity), the hash chain on memory and Postgres (changed, deleted, reordered, re-hashed
+  records; 30 concurrent appends make one chain), /query for all six personas EQUALS the oracle's expected access, a revocation is followed
+  after the next poll, stale membership / stale ACL / nothing polled / unknown principal / index down / log down, the log holds no token,
+  query text or content, /explain shows the state's decision even when the index's stale ACL says the opposite (both directions),
+  operator key, bounded metric labels, the HTTP clients with mock transports (service bearer only, no user header, key mapping,
+  every bad answer -> IndexUnavailable, JWKS cache and throttled refetch), the adapter against the real app.
+- 8 planted bugs in the API layer, each caught: results ignoring the decision, k not applied, stale ACL not denying, stale membership
+  still honoring groups, audience not checked, tenant not checked, log failure ignored, operator key not compared.
+- LIVE smoke (real tenant, real index-b, real Postgres, personas' real tokens, before the S1 run): `build_setup_b` 43 s, 258 reads
+  (6 personas x 43 canaries) through the HTTP API: 0 errors, 0 mismatches against the oracle.
+
+### S1 arms, three systems together (2026-10-17; runs/run_20261017T150835Z.jsonl, ONE replicate, interval 5 s, cap 60 min)
+Setup B queries a separate, unfiltered index over the same SharePoint data source; Setup A uses the ACL-filtered index.
+Times in seconds after the change was confirmed; "leak" = how long after it the system still served the revoked canary.
+| arm | system | baseline | first deny | leak | note |
+|---|---|---|---|---|---|
+| S1-direct | setup0 | OK | 2.2 | 0.0 | (1 read error) |
+| S1-direct | setup_a_basic | OK | 238.9 | 198.6 | frozen ACL until an indexer run ended (226.5 s after the change) |
+| S1-direct | setup_b | OK | 7.3 | 2.3 | |
+| S1-spgroup | setup0 | OK | 5.2 | 0.0 | |
+| S1-spgroup | setup_a_basic | UNSTABLE | - | - | the group grant is stored but never honored: nothing was ever served, lockout 865 s (nothing to revoke) |
+| S1-spgroup | setup_b | OK | 8.7 | 5.0 | |
+| S1-entra | setup0 | OK | 2700.5 | 3560.5 | did not converge in the 60 min cap (the known 36-59 min flapping) |
+| S1-entra | setup_a_basic | OK | 273.9 | 270.0 | query-time membership lag |
+| S1-entra | setup_b | OK | 7.5 | 0.0 | |
+- Setup B was never denied for staleness: all 9,887 logged decisions have reason `allowed` (2,936) or `no_matching_grant` (6,951); `/health`
+  reported `ok` for the whole run (one reading, no status change). No Setup B read was an error.
+- Setup B's leak windows (2.3 s and 5.0 s) are the poll interval plus the drive-delta lag measured before (4.7-8.7 s), not a defect of the
+  filter; the S1-entra arm shows 0 leak because the Graph group delta (11-24 s) had already reported the change by the time the mutation was
+  confirmed. ONE replicate: these are single observations, not distributions.
+- The decision log written during the run (13,054 records, including the smoke test and earlier runs of this schema) verifies: chain ok.
+- RECALL COST of post-filtering (broad query "*", window k*5, 234 samples = 6 personas x 3 k x 13 rounds): returned vs the best
+  possible (readable documents among ALL matches, capped at k):
+  k=3: 195 returned of 234 possible (26 of 78 samples short of k, 39 results lost); k=5: 364 of 390 (26 short, 26 lost);
+  k=10: 663 of 663 (26 short because the persona cannot read k documents at all, 0 lost). So the over-fetch window k*5 loses results for
+  small k when forbidden documents rank first; "short of k" alone also counts personas with fewer than k readable documents.
+  CAVEAT: the corpus is 43 documents and `*` gives an arbitrary but fixed ranking, so these numbers show the mechanism, not a production figure.
+- Unavoidable differences between Setup A and B queries: index-b is a second index with its own indexer cycle (freshness comparable, not
+  simultaneous); Setup B pays one extra hop (HTTP + state reads) and the recall cost above.
+
 ## Open questions
 
 - [ ] Persona sign-in works for two LICENSED users. Not yet tested: UNLICENSED personas (four in

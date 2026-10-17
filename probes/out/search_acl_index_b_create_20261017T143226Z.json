@@ -1,0 +1,144 @@
+{
+  "stage": "index_b_create",
+  "started_utc": "2026-10-17T14:31:25.690388+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "create_index_b",
+      "t": 1792247491.77,
+      "variant": "only permissionFilterOption changed",
+      "http": 201,
+      "result": "{\"@odata.context\": \"https://leaklab-search-772918cf.search.windows.net/$metadata#indexes/$entity\", \"@odata.etag\": \"\\\"0x8DF2C5B55FC91D4\\\"\", \"name\": \"ll-sp-index-b\", \"description\": null, \"defaultScoringProfile\": null, \"permissionFilterOption\": \"disabled\", \"purviewEnabled\": false, \"fields\": [{\"name\": \"id\", \"type\": \"Edm.String\", \"searchable\": false, \"filterable\": true, \"retrievable\": true, \"stored\": true, \"sortable\": true, \"facetable\": true, \"key\": true, \"indexAnalyzer\": null, \"searchAnalyzer\": null, \"analyzer\": null, \"normalizer\": null, \"dimensions\": null, \"vectorSearchProfile\": null, \"vectorEncoding\": null, \"permissionFilter\": null, \"sensitivityLabelId\": null, \"sensitivityLabelName\": null, \"sourceDocumentId\": null, \"sharepointSiteUrl\": null, \"synonymMaps\": []}, {\"name\": \"metadata_spo_item_name\", \"type\": \"Edm.String\", \"searchable\": true, \"filterable\": true, \"retrievable\": true, \"stored\": true, \"sortable\": true, \"facetable\": true, \"key\": false, \"indexAnalyzer\": null, \"searchAnalyzer\": null, \"analyzer\": null, \"normalizer\": null, \"dimensions\": null, \"vectorSearchProfile\": null, \"vectorEncoding\": null, \"permissionFilter\": null, \"sensitivityLabelId\": null, \"sensitivityLabelName\": null, \"so...<cut>"
+    },
+    {
+      "step": "create_indexer_b",
+      "t": 1792247520.435,
+      "http": 201,
+      "result": {
+        "@odata.context": "https://leaklab-search-772918cf.search.windows.net/$metadata#indexers/$entity",
+        "@odata.etag": "\"0x8DF2C5B6706BB0E\"",
+        "name": "ll-sp-indexer-b",
+        "description": null,
+        "dataSourceName": "ll-sp-datasource",
+        "skillsetName": null,
+        "targetIndexName": "ll-sp-index-b",
+        "disabled": null,
+        "schedule": {
+          "interval": "PT5M",
+          "startTime": "2026-10-17T14:31:30.9514525Z"
+        },
+        "parameters": {
+          "batchSize": null,
+          "maxFailedItems": null,
+          "maxFailedItemsPerBatch": null,
+          "configuration": {
+            "indexedFileNameExtensions": ".txt",
+            "dataToExtract": "contentAndMetadata",
+            "failOnUnsupportedContentType": false
+          }
+        },
+        "fieldMappings": [
+          {
+            "sourceFieldName": "metadata_spo_site_library_item_id",
+            "targetFieldName": "id",
+            "mappingFunction": {
+              "name": "base64Encode",
+              "parameters": null
+            }
+          },
+          {
+            "sourceFieldName": "metadata_user_ids",
+            "targetFieldName": "UserIds",
+            "mappingFunction": null
+          },
+          {
+            "sourceFieldName": "metadata_group_ids",
+            "targetFieldName": "GroupIds",
+            "mappingFunction": null
+          }
+        ],
+        "outputFieldMappings": [],
+        "cache": null,
+        "encryptionKey": null
+      }
+    },
+    {
+      "step": "indexer_b_run_finished",
+      "t": 1792247545.11,
+      "http": 200,
+      "result": "{\"status\": \"success\", \"statusDetail\": null, \"errorMessage\": null, \"startTime\": \"2026-10-17T14:32:06.991Z\", \"endTime\": \"2026-10-17T14:32:20.94Z\", \"itemsProcessed\": 43, \"itemsFailed\": 0, \"initialTrackingState\": \"{}\", \"finalTrackingState\": \"{\\\"leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577::b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX\\\":{\\\"includedAndExcludedFoldersMarker\\\":\\\"e46e613aff295480d0811655d77e01d2503462bac028ff9146e952007d6df616d1b70ed0bbcccd46aece0548a3350a22c177ef8367f39cdee2878dec3565c346\\\",\\\"folderSignatures\\\":null,\\\"lastProcessedDriveId\\\":\\\"01RQLOFTS4SHBACDUPX5HI5X6XXYZWKXZX\\\",\\\"deltaLink\\\":\\\"https://graph.microsoft.com/v1.0/drives/b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX/items/01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X/microsoft.graph.delta()?$top=11&token=<redacted>\\\",\\\"lastModifiedDateTime\\\":\\\"2026-10-17T05:55:23.000Z\\\"}}\", \"mode\": \"indexingAllDocs\", \"errors\": [], \"warnings\": [{\"key\": null, \"name...<cut>"
+    },
+    {
+      "step": "index_b_stats",
+      "t": 1792247545.729,
+      "http": 200,
+      "result": {
+        "@odata.context": "https://leaklab-search-772918cf.search.windows.net/$metadata#Microsoft.Azure.Search.V2026_08_01_Preview.IndexStatistics",
+        "documentCount": 0,
+        "storageSize": 0,
+        "vectorIndexSize": 0
+      }
+    },
+    {
+      "step": "service_token_query_index_b",
+      "t": 1792247546.232,
+      "http": 200,
+      "count": 43,
+      "note": "@odata.count=43"
+    },
+    {
+      "step": "keys",
+      "t": 1792247546.232,
+      "result": {
+        "decoded_item_ids_sample": [
+          "01RQLOFTWEXFOUVD2P2VC2MDAQNH6PLWJI5",
+          "01RQLOFTQBEDNQQTG5YJGLP563JNYZRAS25",
+          "01RQLOFTQZUCE32TYIQJDIL2TYIZM47M5O5"
+        ],
+        "all_parse": true,
+        "all_end_with_suffix_5": true
+      }
+    },
+    {
+      "step": "acl_fields_sample",
+      "t": 1792247546.232,
+      "note": "shown for comparison only; never used for decisions",
+      "result": [
+        {
+          "metadata_spo_item_name": "ll-brd-01.txt",
+          "UserIds": [
+            "1a993a79-1c75-44b0-8ad4-e87488148353",
+            "8299e3eb-56dc-4c9c-b139-e934306bf413"
+          ],
+          "GroupIds": [
+            "46e4a79b-8382-49bd-9f02-a040db9941b8"
+          ]
+        },
+        {
+          "metadata_spo_item_name": "ll-brd-02.txt",
+          "UserIds": [
+            "1a993a79-1c75-44b0-8ad4-e87488148353",
+            "8299e3eb-56dc-4c9c-b139-e934306bf413"
+          ],
+          "GroupIds": [
+            "46e4a79b-8382-49bd-9f02-a040db9941b8"
+          ]
+        },
+        {
+          "metadata_spo_item_name": "ll-eng-04.txt",
+          "UserIds": [
+            "1a993a79-1c75-44b0-8ad4-e87488148353"
+          ],
+          "GroupIds": [
+            "a9c38522-100f-49de-911e-4c77c0a4ce6d"
+          ]
+        }
+      ]
+    }
+  ],
+  "index_b_difference_from_index_a": "only permissionFilterOption changed",
+  "summary": {
+    "documents_returned_to_service_token": 43,
+    "last_run": "{\"status\": \"success\", \"statusDetail\": null, \"errorMessage\": null, \"startTime\": \"2026-10-17T14:32:06.991Z\", \"endTime\": \"2026-10-17T14:32:20.94Z\", \"itemsProcessed\": 43, \"itemsFailed\": 0, \"initialTrackingState\": \"{}\", \"finalTrackingState\": \"{\\\"leaklabdev.sharepoint.com,dd19dbf2-de8f-489b-afcc-cb3a611ceaa7,5c429f61-a18b-46e8-aa4f-0768964b1577::b!8tsZ3Y_em0ivzMs6YRzqp2GfQlyLoehGqk8HaJZLFXeUZQ7_NMvvSZg_OMgR61zX\\\":{\\\"includedAndExcludedFoldersMarker\\\":\\\"e46e613aff295480d0811655d77e01d2503462bac028ff9146e952007d6df616d1b70ed0bbcccd46aece0548a3350a22c177ef8367f39cdee2878dec3565c346\\\",\\\"folderSignatures...<cut>"
+  }
+}

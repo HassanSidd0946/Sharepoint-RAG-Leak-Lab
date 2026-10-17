@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     # Setup B state (docker-compose.yml): postgresql://leaklab:<password>@127.0.0.1:5433/leaklab
     pg_dsn: SecretStr = SecretStr("")  # contains the database password: never logged or saved
     search_key: SecretStr = SecretStr("")  # that service's ADMIN key (never logged or saved)
+    # Setup B API: the audience /query accepts (no API app registration exists, so the default
+    # is the Azure AI Search audience of the runner's persona tokens) and the key that unlocks
+    # /explain and /metrics (empty = those endpoints are disabled).
+    api_audience: str = "https://search.azure.com"
+    api_operator_key: SecretStr = SecretStr("")
     ingest_app_id: str = (
         ""  # Entra app the SharePoint INDEXER signs in as (application permissions)
     )

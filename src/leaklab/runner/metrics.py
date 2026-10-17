@@ -89,6 +89,13 @@ class ScenarioResult(BaseModel):
     first_indexer_run_end_after_change_s: float | None = None
 
 
+SETUP_B_LABEL = (
+    "Setup B queries a separate, unfiltered index over the same SharePoint data source; "
+    "Setup A uses the ACL-filtered index."
+)
+SYSTEM_LABELS: dict[str, str] = {"setup_b": SETUP_B_LABEL, "setup_a_basic": SETUP_B_LABEL}
+
+
 class RunReport(BaseModel):
     run_id: str
     spec_sha256: str
@@ -97,6 +104,12 @@ class RunReport(BaseModel):
     results: list[ScenarioResult]
     notes: list[str]
     indexer_runs: dict[str, list[dict[str, Any]]] = {}
+    # What each system is, in one sentence, for the systems of this run that need one.
+    system_labels: dict[str, str] = {}
+    # Setup B: results returned vs k for broad queries (the recall cost of post-filtering), and the
+    # service's own health readings (ok/degraded, poller ages) as the run saw them.
+    postfilter_recall: dict[str, list[dict[str, Any]]] = {}
+    system_health: dict[str, list[dict[str, Any]]] = {}
 
 
 def _flip_time(
@@ -275,11 +288,18 @@ def build_report(spec: TenantSpec, events: Sequence[Event]) -> RunReport:
     failed: set[str] = set()
     reads: dict[tuple[str, Pair], list[Observation]] = defaultdict(list)
     runs: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    recall: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    health: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for e in events:
         kind = e["type"]
         if kind == "system_event":
+            payload = {k: v for k, v in e.items() if k != "type"}
             if e.get("kind") == "indexer_run":
-                runs[str(e["system"])].append({k: v for k, v in e.items() if k != "type"})
+                runs[str(e["system"])].append(payload)
+            elif e.get("kind") == "postfilter_recall":
+                recall[str(e["system"])].append(payload)
+            elif e.get("kind") == "system_health":
+                health[str(e["system"])].append(payload)
         elif kind == "group_started":
             for raw in e["scenarios"]:
                 plans[str(raw["id"])] = plan_from_dict(spec, raw)
@@ -417,6 +437,15 @@ def build_report(spec: TenantSpec, events: Sequence[Event]) -> RunReport:
                 notes.append(
                     f"{sid}/{system}: the scenario did not finish (the run was interrupted)"
                 )
+    ran = sorted({str(s) for s in header.get("systems", [])})
+    labels = {name: SYSTEM_LABELS[name] for name in ran if name in SYSTEM_LABELS}
+    for name, samples in recall.items():
+        short = [r for r in samples if int(r["shortfall"]) > 0]
+        lost = sum(int(r["lost_vs_unlimited"]) for r in samples)
+        notes.append(
+            f"{name}: post-filter recall, {len(samples)} broad queries: {len(short)} returned "
+            f"fewer than k, {lost} results lost against an unlimited window (see postfilter_recall)"
+        )
     finished = any(e["type"] == "run_finished" for e in events)
     if not finished:
         notes.append(
@@ -430,4 +459,7 @@ def build_report(spec: TenantSpec, events: Sequence[Event]) -> RunReport:
         results=results,
         notes=notes,
         indexer_runs=dict(runs),
+        system_labels=labels,
+        postfilter_recall=dict(recall),
+        system_health=dict(health),
     )

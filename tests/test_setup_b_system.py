@@ -1,0 +1,152 @@
+"""The runner's Setup B adapter against the real API app (fake index, fake tenant), in process."""
+
+import httpx
+import pytest
+
+from leaklab.runner.model import RunnerError
+from leaklab.runner.setup0 import TokenCache
+from leaklab.setup_b.system import SetupB
+from setup_b_api_world import ALL, Api
+from setup_b_world import World
+
+PERSONAS = ["p-ceo", "p-intern", "p-plateng"]
+
+
+def adapter(api: Api, *, allow_debug_client: httpx.Client | None = None) -> SetupB:
+    clock = api.world.clock
+    return SetupB(
+        base_url="http://testserver",
+        upns={p: f"{p}@example.test" for p in PERSONAS},
+        tokens=TokenCache(
+            lambda upn: api.keys.token(api.world.uid(upn.split("@")[0]), upn), clock.time
+        ),
+        clock=clock.time,
+        sleep=clock.sleep,
+        http=allow_debug_client or api.client,
+    )
+
+
+def canary(prefix: str) -> str:
+    return next(c for c in ALL if c.startswith(prefix))
+
+
+def test_served_and_denied_follow_the_state() -> None:
+    api = Api(World(_repo()))
+    api.world.sync()
+    sut = adapter(api)
+    board, general = canary("CANARY-BRD"), canary("CANARY-GEN")
+    assert sut.read("p-ceo", board).served is True
+    denied = sut.read("p-intern", board)
+    assert denied.served is False and denied.error is None  # the document IS in the index
+    assert sut.read("p-intern", general).served is True
+
+
+def test_a_document_missing_from_the_index_is_not_a_denial() -> None:
+    api = Api(World(_repo()))
+    api.world.sync()
+    obs = adapter(api).read("p-ceo", "CANARY-NOT-IN-THE-INDEX")
+    assert obs.served is None and obs.error == "not_indexed"
+
+
+def test_without_debug_stats_the_adapter_refuses_to_call_it_a_denial() -> None:
+    api = Api(World(_repo()), allow_debug=False)
+    api.world.sync()
+    sut = adapter(api)
+    assert sut.read("p-ceo", canary("CANARY-BRD")).served is True
+    assert sut.read("p-intern", canary("CANARY-BRD")).error == "no_debug_stats"
+
+
+def test_http_errors_are_errors_not_denials() -> None:
+    api = Api(World(_repo()))
+    api.world.sync()
+    sut = adapter(api)
+    api.index.fail = Exception("boom")  # not IndexUnavailable: the app answers 500
+    obs = sut.read("p-ceo", canary("CANARY-BRD"))
+    assert obs.served is None and obs.status == 500
+    api.index.fail = None
+
+    def down(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("no route")
+
+    broken = SetupB(
+        base_url="http://x",
+        upns={"p-ceo": "p-ceo@example.test"},
+        tokens=TokenCache(lambda upn: "t", api.world.clock.time),
+        clock=api.world.clock.time,
+        sleep=api.world.clock.sleep,
+        http=httpx.Client(transport=httpx.MockTransport(down)),
+    )
+    obs = broken.read("p-ceo", "CANARY-X")
+    assert obs.served is None and obs.error == "transport"
+
+
+def test_a_401_drops_the_cached_token() -> None:
+    api = Api(World(_repo()))
+    api.world.sync()
+    fetched: list[str] = []
+
+    def source(upn: str) -> str:
+        fetched.append(upn)
+        return "not-a-jwt"
+
+    clock = api.world.clock
+    sut = SetupB(
+        base_url="http://testserver",
+        upns={"p-ceo": "p-ceo@example.test"},
+        tokens=TokenCache(source, clock.time),
+        clock=clock.time,
+        sleep=clock.sleep,
+        http=api.client,
+    )
+    assert sut.read("p-ceo", canary("CANARY-BRD")).status == 401
+    sut.read("p-ceo", canary("CANARY-BRD"))
+    assert len(fetched) == 2
+
+
+def test_prepare_waits_for_a_healthy_api_and_takes_the_first_recall_sample() -> None:
+    api = Api(World(_repo(), max_age_s=30.0))
+    sut = adapter(api)
+    with pytest.raises(RunnerError):  # nothing polled: degraded for ever
+        sut.prepare(PERSONAS, ALL)
+    api.world.sync()
+    sut.prepare(PERSONAS, ALL)
+    events = sut.drain_events()
+    recall = [e for e in events if e["kind"] == "postfilter_recall"]
+    assert len(recall) == len(PERSONAS) * 3
+    sample = next(e for e in recall if e["persona"] == "p-ceo" and e["k"] == 3)
+    assert {
+        "fetch_limit",
+        "fetched",
+        "allowed_in_window",
+        "returned",
+        "allowed_total",
+        "shortfall",
+    } <= set(sample)
+    assert sample["shortfall"] == 3 - sample["returned"]
+    assert sample["lost_vs_unlimited"] == min(3, sample["allowed_total"]) - sample["returned"]
+    health = [e for e in events if e["kind"] == "system_health"]
+    assert [h["status"] for h in health] == ["ok"]
+
+
+def test_health_changes_are_reported_once_each() -> None:
+    w = World(_repo(), max_age_s=12.0)
+    api = Api(w)
+    w.sync()
+    sut = adapter(api)
+    sut.prepare(PERSONAS, ALL)
+    sut.drain_events()
+    assert sut.drain_events() == []  # nothing new
+    for _ in range(3):
+        w.group_src.fail_next = ConnectionError("down")
+        w.clock.sleep(5.0)
+        w.membership.poll_once()
+        w.acl.poll_once()
+    events = sut.drain_events()
+    assert [e["status"] for e in events if e["kind"] == "system_health"] == ["degraded"]
+    assert sut.drain_events() == []
+
+
+def _repo():  # type: ignore[no-untyped-def]
+    from leaklab.setup_b.state.repository import MemoryRepository
+
+    return MemoryRepository()

@@ -100,39 +100,10 @@ def cmd_up(
     verify_every_s: float = typer.Option(60.0, help="Full ACL verification this often."),
     duration_s: float = typer.Option(0.0, help="Stop after this many seconds (0 = until Ctrl+C)."),
 ) -> None:
-    """Keep the state current until interrupted.
-
-    Three independent loops, each in its own thread: the membership poll, the ACL delta poll and
-    the ACL verification. The verification takes about 30 s (tens of REST calls); in one shared loop
-    it would hold the other two back past the reader's freshness limit and everything would be
-    denied for those seconds.
-    """
+    """Keep the state current until interrupted (three independent loops: see start_pollers)."""
     stop = threading.Event()
-
-    def loop(name: str, every_s: float, step: Callable[[], object], quiet_ok: bool) -> None:
-        while not stop.is_set():
-            started = time.time()
-            try:
-                result = step()
-            except Exception as exc:  # a loop must survive anything
-                console.print(f"[red]{name}: {type(exc).__name__}: {exc}[/red]")
-            else:
-                changed = bool(getattr(result, "changes", 0) or getattr(result, "events", 0))
-                if changed or not getattr(result, "ok", True) or not quiet_ok:
-                    console.print(f"{name}: {result}")
-            stop.wait(max(0.0, started + every_s - time.time()))
-
     with open_stores() as s:
-        threads = [
-            threading.Thread(
-                target=loop, args=("membership", interval_s, s.membership.poll_once, True)
-            ),
-            threading.Thread(target=loop, args=("acl", interval_s, s.acl.poll_once, True)),
-            threading.Thread(target=loop, args=("verify", verify_every_s, s.acl.verify_all, False)),
-        ]
-        for t in threads:
-            t.daemon = True
-            t.start()
+        threads = start_pollers(s, stop, interval_s, verify_every_s, console.print)
         try:
             stop.wait(duration_s or None)
         except KeyboardInterrupt:
@@ -141,6 +112,46 @@ def cmd_up(
             stop.set()
             for t in threads:
                 t.join(timeout=60)
+
+
+def start_pollers(
+    s: Stores,
+    stop: threading.Event,
+    interval_s: float,
+    verify_every_s: float,
+    report: Callable[[str], object] = lambda text: None,
+) -> list[threading.Thread]:
+    """Start the three loops (daemon threads) and return them; `stop` ends them.
+
+    Three independent loops: the membership poll, the ACL delta poll and the ACL verification. The
+    verification takes about 30 s (tens of REST calls); in one shared loop it would hold the other
+    two back past the reader's freshness limit and everything would be denied for those seconds.
+    """
+
+    def loop(name: str, every_s: float, step: Callable[[], object], quiet_ok: bool) -> None:
+        while not stop.is_set():
+            started = time.time()
+            try:
+                result = step()
+            except Exception as exc:  # a loop must survive anything
+                report(f"[red]{name}: {type(exc).__name__}: {exc}[/red]")
+            else:
+                changed = bool(getattr(result, "changes", 0) or getattr(result, "events", 0))
+                if changed or not getattr(result, "ok", True) or not quiet_ok:
+                    report(f"{name}: {result}")
+            stop.wait(max(0.0, started + every_s - time.time()))
+
+    threads = [
+        threading.Thread(
+            target=loop, args=("membership", interval_s, s.membership.poll_once, True)
+        ),
+        threading.Thread(target=loop, args=("acl", interval_s, s.acl.poll_once, True)),
+        threading.Thread(target=loop, args=("verify", verify_every_s, s.acl.verify_all, False)),
+    ]
+    for t in threads:
+        t.daemon = True
+        t.start()
+    return threads
 
 
 @app.command("status")

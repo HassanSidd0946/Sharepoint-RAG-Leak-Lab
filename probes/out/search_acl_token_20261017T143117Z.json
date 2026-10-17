@@ -1,0 +1,59 @@
+{
+  "stage": "token",
+  "started_utc": "2026-10-17T14:31:10.311226+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "claims",
+      "t": 1792247476.089,
+      "result": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://search.azure.com",
+        "scp": "user_impersonation",
+        "oid": "f6312739-77f1-406e-8292-85bfa1973692",
+        "upn": "ll-p-intern@leaklabdev.onmicrosoft.com",
+        "appid": "b50a2418-9e90-4246-911c-76a43b97791a",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792252506
+      }
+    },
+    {
+      "step": "header",
+      "t": 1792247476.093,
+      "result": {
+        "alg": "RS256",
+        "typ": "JWT",
+        "kid": "ryBx-65jNoxH4FQH_6zarNjaNf4"
+      }
+    },
+    {
+      "step": "jwks",
+      "t": 1792247477.459,
+      "http": 200,
+      "count": 5
+    },
+    {
+      "step": "kid_published",
+      "t": 1792247477.46,
+      "result": true
+    },
+    {
+      "step": "decode",
+      "t": 1792247477.46,
+      "variant": "audience https://search.azure.com",
+      "result": {
+        "ok": true,
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63"
+      }
+    },
+    {
+      "step": "decode",
+      "t": 1792247477.46,
+      "variant": "wrong audience",
+      "result": {
+        "ok": false,
+        "error": "InvalidAudienceError"
+      }
+    }
+  ]
+}
