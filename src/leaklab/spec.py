@@ -11,7 +11,7 @@ This module must stay free of engine code (it is shared with the independent ora
 
 import hashlib
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, model_validator
@@ -30,7 +30,9 @@ class Naming(_Model):
 
 
 class Principal(_Model):
-    kind: Literal["user", "entra_group"]
+    # sp_group: a SharePoint group (site group) that contains users directly. An Entra group
+    # inside a SharePoint group is NOT supported (not verified).
+    kind: Literal["user", "entra_group", "sp_group"]
     ref: str
 
 
@@ -58,6 +60,13 @@ class Group(_Model):
     id: str
     members: list[str] = []
     member_groups: list[str] = []
+
+
+class SpGroup(_Model):
+    """A SharePoint group. Members are users only (nesting is not verified)."""
+
+    id: str
+    members: list[str] = []
 
 
 class Folder(_Model):
@@ -91,9 +100,21 @@ class Policy(_Model):
     guest_users: str
 
 
+class ScenarioMutation(_Model):
+    """One change a scenario applies: the oracle Mutation's `type` and `params` (checked there)."""
+
+    type: str
+    params: dict[str, Any]
+
+
 class Scenario(_Model):
     id: str
     description: str
+    # What the runner applies. Empty: the scenario is not a tenant change (e.g. S6, a cache test).
+    mutations: list[ScenarioMutation] = []
+    # Folder path or "special:<id>" whose canaries serve as the unaffected control (optional:
+    # the runner picks one when this is empty).
+    control: str | None = None
 
 
 class TenantSpec(_Model):
@@ -102,6 +123,7 @@ class TenantSpec(_Model):
     site: Site
     users: list[User]
     groups: list[Group]
+    sp_groups: list[SpGroup] = []
     folders: list[Folder]
     special_files: list[SpecialFile] = []
     documents: Documents
@@ -118,6 +140,7 @@ class TenantSpec(_Model):
         errors += self._check_folders()
         errors += self._check_special_files()
         errors += self._check_documents()
+        errors += self._check_scenarios()
         if errors:
             raise ValueError("invalid tenant spec:\n- " + "\n- ".join(errors))
         return self
@@ -132,11 +155,19 @@ class TenantSpec(_Model):
     def group_ids(self) -> set[str]:
         return {g.id for g in self.groups}
 
+    @property
+    def sp_group_ids(self) -> set[str]:
+        return {g.id for g in self.sp_groups}
+
     def _check_grants(self, owner: str, grants: list[Grant]) -> list[str]:
         errors: list[str] = []
         for grant in grants:
             p = grant.principal
-            known = self.user_ids if p.kind == "user" else self.group_ids
+            known = {
+                "user": self.user_ids,
+                "entra_group": self.group_ids,
+                "sp_group": self.sp_group_ids,
+            }[p.kind]
             if p.ref not in known:
                 errors.append(f"{owner}: grant refers to unknown {p.kind} {p.ref!r}")
         return errors
@@ -164,6 +195,13 @@ class TenantSpec(_Model):
             seen_groups.add(g.id)
         for clash in sorted(seen_users & seen_groups):
             errors.append(f"id {clash!r} is used by both a user and a group")
+        seen_sp: set[str] = set()
+        for sg in self.sp_groups:
+            if sg.id in seen_sp:
+                errors.append(f"duplicate SharePoint group id {sg.id!r}")
+            seen_sp.add(sg.id)
+        for clash in sorted(seen_sp & (seen_users | seen_groups)):
+            errors.append(f"id {clash!r} is used by a SharePoint group and by a user or group")
         return errors
 
     def _check_principals(self) -> list[str]:
@@ -183,6 +221,10 @@ class TenantSpec(_Model):
             for mg in g.member_groups:
                 if mg not in self.group_ids:
                     errors.append(f"group {g.id!r}: member_group {mg!r} is not a known group")
+        for sg in self.sp_groups:
+            for m in sg.members:
+                if m not in self.user_ids:
+                    errors.append(f"SharePoint group {sg.id!r}: member {m!r} is not a known user")
         return errors
 
     def _check_group_cycles(self) -> list[str]:
@@ -237,6 +279,18 @@ class TenantSpec(_Model):
             if sf.folder not in paths:
                 errors.append(f"special file {sf.id!r}: folder {sf.folder!r} does not exist")
             errors += self._check_inherit_rules(f"special file {sf.id!r}", sf.inherits, sf.grants)
+        return errors
+
+    def _check_scenarios(self) -> list[str]:
+        errors: list[str] = []
+        seen: set[str] = set()
+        keys = {f.path for f in self.folders} | {special_key(sf.id) for sf in self.special_files}
+        for sc in self.scenarios:
+            if sc.id in seen:
+                errors.append(f"duplicate scenario id {sc.id!r}")
+            seen.add(sc.id)
+            if sc.control is not None and sc.control not in keys:
+                errors.append(f"scenario {sc.id!r}: control {sc.control!r} is not a folder or file")
         return errors
 
     def _check_documents(self) -> list[str]:

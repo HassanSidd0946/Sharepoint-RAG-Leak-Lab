@@ -66,9 +66,10 @@ def test_generate_builds_the_tenant_and_verify_agrees_with_the_spec(
     tenant, env = built
     report = verify(env)
     assert report.ok, report.issues
-    assert report.checked["users"] == 11 and report.checked["groups"] == 7
-    assert report.checked["documents"] == 37  # 36 folder documents + the special file
-    assert len(tenant.users) == 11 and len(tenant.groups) == 7
+    assert report.checked["users"] == 11 and report.checked["groups"] == 8
+    assert report.checked["sp_groups"] == 1
+    assert report.checked["documents"] == 43  # 42 folder documents + the special file
+    assert len(tenant.users) == 11 and len(tenant.groups) == 8
     # licensed users hold the license, unlicensed do not
     assert tenant.users["ll-p-intern@leaklabdev.onmicrosoft.com"]["licenses"] == {"sku-1"}
     assert not tenant.users["ll-p-hr@leaklabdev.onmicrosoft.com"]["licenses"]
@@ -210,7 +211,8 @@ def test_teardown_removes_only_prefixed_objects(built: tuple[FakeTenant, Env]) -
 
     report = teardown(make_env(tenant))
     assert report.counts["container_deleted"] == 1
-    assert report.counts["groups_deleted"] == 7 and report.counts["users_deleted"] == 11
+    assert report.counts["groups_deleted"] == 8 and report.counts["users_deleted"] == 11
+    assert report.counts["sp_groups_deleted"] == 1
     assert report.counts["root_assignments_removed"] == 1
 
     assert [i.name for i in tenant.items.values()] == ["General"]  # only the foreign folder remains
@@ -282,7 +284,8 @@ def test_s2_nested_group_removal_is_confirmed_through_a_witness_user(
     )
     assert entry.status == "confirmed" and "witness" in entry.note
     after = expected_access(SPEC, env.log.oracle_mutations(), entry.confirmed_at or 0.0)
-    assert after["p-plateng"] == set(CAN["Engineering/Platform-Secrets"])
+    arms = set(CAN["S1-Entra"]) | set(CAN["S1-SPGroup"]) | set(CAN["S1-Direct"])
+    assert after["p-plateng"] == set(CAN["Engineering/Platform-Secrets"]) | arms
     # and adding it back is confirmed too
     back = apply_mutation(
         env,
@@ -374,3 +377,122 @@ def test_generate_refuses_to_run_without_a_password_or_usage_location() -> None:
     env2.settings.password = ""
     with pytest.raises(GeneratorError, match="PASSWORD"):
         generate(env2)
+
+
+# -- SharePoint groups and the S1 control arms ---------------------------------------------------
+
+
+def sp_login(tenant: FakeTenant, user_id: str) -> str:
+    return user_login(f"ll-{user_id}@leaklabdev.onmicrosoft.com")
+
+
+def test_the_sharepoint_group_is_created_filled_and_granted_on_its_folder(
+    built: tuple[FakeTenant, Env],
+) -> None:
+    tenant, env = built
+    group = tenant.sp_groups["ll-sp-s1-spgroup"]
+    assert group["members"] == {sp_login(tenant, "p-plateng")}
+    grants = env.sp.assignments(env.folder_item("S1-SPGroup"))
+    assert [(a.login, [r.name for r in a.roles if r.name != "Limited Access"]) for a in grants] == [
+        ("ll-sp-s1-spgroup", ["Read"])
+    ]
+    direct = env.sp.assignments(env.folder_item("S1-Direct"))
+    assert [a.login for a in direct if any(r.name == "Read" for r in a.roles)] == [
+        sp_login(tenant, "p-plateng")
+    ]
+
+
+def test_verify_catches_a_wrong_sharepoint_group_member(built: tuple[FakeTenant, Env]) -> None:
+    tenant, env = built
+    tenant.sp_groups["ll-sp-s1-spgroup"]["members"].add(sp_login(tenant, "p-intern"))
+    report = verify(env)
+    assert not report.ok
+    assert any("members of SharePoint group" in w for w in errors(report))
+
+
+def test_a_second_generate_changes_nothing_including_sharepoint_groups(
+    built: tuple[FakeTenant, Env],
+) -> None:
+    tenant, env = built
+    before = tenant.snapshot()
+    again = generate(make_env(tenant))
+    assert tenant.snapshot() == before
+    assert again.counts.get("sp_groups_created", 0) == 0
+    assert again.counts["sp_groups_reused"] == 1 and again.counts["sp_members_already"] == 1
+
+
+@pytest.mark.parametrize(
+    ("scenario", "lost"),
+    [("S1-entra", "S1-Entra"), ("S1-spgroup", "S1-SPGroup"), ("S1-direct", "S1-Direct")],
+)
+def test_each_s1_scenario_applies_confirms_and_feeds_the_oracle(
+    built: tuple[FakeTenant, Env], scenario: str, lost: str
+) -> None:
+    _, env = built
+    sc = next(s for s in SPEC.scenarios if s.id == scenario)
+    [spec_mutation] = sc.mutations
+    entry = apply_mutation(env, Mutation(type=spec_mutation.type, params=spec_mutation.params))  # type: ignore[arg-type]
+    assert entry.status == "confirmed" and entry.confirmed_at is not None
+    exp = expected_access(SPEC, env.log.oracle_mutations(), entry.confirmed_at)
+    before = expected_access(SPEC, env.log.oracle_mutations(), entry.confirmed_at - 1)
+    assert before["p-plateng"] - exp["p-plateng"] == set(CAN[lost])
+
+
+def test_the_sharepoint_group_removal_really_removes_the_user_and_is_idempotent(
+    built: tuple[FakeTenant, Env],
+) -> None:
+    tenant, env = built
+    m = Mutation(
+        type=MutationType.GROUP_MEMBER_REMOVED,
+        params={"group": "sp-s1-spgroup", "member_kind": "user", "member_ref": "p-plateng"},
+    )
+    assert apply_mutation(env, m).status == "confirmed"
+    assert tenant.sp_groups["ll-sp-s1-spgroup"]["members"] == set()
+    again = apply_mutation(env, m)  # already not a member: no second removal call
+    assert again.status == "confirmed" and "not a member" in again.note
+    assert tenant.calls["sp_group_remove_user"] == 1
+    back = apply_mutation(env, m.model_copy(update={"type": MutationType.GROUP_MEMBER_ADDED}))
+    assert back.status == "confirmed"
+    assert tenant.sp_groups["ll-sp-s1-spgroup"]["members"] == {sp_login(tenant, "p-plateng")}
+
+
+def test_an_entra_group_inside_a_sharepoint_group_is_refused(
+    built: tuple[FakeTenant, Env],
+) -> None:
+    _, env = built
+    m = Mutation(
+        type=MutationType.GROUP_MEMBER_ADDED,
+        params={"group": "sp-s1-spgroup", "member_kind": "entra_group", "member_ref": "grp-hr"},
+    )
+    with pytest.raises(GeneratorError, match="not verified"):
+        apply_mutation(env, m)
+    assert env.log.entries[-1].status == "failed"
+
+
+def test_teardown_leaves_a_foreign_sharepoint_group_alone(built: tuple[FakeTenant, Env]) -> None:
+    tenant, env = built
+    tenant.sp.create_sp_group("Team Site Members")
+    teardown(make_env(tenant))
+    assert set(tenant.sp_groups) == {"Team Site Members"}
+
+
+def test_a_user_id_that_changes_between_lookups_is_never_reused(
+    tmp_path: Path,
+) -> None:
+    """Regression (live, 2026-10-17): an id cached early became invalid before the grant."""
+    del tmp_path
+    tenant = FakeTenant()
+    tenant.rotate_user_ids = True
+    env = make_env(tenant)
+    generate(env)
+    assert verify(env).ok
+    again = generate(make_env(tenant))
+    assert again.counts.get("assignments_added", 0) == 0
+    apply_mutation(
+        env,
+        Mutation(
+            type=MutationType.GROUP_MEMBER_REMOVED,
+            params={"group": "sp-s1-spgroup", "member_kind": "user", "member_ref": "p-plateng"},
+        ),
+    )
+    assert tenant.sp_groups["ll-sp-s1-spgroup"]["members"] == set()

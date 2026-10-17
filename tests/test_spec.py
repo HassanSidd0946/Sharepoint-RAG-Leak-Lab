@@ -47,7 +47,7 @@ def test_real_spec_loads() -> None:
     spec = load_spec(REPO_SPEC)
     assert spec.naming.prefix == "ll-"
     assert len(spec.users) == 12
-    assert len(spec.folders) == 7
+    assert len(spec.folders) == 10
     assert spec.special_files[0].id == "f-direct-share"
 
 
@@ -193,7 +193,7 @@ def test_canaries_deterministic_and_unique() -> None:
     expected[special_key("f-direct-share")] = 1
     assert {p: len(c) for p, c in first.items()} == expected
     flat = [c for canaries in first.values() for c in canaries]
-    assert len(flat) == 37  # 36 folder documents + 1 special file
+    assert len(flat) == 43  # 42 folder documents (36 + 3 S1 arms x 2) + 1 special file
     assert len(set(flat)) == len(flat)
     assert flat[0].startswith("CANARY-GEN-01-")
     assert len(flat[0].rsplit("-", 1)[1]) == 6
@@ -267,3 +267,30 @@ def test_name_helpers_reject_unknown_ids() -> None:
         user_mail_nickname(spec, "grp-hr")  # a group id is not a user id
     with pytest.raises(ValueError):
         group_display_name(spec, "p-intern")
+
+
+def test_sharepoint_groups_and_scenarios_are_checked() -> None:
+    data = base()
+    data["sp_groups"] = [{"id": "sg", "members": ["nobody"]}]
+    assert_invalid(data, "SharePoint group 'sg': member 'nobody' is not a known user")
+    data = base()
+    data["sp_groups"] = [{"id": "sg", "members": []}, {"id": "sg", "members": []}]
+    assert_invalid(data, "duplicate SharePoint group id 'sg'")
+    data = base()
+    data["sp_groups"] = [{"id": data["users"][0]["id"], "members": []}]
+    assert_invalid(data, "used by a SharePoint group and by a user or group")
+    data = base()
+    data["scenarios"] = [{"id": "x", "description": "d", "control": "no-such-folder"}]
+    assert_invalid(data, "control 'no-such-folder' is not a folder or file")
+    data = base()
+    data["scenarios"] = [{"id": "x", "description": "d"}, {"id": "x", "description": "e"}]
+    assert_invalid(data, "duplicate scenario id 'x'")
+
+
+def test_a_grant_to_an_unknown_sharepoint_group_is_rejected() -> None:
+    data = base()
+    data["folders"][0]["grants"] = [
+        {"principal": {"kind": "sp_group", "ref": "ghost"}, "role": "read"}
+    ]
+    data["folders"][0]["inherits"] = False
+    assert_invalid(data, "unknown sp_group 'ghost'")

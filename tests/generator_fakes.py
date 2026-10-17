@@ -58,6 +58,7 @@ class FakeTenant:
         self.groups: dict[str, dict[str, Any]] = {}  # name -> group
         self.items: dict[str, Item] = {}
         self.principals: dict[str, int] = {}  # login -> sharepoint id
+        self.sp_groups: dict[str, dict[str, Any]] = {}  # title -> {"Id", "LoginName", "members"}
         self.web_grants: dict[str, set[str]] = {
             "LeakLab Owners": {"Full Control"},
             "LeakLab Members": {"Edit"},
@@ -69,9 +70,16 @@ class FakeTenant:
         self.ensure_failures_raised = 0
         self.add_member_404s_raised = 0
         self.ignore_removals = False  # remove_assignment silently does nothing
+        # every ensureuser of a USER returns a new id and the previous one stops being accepted
+        # (seen 2026-10-17 for a freshly created, licensed user)
+        self.rotate_user_ids = False
         self.calls: dict[str, int] = {}
         self.graph = FakeGraph(self)
         self.sp = FakeSharePoint(self)
+
+    def new_principal_id(self) -> int:
+        self._pid = getattr(self, "_pid", 9) + 1
+        return int(self._pid)
 
     def new_id(self, prefix: str) -> str:
         self._n += 1
@@ -90,6 +98,7 @@ class FakeTenant:
                 for i in self.items.values()
             },
             "web": {k: sorted(v) for k, v in self.web_grants.items()},
+            "sp_groups": {t: sorted(g["members"]) for t, g in self.sp_groups.items()},
         }
 
 
@@ -280,8 +289,9 @@ class FakeSharePoint:
             if logon_name.lower() not in self.t.users:
                 raise SPRestError(400, "/web/ensureuser", {"error": "could not be found"})
             login, kind = f"i:0#.f|membership|{logon_name.lower()}", 1
-        pid = self.t.principals.setdefault(login, len(self.t.principals) + 10)
-        return {"Id": pid, "LoginName": login, "PrincipalType": kind}
+        if (self.t.rotate_user_ids and kind == 1) or login not in self.t.principals:
+            self.t.principals[login] = self.t.new_principal_id()
+        return {"Id": self.t.principals[login], "LoginName": login, "PrincipalType": kind}
 
     def role_definitions(self) -> dict[str, int]:
         return dict(ROLE_IDS)
@@ -307,7 +317,18 @@ class FakeSharePoint:
         item.grants = inherited if copy_role_assignments else {}
 
     def _login_of(self, principal_id: int) -> str:
-        return next(login for login, pid in self.t.principals.items() if pid == principal_id)
+        for login, pid in self.t.principals.items():
+            if pid == principal_id:
+                return login
+        raise SPRestError(
+            400,
+            "/roleassignments",
+            {
+                "odata.error": {
+                    "message": {"value": "Value does not fall within the expected range."}
+                }
+            },
+        )
 
     def add_assignment(self, item_path: str, principal_id: int, role_id: int) -> None:
         role = next(n for n, i in ROLE_IDS.items() if i == role_id)
@@ -352,3 +373,38 @@ class FakeSharePoint:
 
     def default_group_members(self, kind: str) -> list[str]:
         return list(self.default_members[kind])
+
+    # -- SharePoint groups (login name = title, as SharePoint does for site groups) -------------
+
+    def find_sp_group(self, title: str) -> dict[str, Any] | None:
+        group = self.t.sp_groups.get(title)
+        return None if group is None else {k: v for k, v in group.items() if k != "members"}
+
+    def create_sp_group(self, title: str) -> dict[str, Any]:
+        assert title not in self.t.sp_groups, "SharePoint group titles are unique"
+        pid = self.t.principals.setdefault(title, self.t.new_principal_id())
+        self.t.sp_groups[title] = {"Id": pid, "LoginName": title, "members": set()}
+        return {"Id": pid, "LoginName": title}
+
+    def _sp_group_by_id(self, group_id: int) -> dict[str, Any]:
+        found = next((g for g in self.t.sp_groups.values() if g["Id"] == group_id), None)
+        if found is None:
+            raise SPRestError(404, f"/web/sitegroups/getbyid({group_id})", {"error": "no group"})
+        return found
+
+    def sp_group_users(self, group_id: int) -> list[str]:
+        return sorted(self._sp_group_by_id(group_id)["members"])
+
+    def sp_group_add_user(self, group_id: int, login: str) -> None:
+        self.t.count("sp_group_add_user")
+        assert login in self.t.principals, "ensureuser first"
+        self._sp_group_by_id(group_id)["members"].add(login)
+
+    def sp_group_remove_user(self, group_id: int, user_id: int) -> None:
+        self.t.count("sp_group_remove_user")
+        login = self._login_of(user_id)
+        self._sp_group_by_id(group_id)["members"].discard(login)
+
+    def delete_sp_group(self, group_id: int) -> None:
+        group = self._sp_group_by_id(group_id)
+        del self.t.sp_groups[str(group["LoginName"])]

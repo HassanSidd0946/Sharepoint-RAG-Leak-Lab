@@ -135,6 +135,30 @@ class SharePointGateway:
             out.append(Assignment(str(a["Member"]["LoginName"]), int(a["PrincipalId"]), roles))
         return out
 
+    def find_sp_group(self, title: str) -> dict[str, Any] | None:
+        rows = parse_body(self._sp.find_site_group(title)).get("value", [])
+        return dict(rows[0]) if rows else None
+
+    def create_sp_group(self, title: str) -> dict[str, Any]:
+        data = dict(parse_body(self._sp.create_site_group(title, "LeakLab generated")))
+        # Verified: the response carries "Id". UNVERIFIED: that it carries "LoginName"; a
+        # SharePoint group's login is normally its title, which verify() checks on re-read.
+        data.setdefault("LoginName", title)
+        return data
+
+    def sp_group_users(self, group_id: int) -> list[str]:
+        users = parse_body(self._sp.get_group_users(group_id))
+        return [str(u["LoginName"]) for u in users.get("value", [])]
+
+    def sp_group_add_user(self, group_id: int, login: str) -> None:
+        self._sp.add_user_to_site_group(group_id, login)
+
+    def sp_group_remove_user(self, group_id: int, user_id: int) -> None:
+        self._sp.remove_user_from_site_group(group_id, user_id)
+
+    def delete_sp_group(self, group_id: int) -> None:
+        self._sp.delete_site_group(group_id)
+
     def default_group_members(self, kind: str) -> list[str]:
         group_kind = cast(Literal["owner", "member", "visitor"], kind)
         group = parse_body(self._sp.get_associated_group(group_kind))

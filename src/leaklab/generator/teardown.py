@@ -7,7 +7,8 @@ checked with assert_prefixed() before anything is deleted: the container folder 
 the site's own groups and any other folder are never touched.
 
 Order: site-root assignments of our principals first (while the groups still exist, so none is
-left orphaned), then the container, then groups, then users. A 404 on a delete means "already gone".
+left orphaned), then the container, then SharePoint groups, Entra groups, users. A 404 on a
+delete means "already gone".
 
 Not done (not verified): removing the SharePoint site users and their "Limited Access" entries that
 SharePoint keeps after a group or user is deleted. They remain; they confer no read access.
@@ -21,6 +22,7 @@ from pydantic import BaseModel
 from leaklab.generator.env import LIMITED_ACCESS, Env, user_login
 from leaklab.generator.plan import GeneratorError, assert_prefixed
 from leaklab.generator.retry import gone_ok
+from leaklab.sp_rest import SPRestError
 
 
 class TeardownReport(BaseModel):
@@ -61,7 +63,21 @@ def teardown(env: Env) -> TeardownReport:
             counts["container_deleted"] += 1
             env.event("folder_deleted", path=env.plan.container)
 
-    # 3. groups, then 4. users
+    # 3. SharePoint groups (found by title; a SharePoint 404 on delete means already gone)
+    for sp_group in env.plan.sp_groups:
+        assert_prefixed(sp_group.title, prefix)
+        found_sp = env.sp.find_sp_group(sp_group.title)
+        if found_sp is not None:
+            try:
+                env.sp.delete_sp_group(int(found_sp["Id"]))
+            except SPRestError as exc:
+                if exc.status_code != 404:
+                    raise
+            else:
+                counts["sp_groups_deleted"] += 1
+                env.event("sp_group_deleted", title=sp_group.title)
+
+    # 4. Entra groups, then 5. users
     for group in env.plan.groups:
         assert_prefixed(group.name, prefix)
         found = env.graph.find_group(group.name)

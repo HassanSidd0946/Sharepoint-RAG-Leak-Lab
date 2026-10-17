@@ -66,6 +66,18 @@ groups:
   - id: grp-board
     members: [p-ceo, u-board1]
     member_groups: []
+  # S1 control arms (see folders S1-Entra / S1-SPGroup / S1-Direct): the same user, three ways in.
+  - id: grp-s1-entra
+    members: [p-plateng]
+    member_groups: []
+
+# ---------------------------------------------------------------------------
+# SharePoint groups (site groups). Members are users only: an Entra group inside a SharePoint group
+# is not verified, so it is not modelled. Title in the tenant: "<prefix><id>".
+# ---------------------------------------------------------------------------
+sp_groups:
+  - id: sp-s1-spgroup
+    members: [p-plateng]
 
 # ---------------------------------------------------------------------------
 # Folder tree. inherits: true  -> effective access = parent's effective access
@@ -106,6 +118,24 @@ folders:
       - { principal: { kind: entra_group, ref: grp-board }, role: read }
       - { principal: { kind: user, ref: p-ceo }, role: read }   # direct user grant as well
     doc_count: 4
+  # S1 control arms: p-plateng reads these 2 documents through three different kinds of grant.
+  # Measured 2026-10-16 (docs/FINDINGS.md): direct and SharePoint-group changes took effect within
+  # ~16s, Entra-group changes took ~36 min. These folders let a system be compared against that.
+  - path: "S1-Entra"
+    inherits: false
+    grants:
+      - { principal: { kind: entra_group, ref: grp-s1-entra }, role: read }
+    doc_count: 2
+  - path: "S1-SPGroup"
+    inherits: false
+    grants:
+      - { principal: { kind: sp_group, ref: sp-s1-spgroup }, role: read }
+    doc_count: 2
+  - path: "S1-Direct"
+    inherits: false
+    grants:
+      - { principal: { kind: user, ref: p-plateng }, role: read }
+    doc_count: 2
 
 # ---------------------------------------------------------------------------
 # Individually-permissioned files (edge cases). These sit inside a folder but
@@ -140,6 +170,9 @@ documents:
     "Finance/Leadership": FLD
     "HR": HR
     "Board": BRD
+    "S1-Entra": S1E
+    "S1-SPGroup": S1S
+    "S1-Direct": S1D
   body_template: |
     {title}
     This is a synthetic test document for the LeakLab benchmark.
@@ -161,11 +194,42 @@ policy:
 # oracle are designed for them from the start.
 # ---------------------------------------------------------------------------
 scenarios:
+  # `mutations` is what the runner applies (same shape as leaklab.oracle.Mutation: type + params).
+  # `control` (optional) is a folder whose canaries must stay readable; the runner polls one of them.
   - id: S1-parent-revocation
     description: "Remove grp-engineering's grant on Engineering/ (affects inherited children)."
+    mutations:
+      - type: grant_removed
+        params: { target: "Engineering", principal_kind: entra_group, principal_ref: grp-engineering }
   - id: S2-nested-group-removal
     description: "Remove grp-eng-platform from grp-engineering."
+    mutations:
+      - type: group_member_removed
+        params: { group: grp-engineering, member_kind: entra_group, member_ref: grp-eng-platform }
   - id: S4-move-into-restricted
     description: "Move f-direct-share from General/ into Board/."
+    mutations:
+      - type: file_moved
+        params: { file: f-direct-share, to_folder: "Board" }
   - id: S6-cached-answer
     description: "p-finlead's cached answer about Finance/Leadership must not reach p-intern."
+  # The three S1 control arms: revoke p-plateng's access in each way. Their control is a folder that
+  # none of the three touches (p-plateng reads it through grp-eng-platform, one Entra hop).
+  - id: S1-entra
+    description: "Remove p-plateng from grp-s1-entra (Entra group granted Read on S1-Entra/)."
+    mutations:
+      - type: group_member_removed
+        params: { group: grp-s1-entra, member_kind: user, member_ref: p-plateng }
+    control: "Engineering/Platform-Secrets"
+  - id: S1-spgroup
+    description: "Remove p-plateng from sp-s1-spgroup (SharePoint group granted Read on S1-SPGroup/)."
+    mutations:
+      - type: group_member_removed
+        params: { group: sp-s1-spgroup, member_kind: user, member_ref: p-plateng }
+    control: "Engineering/Platform-Secrets"
+  - id: S1-direct
+    description: "Remove p-plateng's own Read grant on S1-Direct/."
+    mutations:
+      - type: grant_removed
+        params: { target: "S1-Direct", principal_kind: user, principal_ref: p-plateng }
+    control: "Engineering/Platform-Secrets"

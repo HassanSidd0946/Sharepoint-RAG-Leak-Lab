@@ -973,6 +973,36 @@ Not exercised by that run (so only fake-tested at the time): the retry paths (no
 they triggered), license assignment for NEWLY created users, apply_mutation and the mutation log against
 the real tenant, and drift handling. The mutation run below covers all but drift handling.
 
+### SharePoint groups, the S1 control arms, and a changing user id (2026-10-17)
+Spec additions: principal kind `sp_group`; `sp_groups:` (members are users only: an Entra group inside a
+SharePoint group is not verified, so the oracle raises OracleError and the generator raises
+GeneratorError for it); Entra group `grp-s1-entra`; folders `S1-Entra`, `S1-SPGroup`, `S1-Direct` (2
+documents each, p-plateng reads them through an Entra group, a SharePoint group and a direct grant);
+scenarios `S1-entra`, `S1-spgroup`, `S1-direct` (remove p-plateng from the group / from the group / remove
+the grant), all with control folder `Engineering/Platform-Secrets`. Scenarios now carry `mutations`
+(oracle Mutation type + params) and an optional `control`. The tenant is now 11 users, 8 Entra groups,
+1 SharePoint group (`ll-sp-s1-spgroup`), 10 folders, 43 documents (42 + the special file).
+The generator uses only the SharePoint-group calls consistency_probe verified (create, find by Title,
+add user by login claim, list users, remove by user id, delete by id). Still UNVERIFIED: that a SharePoint
+group appears in role assignments with `Member.LoginName` equal to the LoginName returned by find (the
+gateway assumes LoginName == Title when the create response has none). verify() compares exactly that.
+
+FINDING (live, 2026-10-17, probes/user_grant_400_probe.py, probes/out/user_grant_400_probe_20261017T035625Z.json):
+- Expected: the id that `ensureuser` returns for a user can be used for `addroleassignment` later in the run.
+- Actual: for ll-p-plateng (freshly created AND freshly licensed) the id cached from an early ensureuser
+  (right after the user was created, while filling the SharePoint group) was rejected by
+  `addroleassignment` on S1-Direct and on Board: HTTP 400, code `-2147024809, System.ArgumentException`,
+  "Value does not fall within the expected range." A later `ensureuser` for the same UPN returned a
+  DIFFERENT id (77) which worked; ll-p-ceo and ll-p-intern, ensured late, worked on the first try.
+  The earlier live generator run did not hit this because users were only ensured at the permissions
+  step. Cause unknown: the id may be replaced when the license is applied or the user is first synced;
+  untested.
+- Decision: `Env.principal` never caches a USER principal (Entra groups and SharePoint groups are still
+  cached; groups showed no such problem). Regression test:
+  `test_a_user_id_that_changes_between_lookups_is_never_reused` (fails with the cache restored).
+- Not fixed: a user's id could still change between the `ensureuser` and the `addroleassignment` that
+  follows it milliseconds later; never seen.
+
 ### apply_mutation on the real tenant (2026-10-16, probes/mutation_probe.py)
 Result file: probes/out/mutation_probe_20261016T165809Z.json. Fresh generate (11 users, 7 groups, 17
 members, 7 folders, 37 files created) + verify: OK, no issue. Then three mutations, one at a time, each
@@ -1044,6 +1074,118 @@ Decisions to review:
   Teardown also deletes the persona users `ll-p-*` if they exist, because they are part of the spec.
 - A delete is not instantly visible to lookups (a user deleted seconds ago can still be returned and then
   404 on use): wait a little between teardown and generate.
+
+## Runner notes (src/leaklab/runner/)
+
+Status (2026-10-17): implemented and tested against the in-memory fake tenant with a fake system that
+injects lag, flapping, errors, leaks, a raising adapter and a crash, and run LIVE once (below).
+
+Live runs (2026-10-17): `tests/test_generator_live.py` passed (273 s): 11 users, 8 Entra groups, 1
+SharePoint group with 1 member, 10 folders, 43 files created; verify OK, including the SharePoint group's
+members and its grant (so the SharePoint group's login did match on re-read: that assumption holds);
+a second generate changed nothing; teardown removed 1 SharePoint group, 8 groups, 11 users. It had
+FAILED the first time on the changing user id (see "SharePoint groups ... a changing user id").
+`tests/test_runner_live.py` passed (332 s): S1-direct through Setup0 with persona tokens
+(journal `runs/run_20261017T040826Z.jsonl`, git-ignored): baseline OK, the mutation confirmed, 64 reads,
+0 errors, first denial 1.45 s after `confirmed_at`, 0 served reads after it (leak exposure 0.0 s),
+converged after 5 conforming reads. ONE run. The earlier probes measured about 11-16 s for direct
+grants with a 13 s read cycle and two tokens, so this is not necessarily a different behavior: the
+earlier figures were bounded by their own cycle length; a real comparison needs replicates
+(`--replicate`) with the same cycle length. Nothing here is a measurement of Azure AI Search or our
+overlay, and the slow Entra arm (S1-entra) and the SharePoint-group arm have not been run through the
+runner yet.
+
+What it does: `python -m leaklab.runner run --scenario "S1-*" --systems setup0 [--replicate n]
+[--fresh] [--resume FILE]` and `... report --run FILE [--json]`. Per scenario: ensure the tenant is
+generated and verified, sign the personas in, BASELINE, apply the mutation with
+`generator.apply_mutation`, POLL, write a journal and a report. Journals are append-only JSON lines in
+`runs/` (git-ignored), one new timestamped file per run.
+
+Definitions (each is a decision to challenge, not a measured fact):
+- A read (`Setup0SharePoint`) is the one consistency_probe verified: Graph `GET /drives/{d}/items/{id}/content`
+  with the persona's delegated token; 302 -> the pre-authenticated URL (only `*.sharepoint.com`, no
+  token) or 403/404. `served` = canary string in the body (exact match). 403/404 and a 200 body without
+  the canary are "not served". Everything else (transport error, 401, 429, 5xx, unexpected redirect
+  host, sign-in failure) is `served = None`: counted as an error, left out of every number, never a denial.
+- Pairs polled per scenario, all derived from the spec and the oracle: FLIPPED (intent changes because
+  of the mutation), TARGETED (the first canary of each object the mutation touches, read by every
+  persona; intent does not change; they catch a leak or lockout caused by the change itself) and one
+  CONTROL (a pair the mutation must not touch; the three S1 arms use `Engineering/Platform-Secrets`
+  for p-plateng, one Entra hop, so a control failure is the system's, not the change's).
+- BASELINE: every pair needs `baseline_k` (5) conforming reads in a row (errors are skipped, not counted),
+  cap 15 min. On the cap the scenario is flagged BASELINE_UNSTABLE and the run CONTINUES.
+- POLLING stops when every flipped pair has `n_consecutive` (10) conforming reads in a row AFTER the
+  change (the streak from before the change is reset), or `cap_s` (60 min) after `confirmed_at`. A
+  scenario that flips nothing (S4) is watched `steady_window_s` (120 s).
+- Metrics per (scenario, system), all measured from the mutation's `confirmed_at`:
+  `time_to_first_deny_s` (worst revoked pair), `leak_exposure_s` (time of the LAST served read of a
+  revoked pair, so a flap extends it), `time_to_conformance_s` (from `oracle.scoring.classify`, stable
+  tail) or DID_NOT_CONVERGE / INSUFFICIENT_DATA / NO_DATA / NOT_APPLICABLE / NOT_RUN, `lockout_s` (the
+  longest a pair that intent allowed was withheld), `errors`, `baseline_status`, `observations`, and the
+  read interval (the resolution of every time). A revoked pair that was NOT being served just before the
+  change is listed in `nothing_to_revoke` (the lesson of the d1 run: an arm that never had access proves
+  nothing about revocation).
+- Scenarios whose pairs do not overlap share ONE polling loop (each unique pair is read once per
+  cycle); the others run in later groups, derived from the tenant as the earlier groups left it. A run
+  MUTATES the tenant: use `--fresh` (teardown, 60 s settle, generate) for each independent run;
+  `--replicate n` does that for runs 2..n.
+- Robustness: every read is journaled as it happens; a raising adapter becomes an error read;
+  a failed or unconfirmed mutation ends only that scenario (`mutation_failed` / `mutation_unconfirmed`);
+  persona tokens are renewed 5 minutes before expiry and a failed sign-in is not retried for 30 s;
+  `--resume` replays the journal (observations, mutations, special-file moves) and continues the cycle
+  numbering. A crash BETWEEN `mutation_started` and its outcome is refused (the tenant may or may not
+  have changed): check it with `generator verify` and start a new run.
+
+### Runner results on the real tenant, Setup0 (2026-10-17)
+Journals in `runs/` (git-ignored; the run ids are the evidence). Setup0 = plain SharePoint, persona
+tokens, canary-in-body reads. Config: interval 5 s, baseline 5 conforming reads per pair, n = 10, cap 60 min.
+- S1-direct and S1-spgroup together, 3 replicates (`run_20261017T042037Z_r1`, `...T042650Z_r2`,
+  `...T043258Z_r3`; each on a freshly generated tenant): baseline OK every time; first denial after
+  `confirmed_at`: S1-direct 1.8 s, 1.8 s, 1.8 s; S1-spgroup 3.6 s, 3.7 s, 3.9 s; leak exposure 0.0 s (no
+  served read after the first denial); 0 errors; verdict OK; converged after 10 conforming reads.
+  The runner's resolution is the 5 s read cycle, so "1.8 s" means "denied by the first read after the change".
+- S1-entra, 1 run (`run_20261017T043922Z`): baseline OK; mutation = remove p-plateng from `grp-s1-entra`,
+  confirmed through the witness user (5.5 s from the call). Both S1-Entra documents were served on
+  every read for the first 45 minutes after `confirmed_at` (2 x 270 reads, 0 denials). The first denial
+  came at 2734.6 s (45.6 min) for both documents; from then the reads flipped between served and denied
+  (document 1: 17 flips, document 2: 13) with a rising denial share: 2/30 and 2/30 reads at 45-50 min,
+  5/30 and 2/30 at 50-55, 6/30 and 7/30 at 55-60. The last served read was at 3545 s (59 min). The cap
+  (60 min) ended the run: DID_NOT_CONVERGE, verdict LEAK, 0 errors in 1098 reads. The control (p-plateng
+  reading `Engineering/Platform-Secrets`, 366 reads) was served every time, and no other persona was ever
+  served an S1-Entra document.
+- Together with the earlier probes: 3 independent Entra-group revocations, first denial at 35.5, 36.3 and
+  45.6 minutes, and in the runs that went on, flapping afterwards. The direct and SharePoint-group arms
+  ended within one read cycle. The Entra lag is therefore NOT a constant 36 minutes: the three first
+  denials differ by 10 minutes, and this run's denial share was still rising at the cap, so its
+  settling time is unknown (more than 60 minutes). The oracle says "deny" from the confirmed change on;
+  everything above is the gap between that and what SharePoint served.
+- Still open: whether the first denial depends on how long the member was in the group before the removal
+  (this run's baseline was only about 1 minute, the earlier probes' 10 minutes or more), on polling
+  frequency (5 s here, 13 s before), or on neither; whether the flapping ever settles.
+
+Known limits and decisions to review:
+- Polling stops at the first run of 10 conforming reads. The Entra arm flapped (27-44% denied) for 12
+  minutes after its first denial; 10 denials in a row by chance then has probability about 0.4^10 =
+  1e-4 per attempt, so a false stop is unlikely but not impossible. `--n` raises the bar.
+- `apply_mutation` blocks the loop (about 1-3 s; up to 120 s if confirmation is slow): no reads are made
+  for that long, and the timestamps show the gap. Other scenarios of the same group are not read during it.
+- `confirmed_at` is when Entra/REST SHOWED the change, not when SharePoint serves it. For a revocation
+  the oracle therefore already says "deny" while SharePoint may still serve: that interval is exactly
+  what `leak_exposure_s` measures, and it is measured from a moment that can lag the real change.
+- Resume cannot recover reads that were never made; the polling cap keeps running on wall-clock time
+  while the process is down.
+- Only Setup0 exists. Setup A (Azure AI Search) and Setup B (the overlay) will implement the same
+  `SystemUnderTest` protocol (`read(persona, canary) -> Observation`) and register in `tenant.SYSTEMS`.
+- S6 (cached answer) is not a tenant change; `run` refuses it ("no mutations").
+- The admin is not evaluated by the oracle, so the runner does not read as the admin either.
+
+Tests (runner): 21 engine, 21 Setup0, 14 scenarios, 6 journal, 9 metrics, 8 CLI, plus 1 live test.
+Planted bugs: 23 in setup0/engine/scenarios/metrics/journal. 19 were caught at once. Of the 4
+survivors, 2 were real gaps (errors counted as conforming reads during polling; granting scenarios
+untested because no spec scenario grants) and now have tests that catch them; 2 were EQUIVALENT mutants
+(an error read never reaches the first-deny code; a redundant condition in the control choice, replaced
+by a real mutant, "control may be a touched pair", which a new test now catches). So 21 distinct
+real bugs are caught, 2 mutants cannot change behavior.
 
 ## Open questions
 

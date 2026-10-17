@@ -30,6 +30,10 @@ FINANCE = set(CAN["Finance"])
 LEADERSHIP = set(CAN["Finance/Leadership"])
 HR = set(CAN["HR"])
 BOARD = set(CAN["Board"])
+S1_ENTRA = set(CAN["S1-Entra"])
+S1_SPGROUP = set(CAN["S1-SPGroup"])
+S1_DIRECT = set(CAN["S1-Direct"])
+S1_ARMS = S1_ENTRA | S1_SPGROUP | S1_DIRECT  # p-plateng reads all three, by three kinds of grant
 
 
 def mut(kind: MutationType, at: float | None = 1.0, **params: Any) -> Mutation:
@@ -66,7 +70,7 @@ def test_baseline_expected_access_matches_the_spec() -> None:
     expected = expected_access(SPEC, [], 0.0)
     assert expected == {
         "p-intern": GENERAL,
-        "p-plateng": GENERAL | ENGINEERING | PLATFORM,
+        "p-plateng": GENERAL | ENGINEERING | PLATFORM | S1_ARMS,
         "p-finana": GENERAL | FINANCE,
         "p-finlead": GENERAL | FINANCE | LEADERSHIP,
         "p-hr": GENERAL | HR | SPECIAL,
@@ -92,8 +96,8 @@ def test_s1_removing_the_engineering_group_grant() -> None:
         principal_ref="grp-engineering",
     )
     before, after = expected_access(SPEC, [m], 9.9), expected_access(SPEC, [m], 10.0)
-    assert before["p-plateng"] == GENERAL | ENGINEERING | PLATFORM
-    assert after["p-plateng"] == GENERAL | PLATFORM  # Platform-Secrets has its own grant
+    assert before["p-plateng"] == GENERAL | ENGINEERING | PLATFORM | S1_ARMS
+    assert after["p-plateng"] == GENERAL | PLATFORM | S1_ARMS  # Platform-Secrets has its own grant
     assert after["p-intern"] == before["p-intern"]
 
 
@@ -107,8 +111,9 @@ def test_s2_removing_a_nested_group_from_its_parent() -> None:
     )
     after = expected_access(SPEC, [m], 10.0)
     # p-plateng only reached General (via all-staff) and Engineering through the nested group.
-    assert after["p-plateng"] == PLATFORM
-    assert expected_access(SPEC, [m], 9.0)["p-plateng"] == GENERAL | ENGINEERING | PLATFORM
+    assert after["p-plateng"] == PLATFORM | S1_ARMS
+    before = expected_access(SPEC, [m], 9.0)["p-plateng"]
+    assert before == GENERAL | ENGINEERING | PLATFORM | S1_ARMS
 
 
 def test_s4_a_moved_file_keeps_its_own_grants() -> None:
@@ -309,3 +314,89 @@ def test_a_membership_cycle_created_by_a_mutation_terminates() -> None:
     )
     after = expected_access(SPEC, [m], 2.0)
     assert GENERAL <= after["p-plateng"]
+
+
+# -- the S1 control arms and SharePoint groups ---------------------------------------------------
+
+
+def _revocation(scenario_id: str) -> list[Mutation]:
+    scenario = next(sc for sc in SPEC.scenarios if sc.id == scenario_id)
+    return [Mutation(type=m.type, params=m.params, confirmed_at=10.0) for m in scenario.mutations]  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("scenario", "lost"),
+    [("S1-entra", S1_ENTRA), ("S1-spgroup", S1_SPGROUP), ("S1-direct", S1_DIRECT)],
+)
+def test_each_s1_arm_revokes_exactly_its_own_folder_for_p_plateng(
+    scenario: str, lost: set[str]
+) -> None:
+    ms = _revocation(scenario)
+    before, after = expected_access(SPEC, ms, 9.9), expected_access(SPEC, ms, 10.0)
+    assert before["p-plateng"] - after["p-plateng"] == lost
+    assert after["p-plateng"] - before["p-plateng"] == set()
+    for persona in before:
+        if persona != "p-plateng":
+            assert before[persona] == after[persona]
+            assert not S1_ARMS & after[persona]  # nobody else ever reads the arms
+    # the control folder used by the three scenarios is untouched
+    assert PLATFORM <= after["p-plateng"]
+
+
+def test_the_oracle_gives_the_same_answer_for_every_grant_type() -> None:
+    """Lag differs by grant type in SharePoint; intent does not (docs/FINDINGS.md)."""
+    sizes = {
+        s: len(expected_access(SPEC, _revocation(s), 0.0)["p-plateng"])
+        for s in ("S1-entra", "S1-spgroup", "S1-direct")
+    }
+    assert len(set(sizes.values())) == 1
+
+
+def test_adding_a_user_to_the_sharepoint_group_gives_the_group_s_access() -> None:
+    m = mut(
+        MutationType.GROUP_MEMBER_ADDED,
+        5.0,
+        group="sp-s1-spgroup",
+        member_kind="user",
+        member_ref="p-intern",
+    )
+    assert expected_access(SPEC, [m], 4.0)["p-intern"] == GENERAL
+    assert expected_access(SPEC, [m], 5.0)["p-intern"] == GENERAL | S1_SPGROUP
+
+
+def test_a_grant_to_a_sharepoint_group_reaches_its_members() -> None:
+    ms = [
+        grant_added("Board", "sp_group", "sp-s1-spgroup", at=1.0),
+    ]
+    assert BOARD <= expected_access(SPEC, ms, 1.0)["p-plateng"]
+    assert not BOARD & expected_access(SPEC, ms, 1.0)["p-intern"]
+
+
+def test_an_entra_group_inside_a_sharepoint_group_is_refused_not_guessed() -> None:
+    m = mut(
+        MutationType.GROUP_MEMBER_ADDED,
+        1.0,
+        group="sp-s1-spgroup",
+        member_kind="entra_group",
+        member_ref="grp-hr",
+    )
+    with pytest.raises(OracleError, match="not verified"):
+        expected_access(SPEC, [m], 2.0)
+
+
+def test_a_sharepoint_group_kind_is_not_accepted_as_a_member_of_an_entra_group() -> None:
+    m = mut(
+        MutationType.GROUP_MEMBER_ADDED,
+        1.0,
+        group="grp-hr",
+        member_kind="sp_group",
+        member_ref="sp-s1-spgroup",
+    )
+    with pytest.raises(OracleError):
+        expected_access(SPEC, [m], 2.0)
+
+
+def test_every_scenario_mutation_in_the_spec_is_valid_for_the_oracle() -> None:
+    for sc in SPEC.scenarios:
+        ms = [Mutation(type=m.type, params=m.params, confirmed_at=1.0) for m in sc.mutations]  # type: ignore[arg-type]
+        expected_access(SPEC, ms, 2.0)  # raises OracleError if a mutation cannot be interpreted

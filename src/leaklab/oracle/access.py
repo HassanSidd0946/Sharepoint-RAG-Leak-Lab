@@ -6,7 +6,11 @@ SharePoint, no cache, no observation of what a system actually returned.
 
 Rules implemented (each is verified in docs/FINDINGS.md, "Oracle rules supported by verified
 results"):
-  1. A grant to an Entra group reaches the group's members, however deeply nested.
+  1. A grant to an Entra group reaches the group's members, however deeply nested. A grant to a
+     SharePoint group reaches the users it contains directly (an Entra group inside a SharePoint
+     group is not modelled: not verified, so a mutation asking for it raises OracleError). The
+     oracle gives the same answer for every grant type; how fast a system follows a change of each
+     type is what scoring measures.
   2. An item with unique permissions (inherits: false) has exactly its own grants.
   3. An item that inherits has its parent's effective grants; a top-level folder inherits the
      site-root grants (so root grants reach every inheriting item).
@@ -73,6 +77,7 @@ class _State:
     folders: dict[str, _Scope]
     files: dict[str, _File]
     members: dict[str, set[tuple[str, str]]]  # group id -> {(kind, ref)} of its direct members
+    sp_members: dict[str, set[str]]  # SharePoint group id -> user ids it contains
     users: set[str]
 
 
@@ -107,7 +112,8 @@ def _build_state(spec: TenantSpec) -> _State:
             ("entra_group", m) for m in grp.member_groups
         }
         members[grp.id] = entries
-    return _State(root, folders, files, members, {u.id for u in spec.users})
+    sp_members = {sg.id: set(sg.members) for sg in spec.sp_groups}
+    return _State(root, folders, files, members, sp_members, {u.id for u in spec.users})
 
 
 def _scope(state: _State, target: str) -> _Scope:
@@ -161,7 +167,12 @@ def _principals(state: _State, user: str) -> set[tuple[str, str]]:
         frontier.extend(
             g for g, members in state.members.items() if ("entra_group", group) in members
         )
-    return {("user", user)} | {("entra_group", g) for g in groups}
+    sp_groups = {g for g, members in state.sp_members.items() if user in members}
+    return (
+        {("user", user)}
+        | {("entra_group", g) for g in groups}
+        | {("sp_group", g) for g in sp_groups}
+    )
 
 
 def _can_read(grants: Sequence[_Grant], principals: set[tuple[str, str]]) -> bool:
@@ -200,9 +211,22 @@ def _apply(state: _State, mutation: Mutation) -> None:
     elif kind in (MutationType.GROUP_MEMBER_ADDED, MutationType.GROUP_MEMBER_REMOVED):
         group = str(p["group"])
         member_kind, member_ref = str(p["member_kind"]), str(p["member_ref"])
+        if group in state.sp_members:
+            if member_kind != "user":
+                raise OracleError(
+                    f"SharePoint group {group!r} can only contain users (got {member_kind!r}): "
+                    "an Entra group inside a SharePoint group is not verified"
+                )
+            if member_ref not in state.users:
+                raise OracleError(f"unknown user {member_ref!r}")
+            if kind is MutationType.GROUP_MEMBER_ADDED:
+                state.sp_members[group].add(member_ref)
+            else:
+                state.sp_members[group].discard(member_ref)
+            return
         if group not in state.members:
             raise OracleError(f"unknown group {group!r}")
-        if member_kind not in KNOWN_KINDS:
+        if member_kind not in ("user", "entra_group"):
             raise OracleError(f"unknown member kind {member_kind!r}")
         known = state.users if member_kind == "user" else set(state.members)
         if member_ref not in known:

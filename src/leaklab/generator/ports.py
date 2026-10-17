@@ -99,3 +99,23 @@ class SharePointPort(Protocol):
     def default_group_members(self, kind: str) -> list[str]:
         """Logins in the site's Owners/Members/Visitors group ("owner"|"member"|"visitor")."""
         ...
+
+    # -- SharePoint (site) groups: only what consistency_probe verified (2026-10-16) ------------
+
+    def find_sp_group(self, title: str) -> dict[str, Any] | None:
+        """{"Id": int, "LoginName": str, ...} of the SharePoint group with this title, or None."""
+        ...
+
+    def create_sp_group(self, title: str) -> dict[str, Any]:
+        """Create a SharePoint group; the result carries "Id" and "LoginName"."""
+        ...
+
+    def sp_group_users(self, group_id: int) -> list[str]:
+        """Logins of the users in a SharePoint group."""
+        ...
+
+    def sp_group_add_user(self, group_id: int, login: str) -> None: ...
+
+    def sp_group_remove_user(self, group_id: int, user_id: int) -> None: ...
+
+    def delete_sp_group(self, group_id: int) -> None: ...

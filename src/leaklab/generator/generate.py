@@ -1,11 +1,12 @@
 """generate(): build the tenant described by the spec, idempotently.
 
-Order: users (+ licenses) -> Entra groups -> memberships -> container folder, folders, documents
-(Graph, content) -> permissions (SharePoint REST, structure). Every step looks first and creates
-what is missing, so running it again changes nothing. On a re-run, an item that should have its own
-permissions is brought to exactly the spec's grants (missing grants added, extra non-"Limited
-Access" grants removed); an item that should INHERIT but is found with its own permissions is
-reported as drift and stops the run (resetting inheritance has not been verified).
+Order: users (+ licenses) -> Entra groups -> memberships -> SharePoint groups -> container folder,
+folders, documents (Graph, content) -> permissions (SharePoint REST, structure). Every step looks
+first and creates what is missing, so running it again changes nothing. On a re-run, an item
+that should have its own permissions is brought to exactly the spec's grants (missing grants
+added, extra non-"Limited Access" grants removed); an item that should INHERIT but is found
+with its own permissions is reported as drift and stops the run (resetting inheritance has not
+been verified).
 
 Permissions: principals are resolved BEFORE inheritance is broken, then inheritance is broken and
 the grants are added back to back, so an item is without grants for as short a time as possible.
@@ -122,6 +123,28 @@ def _memberships(env: Env, counts: Counter[str]) -> None:
             counts["members_added" if added else "members_already"] += 1
 
 
+def _sp_groups(env: Env, counts: Counter[str]) -> None:
+    """SharePoint groups and their user members (create, find, add: all verified 2026-10-16)."""
+    for group in env.plan.sp_groups:
+        found = env.sp.find_sp_group(group.title)
+        if found is None:
+            found = env.sp.create_sp_group(group.title)
+            counts["sp_groups_created"] += 1
+            env.event("sp_group_created", title=group.title)
+        else:
+            counts["sp_groups_reused"] += 1
+        gid = int(found["Id"])
+        env.remember_sp_group(group.id, str(found["LoginName"]), gid)
+        present = set(env.sp.sp_group_users(gid))
+        for user_id in group.user_members:
+            login = env.principal("user", user_id).login
+            if login in present:
+                counts["sp_members_already"] += 1
+            else:
+                env.sp.sp_group_add_user(gid, login)
+                counts["sp_members_added"] += 1
+
+
 def _ensure_file(env: Env, parent_id: str, doc: DocPlan, counts: Counter[str]) -> None:
     # An existing file is never overwritten: overwriting an item with its own permissions has not
     # been verified to keep them.
@@ -228,6 +251,7 @@ def generate(env: Env) -> GenerateReport:
     _users(env, counts)
     _groups(env, counts)
     _memberships(env, counts)
+    _sp_groups(env, counts)
     _content(env, counts)
     _permissions(env, counts)
     warnings = []

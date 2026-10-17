@@ -21,7 +21,8 @@ ROOT_TARGET = "root"
 SPECIAL_PREFIX = "special:"
 
 # Principal kinds the oracle understands. Anything else is denied (and logged): fail closed.
-KNOWN_KINDS: frozenset[str] = frozenset({"user", "entra_group"})
+# "sp_group" is a SharePoint (site) group that contains users directly.
+KNOWN_KINDS: frozenset[str] = frozenset({"user", "entra_group", "sp_group"})
 
 # Roles that confer READ access (verified: Read, Full Control (Graph "owner"), Edit (Graph
 # "write") can read). "limited_access" is deliberately absent: it is not read access

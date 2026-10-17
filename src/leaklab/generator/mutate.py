@@ -83,8 +83,31 @@ def _witness(env: Env, group_spec_id: str) -> str | None:
     )
 
 
+def _sp_member(env: Env, m: Mutation, add: bool) -> tuple[Check, str]:
+    """Add/remove a user in a SharePoint group (verified calls). Confirmed by re-reading REST."""
+    p = m.params
+    if p["member_kind"] != "user":
+        raise GeneratorError(
+            f"a SharePoint group can only contain users here (got {p['member_kind']!r}): "
+            "an Entra group inside a SharePoint group is not verified"
+        )
+    group = env.sp_group(str(p["group"]))
+    user = env.principal("user", str(p["member_ref"]))
+    present = user.login in env.sp.sp_group_users(group.sp_id)
+    note = ""
+    if add and not present:
+        env.sp.sp_group_add_user(group.sp_id, user.login)
+    elif not add and present:
+        env.sp.sp_group_remove_user(group.sp_id, user.sp_id)
+    else:
+        note = "already " + ("a member" if add else "not a member")
+    return (lambda: (user.login in env.sp.sp_group_users(group.sp_id)) == add), note
+
+
 def _member(env: Env, m: Mutation, add: bool) -> tuple[Check, str]:
     p = m.params
+    if str(p["group"]) in {g.id for g in env.plan.sp_groups}:
+        return _sp_member(env, m, add)
     group_id = env.group_id(str(p["group"]))
     is_group = p["member_kind"] == "entra_group"
     member_id = (

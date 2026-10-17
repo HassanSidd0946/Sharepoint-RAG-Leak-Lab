@@ -41,7 +41,16 @@ def spec_dicts(draw: st.DrawFn) -> dict[str, Any]:
         subs = draw(st.lists(st.sampled_from(later), unique=True, max_size=2)) if later else []
         groups.append({"id": gid, "members": members, "member_groups": subs})
 
-    principals = [("user", u) for u in user_ids] + [("entra_group", g) for g in group_ids]
+    sp_ids = [f"s{i}" for i in range(draw(st.integers(0, 2)))]
+    sp_groups = [
+        {"id": s, "members": draw(st.lists(st.sampled_from(user_ids), unique=True, max_size=3))}
+        for s in sp_ids
+    ]
+    principals = (
+        [("user", u) for u in user_ids]
+        + [("entra_group", g) for g in group_ids]
+        + [("sp_group", s) for s in sp_ids]
+    )
 
     def grants(min_size: int, max_size: int) -> list[dict[str, Any]]:
         chosen = draw(
@@ -100,6 +109,7 @@ def spec_dicts(draw: st.DrawFn) -> dict[str, Any]:
         },
         "users": users,
         "groups": groups,
+        "sp_groups": sp_groups,
         "folders": folders,
         "special_files": special,
         "documents": {
@@ -157,6 +167,10 @@ def ref_allows(d: dict[str, Any], user: str, grants: list[dict[str, Any]]) -> bo
         if who["kind"] == "user" and who["ref"] == user:
             return True
         if who["kind"] == "entra_group" and user in ref_group_users(d, who["ref"]):
+            return True
+        if who["kind"] == "sp_group" and user in next(
+            sg["members"] for sg in d["sp_groups"] if sg["id"] == who["ref"]
+        ):
             return True
     return False
 
@@ -218,9 +232,11 @@ def target_grants(d: dict[str, Any], target: str) -> list[dict[str, Any]]:
 
 
 def principals_of(d: dict[str, Any]) -> list[tuple[str, str]]:
-    return [("user", u["id"]) for u in d["users"] if u["persona"]] + [
-        ("entra_group", g["id"]) for g in d["groups"]
-    ]
+    return (
+        [("user", u["id"]) for u in d["users"] if u["persona"]]
+        + [("entra_group", g["id"]) for g in d["groups"]]
+        + [("sp_group", s["id"]) for s in d["sp_groups"]]
+    )
 
 
 def add_grant(target: str, kind: str, ref: str, at: float = 1.0) -> Mutation:
@@ -310,7 +326,8 @@ def test_group_membership_changes_are_monotone_and_match_the_reference(
 ) -> None:
     spec, canaries = build(d)
     group = data.draw(st.sampled_from([g["id"] for g in d["groups"]]))
-    kind, ref = data.draw(st.sampled_from(principals_of(d)))
+    # an Entra group can contain users and Entra groups (not SharePoint groups)
+    kind, ref = data.draw(st.sampled_from([p for p in principals_of(d) if p[0] != "sp_group"]))
     members_key = "members" if kind == "user" else "member_groups"
     before = expected_access(spec, [], 2.0)
 
@@ -393,3 +410,25 @@ def test_adding_then_removing_a_new_grant_restores_the_original(
     )
     both = [add_grant(target, kind, ref, 1.0), remove_grant(target, kind, ref, 2.0)]
     assert expected_access(spec, both, 3.0) == expected_access(spec, [], 3.0)
+
+
+@SETTINGS
+@given(d=spec_dicts(), data=st.data())
+def test_removing_a_user_from_a_sharepoint_group_matches_the_reference(
+    d: dict[str, Any], data: st.DataObject
+) -> None:
+    filled = [sg for sg in d["sp_groups"] if sg["members"]]
+    assume(filled)
+    sg = data.draw(st.sampled_from(filled))
+    user = data.draw(st.sampled_from(sg["members"]))
+    spec, canaries = build(d)
+    removal = Mutation(
+        type=MutationType.GROUP_MEMBER_REMOVED,
+        params={"group": sg["id"], "member_kind": "user", "member_ref": user},
+        confirmed_at=1.0,
+    )
+    after = expected_access(spec, [removal], 1.0)
+    edited = copy.deepcopy(d)
+    next(s for s in edited["sp_groups"] if s["id"] == sg["id"])["members"].remove(user)
+    assert after == ref_readable(edited, canaries)
+    assert subset(after, expected_access(spec, [], 1.0))  # removing a member never adds access

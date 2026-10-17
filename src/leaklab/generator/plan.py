@@ -58,8 +58,15 @@ class GroupPlan:
 
 
 @dataclass(frozen=True)
+class SpGroupPlan:
+    id: str
+    title: str  # "<prefix><id>"
+    user_members: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class GrantPlan:
-    kind: str  # "user" | "entra_group"
+    kind: str  # "user" | "entra_group" | "sp_group"
     ref: str  # spec user id or group id
     role_name: str  # SharePoint role definition name, e.g. "Read"
 
@@ -94,6 +101,7 @@ class Plan:
     container: str
     users: tuple[UserPlan, ...]
     groups: tuple[GroupPlan, ...]
+    sp_groups: tuple[SpGroupPlan, ...]
     folders: tuple[FolderPlan, ...]  # parents before children
     special_files: tuple[SpecialPlan, ...]
     root_grants: tuple[GrantPlan, ...]
@@ -160,6 +168,11 @@ def build_plan(spec: TenantSpec) -> Plan:
         for g in spec.groups
     )
 
+    sp_groups = tuple(
+        SpGroupPlan(sg.id, f"{prefix}{sg.id}", tuple(m for m in sg.members if m not in external))
+        for sg in spec.sp_groups
+    )
+
     canaries = generate_canaries(spec)
     folders: list[FolderPlan] = []
     for f in sorted(spec.folders, key=lambda f: (f.path.count("/"), f.path)):
@@ -193,6 +206,7 @@ def build_plan(spec: TenantSpec) -> Plan:
         container=f"{prefix}{CONTAINER_SUFFIX}",
         users=users,
         groups=groups,
+        sp_groups=sp_groups,
         folders=tuple(folders),
         special_files=tuple(specials),
         root_grants=grants_of("site root", spec.site.root_grants),

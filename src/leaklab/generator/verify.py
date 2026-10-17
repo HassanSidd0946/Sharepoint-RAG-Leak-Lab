@@ -17,7 +17,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from leaklab.generator.env import LIMITED_ACCESS, Env
+from leaklab.generator.env import LIMITED_ACCESS, Env, user_login
 from leaklab.generator.plan import GrantPlan
 from leaklab.generator.ports import Assignment
 
@@ -74,7 +74,14 @@ def _grant_pairs(env: Env, grants: Iterable[GrantPlan]) -> set[tuple[str, str]]:
 
 def verify(env: Env) -> VerifyReport:
     issues: list[Issue] = []
-    checked = {"users": 0, "groups": 0, "folders": 0, "documents": 0, "unique_items": 0}
+    checked = {
+        "users": 0,
+        "groups": 0,
+        "sp_groups": 0,
+        "folders": 0,
+        "documents": 0,
+        "unique_items": 0,
+    }
 
     def issue(
         severity: Literal["error", "warning"], what: str, expected: str = "", actual: str = ""
@@ -124,6 +131,27 @@ def verify(env: Env) -> VerifyReport:
                         sorted(g.id for g in env.plan.groups if env.group_id(g.id) in actual)
                     ),
                 )
+
+    # SharePoint groups and their members (REST)
+    for sp_plan in env.plan.sp_groups:
+        checked["sp_groups"] += 1
+        found_sp = env.sp.find_sp_group(sp_plan.title)
+        if found_sp is None:
+            issue("error", f"SharePoint group {sp_plan.title} is missing")
+            continue
+        env.remember_sp_group(sp_plan.id, str(found_sp["LoginName"]), int(found_sp["Id"]))
+        have = set(env.sp.sp_group_users(int(found_sp["Id"])))
+        want = {
+            user_login(next(u.upn for u in env.plan.users if u.id == uid))
+            for uid in sp_plan.user_members
+        }
+        if have != want:
+            issue(
+                "error",
+                f"members of SharePoint group {sp_plan.title}",
+                expected=str(sorted(want)),
+                actual=str(sorted(have)),
+            )
 
     # folders, documents, permissions
     if env.container_id() is None:

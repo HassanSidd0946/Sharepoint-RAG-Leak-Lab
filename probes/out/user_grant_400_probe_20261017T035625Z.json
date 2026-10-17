@@ -1,0 +1,155 @@
+[
+  {
+    "step": "generate",
+    "result": "HTTP 400",
+    "body": {
+      "odata.error": {
+        "code": "-2147024809, System.ArgumentException",
+        "message": {
+          "lang": "en-US",
+          "value": "Value does not fall within the expected range."
+        }
+      }
+    }
+  },
+  {
+    "step": "ensureuser p-plateng",
+    "data": {
+      "Id": 77,
+      "IsHiddenInUI": false,
+      "LoginName": "i:0#.f|membership|ll-p-plateng@leaklabdev.onmicrosoft.com",
+      "Title": "Paul Platform",
+      "PrincipalType": 1,
+      "Email": "ll-p-plateng@leaklabdev.onmicrosoft.com",
+      "Expiration": "",
+      "IsEmailAuthenticationGuestUser": false,
+      "IsShareByEmailGuestUser": false,
+      "IsSiteAdmin": false,
+      "UserId": {
+        "NameId": "1003200657f8deee",
+        "NameIdIssuer": "urn:federation:microsoftonline"
+      },
+      "UserPrincipalName": "ll-p-plateng@leaklabdev.onmicrosoft.com"
+    }
+  },
+  {
+    "step": "ensureuser p-ceo",
+    "data": {
+      "Id": 79,
+      "IsHiddenInUI": false,
+      "LoginName": "i:0#.f|membership|ll-p-ceo@leaklabdev.onmicrosoft.com",
+      "Title": "Cora CEO",
+      "PrincipalType": 1,
+      "Email": "",
+      "Expiration": "",
+      "IsEmailAuthenticationGuestUser": false,
+      "IsShareByEmailGuestUser": false,
+      "IsSiteAdmin": false,
+      "UserId": {
+        "NameId": "10032006581eb92e",
+        "NameIdIssuer": "urn:federation:microsoftonline"
+      },
+      "UserPrincipalName": "ll-p-ceo@leaklabdev.onmicrosoft.com"
+    }
+  },
+  {
+    "step": "ensureuser p-intern",
+    "data": {
+      "Id": 83,
+      "IsHiddenInUI": false,
+      "LoginName": "i:0#.f|membership|ll-p-intern@leaklabdev.onmicrosoft.com",
+      "Title": "Ivy Intern",
+      "PrincipalType": 1,
+      "Email": "ll-p-intern@leaklabdev.onmicrosoft.com",
+      "Expiration": "",
+      "IsEmailAuthenticationGuestUser": false,
+      "IsShareByEmailGuestUser": false,
+      "IsSiteAdmin": false,
+      "UserId": {
+        "NameId": "10032006581eb8f8",
+        "NameIdIssuer": "urn:federation:microsoftonline"
+      },
+      "UserPrincipalName": "ll-p-intern@leaklabdev.onmicrosoft.com"
+    }
+  },
+  {
+    "step": "add p-ceo (known-good user) to S1-Direct",
+    "result": "ok"
+  },
+  {
+    "step": "add p-plateng to Board (a folder where user grants work)",
+    "result": "HTTP 400",
+    "body": {
+      "odata.error": {
+        "code": "-2147024809, System.ArgumentException",
+        "message": {
+          "lang": "en-US",
+          "value": "Value does not fall within the expected range."
+        }
+      }
+    }
+  },
+  {
+    "step": "add p-intern to S1-Direct",
+    "result": "ok"
+  },
+  {
+    "step": "add p-plateng to S1-Direct (the failing call)",
+    "result": "HTTP 400",
+    "body": {
+      "odata.error": {
+        "code": "-2147024809, System.ArgumentException",
+        "message": {
+          "lang": "en-US",
+          "value": "Value does not fall within the expected range."
+        }
+      }
+    }
+  },
+  {
+    "step": "add p-plateng to S1-Direct again after 60 s",
+    "result": "HTTP 400",
+    "body": {
+      "odata.error": {
+        "code": "-2147024809, System.ArgumentException",
+        "message": {
+          "lang": "en-US",
+          "value": "Value does not fall within the expected range."
+        }
+      }
+    }
+  },
+  {
+    "step": "ensureuser p-plateng again",
+    "data": {
+      "Id": 77,
+      "IsHiddenInUI": false,
+      "LoginName": "i:0#.f|membership|ll-p-plateng@leaklabdev.onmicrosoft.com",
+      "Title": "Paul Platform",
+      "PrincipalType": 1,
+      "Email": "ll-p-plateng@leaklabdev.onmicrosoft.com",
+      "Expiration": "",
+      "IsEmailAuthenticationGuestUser": false,
+      "IsShareByEmailGuestUser": false,
+      "IsSiteAdmin": false,
+      "UserId": {
+        "NameId": "1003200657f8deee",
+        "NameIdIssuer": "urn:federation:microsoftonline"
+      },
+      "UserPrincipalName": "ll-p-plateng@leaklabdev.onmicrosoft.com"
+    }
+  },
+  {
+    "step": "add p-plateng to S1-Direct with the re-ensured id",
+    "result": "ok"
+  },
+  {
+    "step": "teardown",
+    "counts": {
+      "container_deleted": 1,
+      "sp_groups_deleted": 1,
+      "groups_deleted": 8,
+      "users_deleted": 11
+    }
+  }
+]
