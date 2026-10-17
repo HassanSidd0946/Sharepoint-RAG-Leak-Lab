@@ -1187,6 +1187,49 @@ untested because no spec scenario grants) and now have tests that catch them; 2 
 by a real mutant, "control may be a touched pair", which a new test now catches). So 21 distinct
 real bugs are caught, 2 mutants cannot change behavior.
 
+## Setup A: what Microsoft's docs say (read 2026-10-17; NOT verified by us)
+
+Everything here comes from the docs, not from a run. It is the specification the probe
+`probes/search_acl_probe.py` tests. Pages: search-indexer-sharepoint-access-control-lists,
+search-how-to-index-sharepoint-online, search-query-access-control-rbac-enforcement (learn.microsoft.com/azure/search).
+- Preview only: REST api-version `2026-08-01-preview`; incremental ACL updates need `2026-05-01-preview` or
+  later (earlier previews capture ACLs only at first ingestion). Basic tier or higher. Not in the portal.
+- The indexer needs Entra APPLICATION permissions (delegated is not supported for ACLs): Microsoft Graph
+  `Files.Read.All` + `Sites.FullControl.All` (or `Sites.Selected`) with admin consent. Credential in the
+  connection string: a client SECRET (`ApplicationSecret=`) or a FEDERATED credential on the search
+  service's managed identity (`FederatedCredentialApplicationId=`); a certificate is not one of the options,
+  so the driver app (certificate only) cannot be the ingestion app as it is.
+- Data source: `type: sharepoint`, `indexerPermissionOptions: ["userIds","groupIds"]`, container
+  `useQuery` with `includeFolder=<host>/sites/<site>/<library>/<folder>` (docs example; unverified here).
+- Index: fields with `permissionFilter: "userIds"` / `"groupIds"` (Collection(Edm.String), filterable) and
+  `permissionFilterOption: "enabled"`; indexer field mappings `metadata_user_ids` -> UserIds,
+  `metadata_group_ids` -> GroupIds. The key is `metadata_spo_site_library_item_id` (base64Encode).
+- Group types: user ids and Entra group object ids are stored as they are; group nesting is expanded at
+  QUERY time through Microsoft Graph (docs), using the user's `oid` from the token. SharePoint site groups
+  are NOT handled by the plain configuration; with api 2026-05-01-preview+ they need a federated
+  credential, SharePoint API permission `Sites.FullControl.All`, `sharePointConnectorAppRegistration` on the
+  index and a `SharePointSiteUrl` field; their ids are then stored as `spg:`-prefixed values in GroupIds. An
+  Entra group INSIDE a SharePoint group is not expanded (matches our oracle's refusal).
+- Query: caller authorizes with `Authorization: Bearer <app token>` (an RBAC role such as Search Index Data
+  Reader) AND the end user's identity travels in `x-ms-query-source-authorization: <user's Entra token>`.
+  The audience of that user token is not stated on the pages read (UNVERIFIED; the probe records the answer
+  to `https://search.azure.com/.default`). If the user token is omitted, ACL-protected documents are not
+  returned. If ACL evaluation fails (e.g. Graph unavailable) the service answers 5xx, never a partial result.
+- Debugging: header `x-ms-enable-elevated-read: true` (needs Search Index Data Contributor) returns all
+  documents regardless of ACL; set `retrievable: true` on the ACL fields only while investigating.
+- Freshness: item-level permission changes on items with UNIQUE permissions are picked up on each indexer
+  run (change tokens). A change on a PARENT scope (site, library, list, folder) inherited by children is
+  NOT picked up: call `/resync` with `options: ["permissions"]` (then run the indexer) or `/resetdocs`.
+  In this tenant the S1 documents INHERIT from a unique folder, so a grant removal on the folder is a
+  parent-scope change: the docs predict incremental runs will NOT pick it up. The probe tests exactly that.
+- Limits: 1000 permission entries per file; no "Anyone"/org-wide links; no guests.
+
+Not built, deliberately: `src/leaklab/setup_a/`. Order: provision -> ingestion app -> probe stages
+(preflight, setup, run, dump, trim, revoke) -> record results here -> only then build.
+Blocked on (2026-10-17): the Azure service does not exist yet and the ingestion app/secret is not
+configured; the driver app has no Azure role and no app-registration rights (Graph roles: Files.ReadWrite.All,
+Group.ReadWrite.All, LicenseAssignment.Read.All, Sites.FullControl.All, User.ReadWrite.All).
+
 ## Open questions
 
 - [ ] Persona sign-in works for two LICENSED users. Not yet tested: UNLICENSED personas (four in

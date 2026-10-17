@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     sp_host: str = ""
     admin_upn: str = ""  # UPN of your own admin account (delegated reads via device code)
     usage_location: str = ""  # two-letter country code, needed before assigning licenses
+    # Setup A (Azure AI Search). The endpoint is not secret; the ingestion app secret IS.
+    search_endpoint: str = ""  # https://<service>.search.windows.net
+    ingest_app_id: str = (
+        ""  # Entra app the SharePoint INDEXER signs in as (application permissions)
+    )
+    ingest_app_secret: SecretStr = SecretStr("")  # that app's client secret (never logged or saved)
 
 
 @lru_cache(maxsize=1)

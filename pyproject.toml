@@ -39,6 +39,7 @@ src = ["src", "tests", "probes"]
 select = ["E", "F", "W", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
+"probes/search_*.py" = ["E501"]  # long REST bodies and request recordings read better unbroken
 "probes/*" = ["B008"]  # typer.Option(...) in argument defaults is typer's normal usage
 "src/leaklab/runner/cli.py" = ["B008"]  # same: typer.Option(...) defaults
 

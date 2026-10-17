@@ -116,3 +116,13 @@ def test_usage_location_setting(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_admin_upn_setting(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LEAKLAB_ADMIN_UPN", "admin@example.com")
     assert Settings(_env_file=None).admin_upn == "admin@example.com"  # type: ignore[call-arg]
+
+
+def test_search_settings_and_the_secret_is_not_printed(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LEAKLAB_SEARCH_ENDPOINT", "https://x.search.windows.net")
+    monkeypatch.setenv("LEAKLAB_INGEST_APP_ID", "00000000-0000-0000-0000-000000000001")
+    monkeypatch.setenv("LEAKLAB_INGEST_APP_SECRET", "s3cret-value")
+    s = Settings(_env_file=None)  # type: ignore[call-arg]
+    assert s.search_endpoint.endswith(".search.windows.net")
+    assert s.ingest_app_secret.get_secret_value() == "s3cret-value"
+    assert "s3cret-value" not in repr(s) and "s3cret-value" not in str(s)
