@@ -1,0 +1,48 @@
+{
+  "stage": "dump",
+  "started_utc": "2026-10-17T09:35:05.162892+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "admin token",
+      "t": 1792229758.078,
+      "note": "claims only",
+      "claims": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://search.azure.com",
+        "scp": "user_impersonation",
+        "oid": "1a993a79-1c75-44b0-8ad4-e87488148353",
+        "upn": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+        "appid": "b50a2418-9e90-4246-911c-76a43b97791a",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792235126
+      }
+    },
+    {
+      "step": "admin: list indexes (any data-plane role?)",
+      "t": 1792229760.225,
+      "http": 200,
+      "result": {
+        "@odata.context": "https://leaklab-search-dev.search.windows.net/$metadata#indexes(name)",
+        "value": []
+      }
+    },
+    {
+      "step": "endpoint used",
+      "t": 1792229760.225,
+      "note": "https://leaklab-search-dev.search.windows.net"
+    },
+    {
+      "step": "elevated read as the admin user",
+      "t": 1792229760.539,
+      "http": 404,
+      "count": null,
+      "result": {
+        "error": {
+          "code": "",
+          "message": "The index 'll-sp-index' for service 'leaklab-search-dev' was not found."
+        }
+      }
+    }
+  ]
+}

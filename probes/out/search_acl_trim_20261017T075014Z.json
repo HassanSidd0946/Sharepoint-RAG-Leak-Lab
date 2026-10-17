@@ -1,0 +1,19 @@
+{
+  "stage": "trim",
+  "started_utc": "2026-10-17T07:50:10.919908+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "p-plateng: token for https://search.azure.com/.default",
+      "t": 1792223413.477,
+      "result": "FAILED",
+      "note": "PersonaSignInError: Username/password sign-in failed for ll-p-plateng@leaklabdev.onmicrosoft.com: invalid_grant [65001]: AADSTS65001: The user or administrator has not consented to use the application with ID 'b50a2418-9e90-4246-911c-76a43b97791a' named 'leaklab-persona'. Send an interactive authorization request for this user and resource. Trace ID: ff189ecf-9167-4286-90a2-3149d99ebe00 Correlation ID: da745598-8b9a-48c2-be5a-dc66bf05e485 Timestamp: 2026-10-17 07:50:12Z"
+    },
+    {
+      "step": "p-intern: token for https://search.azure.com/.default",
+      "t": 1792223414.331,
+      "result": "FAILED",
+      "note": "PersonaSignInError: Username/password sign-in failed for ll-p-intern@leaklabdev.onmicrosoft.com: invalid_grant [65001]: AADSTS65001: The user or administrator has not consented to use the application with ID 'b50a2418-9e90-4246-911c-76a43b97791a' named 'leaklab-persona'. Send an interactive authorization request for this user and resource. Trace ID: d244e8dc-ade3-4091-88f0-335c643fba00 Correlation ID: 40c4b05a-2c24-4a71-acee-b026b6370f49 Timestamp: 2026-10-17 07:50:13Z"
+    }
+  ]
+}

@@ -204,14 +204,19 @@ def compare_with_oracle(
 
 
 def all_docs(
-    search: Search, headers: dict[str, str], select: str, elevated: bool = False
+    search: Search,
+    headers: dict[str, str],
+    select: str,
+    elevated: bool = False,
+    odata: bool = False,
 ) -> tuple[int, Any]:
+    """Every document. `odata=True` uses the path the docs show for elevated reads
+    (/indexes('name')/search.post.search); it answered HTTP 405 on 2026-10-17, so the default is the
+    ordinary /indexes/{name}/docs/search with the same header."""
     body = {"search": "*", "select": select, "top": 1000, "count": True}
+    path = f"/indexes('{INDEX}')/search.post.search" if odata else f"/indexes/{INDEX}/docs/search"
     if elevated:
-        path = f"/indexes('{INDEX}')/search.post.search"
         headers = {**headers, "x-ms-enable-elevated-read": "true"}
-    else:
-        path = f"/indexes/{INDEX}/docs/search"
     return search.call("POST", path, body, headers)
 
 
@@ -277,7 +282,8 @@ def setup() -> None:
             )
         search = Search(endpoint_from_config())
         with open_env(SPEC_PATH) as env:
-            folder = f"{s.sp_host.strip()}{env.library_url}/{env.plan.container}"
+            # the docs example omits the scheme; the service answered "Invalid URI format" without it (2026-10-17)
+            folder = f"https://{s.sp_host.strip()}{env.library_url}/{env.plan.container}"
         connection = (
             f"SharePointOnlineEndpoint={s.site_url.strip()};ApplicationId={s.ingest_app_id.strip()};"
             f"ApplicationSecret={s.ingest_app_secret.get_secret_value()};TenantId={s.tenant_id.strip()}"
@@ -381,14 +387,32 @@ def dump() -> None:
         with open_env(SPEC_PATH) as env:
             names = ids_to_spec(env)
         select = "metadata_spo_item_name,content,UserIds,GroupIds"
-        status, data = all_docs(search, {}, select, elevated=True)
-        rec.step("elevated read (no query-source token)", http=status, count=(data or {}).get("@odata.count") if isinstance(data, dict) else None, result=excerpt(data) if status != 200 else "ok")  # fmt: skip
-        if status != 200:
-            token = get_app_token(SEARCH_SCOPE)
-            status, data = all_docs(
-                search, {"x-ms-query-source-authorization": token}, select, elevated=True
-            )
-            rec.step("elevated read (driver token as query-source)", http=status, result=excerpt(data) if status != 200 else "ok")  # fmt: skip
+        # Verified 2026-10-17: the service refuses x-ms-enable-elevated-read with an app-only token
+        # ("requires an AAD user access token") and refuses it together with a user token in
+        # x-ms-query-source-authorization. So the ADMIN signs in (device code) and her token is the
+        # Authorization bearer; the admin needs the role Search Index Data Contributor on the service.
+        admin = get_persona_token(
+            get_settings().admin_upn,
+            [SEARCH_SCOPE],
+            use_password=False,
+            allow_device_code=True,
+            use_cache=False,
+        )
+        rec.step("admin token", note="claims only", claims=describe_token(admin))
+        auth = {"Authorization": f"Bearer {admin}"}
+        # Diagnose a 403 before the elevated read: does the admin have ANY data-plane role here?
+        # (listing indexes needs a data-plane role; the elevated read also needs the "elevated read"
+        # permission that Search Index Data Contributor includes, per the docs)
+        status, data = search.call("GET", "/indexes?$select=name", None, auth)
+        rec.step("admin: list indexes (any data-plane role?)", http=status, result=excerpt(data))
+        rec.step("endpoint used", note=search.endpoint)
+        status, data = all_docs(search, auth, select, elevated=True)
+        rec.step(
+            "elevated read as the admin user",
+            http=status,
+            count=(data or {}).get("@odata.count") if isinstance(data, dict) else None,
+            result=excerpt(data) if status != 200 else "ok",
+        )
         if status == 200 and isinstance(data, dict):
             docs = data.get("value", [])
             rec.step("documents", count=len(docs))
@@ -435,12 +459,43 @@ def trim(personas: str = "p-plateng,p-intern") -> None:
 
 
 @app.command()
+def notoken() -> None:
+    """What does the service return with the app token only (no user identity)? Needs no consent."""
+
+    def stage(rec: Recorder) -> None:
+        search = Search(endpoint_from_config())
+        status, data = search.call("GET", f"/indexes/{INDEX}/stats")
+        rec.step("index statistics", http=status, result=excerpt(data))
+        status, data = search.call(
+            "POST",
+            f"/indexes/{INDEX}/docs/search",
+            {"search": "*", "select": "metadata_spo_item_name,content", "top": 1000, "count": True},
+        )
+        got = returned_canaries(status, data)
+        count = data.get("@odata.count") if isinstance(data, dict) else None
+        rec.step(
+            "search * with the app token only (no x-ms-query-source-authorization)",
+            http=status,
+            count=count,
+            canaries_returned=None if got is None else len(got),
+            result=excerpt(data) if got is None or got else "ok",
+        )
+
+    guarded("notoken", stage)
+
+
+@app.command()
 def revoke(
     arm: str = typer.Option(..., help="entra | direct | spgroup"),
     minutes: float = typer.Option(10.0, help="How long to poll after the change."),
     interval_s: float = typer.Option(10.0),
     rerun: bool = typer.Option(False, help="Then run the indexer (incremental) and keep polling."),
     resync: bool = typer.Option(False, help="Then also call resync options=[permissions] + run."),
+    rerun_after_s: float = typer.Option(240.0, help="Seconds after the change to run the indexer."),
+    resync_after_s: float = typer.Option(480.0, help="Seconds after the change to resync."),
+    fresh_every_s: float = typer.Option(
+        120.0, help="New 'fresh' token this often (Entra throttles password sign-ins: AADSTS50196)."
+    ),
 ) -> None:
     """Change the tenant for one S1 arm WITHOUT running the indexer; see what the query does."""
 
@@ -475,12 +530,31 @@ def revoke(
         rec.data["samples"] = samples
         phase, rerun_at, resync_at = "after change (no indexer)", None, None
         end = confirmed + minutes * 60
+        fresh, fresh_at, fresh_error = old_token, 0.0, None
         while time.time() < end:
-            fresh = user_token(upn)
-            row = {"t_s": round(time.time() - confirmed, 1), "phase": phase, "old_token": serving(old_token), "fresh_token": serving(fresh)}  # fmt: skip
+            if time.time() - fresh_at >= fresh_every_s:
+                try:
+                    fresh, fresh_at, fresh_error = user_token(upn), time.time(), None
+                except Exception as exc:  # noqa: BLE001 - a failed sign-in is an error poll
+                    fresh, fresh_at, fresh_error = "", time.time(), type(exc).__name__
+            row = {
+                "t_s": round(time.time() - confirmed, 1),
+                "phase": phase,
+                "old_token": serving(old_token),
+                "fresh_token": serving(fresh) if fresh else None,
+                "fresh_token_error": fresh_error,
+            }
             samples.append(row)
             time.sleep(interval_s)
-            if rerun and rerun_at is None and time.time() - confirmed > minutes * 30:
+            quiet = samples[-6:]
+            if (
+                not rerun
+                and len(quiet) == 6
+                and all(r["old_token"] is False and r["fresh_token"] is False for r in quiet)
+            ):
+                rec.step("stop", note="neither token served the arm for 6 polls in a row")
+                break
+            if rerun and rerun_at is None and time.time() - confirmed > rerun_after_s:
                 phase, rerun_at = "after indexer run", time.time() - confirmed
                 rec.step(
                     "indexer", result=run_indexer(search, rec, "incremental run after the change")
@@ -489,7 +563,7 @@ def revoke(
                 resync
                 and rerun_at is not None
                 and resync_at is None
-                and time.time() - confirmed > minutes * 45
+                and time.time() - confirmed > resync_after_s
             ):
                 phase, resync_at = "after resync + run", time.time() - confirmed
                 status, data = search.call(

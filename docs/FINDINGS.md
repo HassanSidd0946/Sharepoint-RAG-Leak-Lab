@@ -1230,6 +1230,111 @@ Blocked on (2026-10-17): the Azure service does not exist yet and the ingestion 
 configured; the driver app has no Azure role and no app-registration rights (Graph roles: Files.ReadWrite.All,
 Group.ReadWrite.All, LicenseAssignment.Read.All, Sites.FullControl.All, User.ReadWrite.All).
 
+### Setup A probes, first results (2026-10-17; probes/out/search_acl_*_20261017T07*.json)
+VERIFIED against a real Basic service (`leaklab-search-772918cf`, created with probes/search_provision.py):
+- The driver app's Entra token with scope `https://search.azure.com/.default` is accepted as the
+  Authorization bearer once the service has `aadOrApiKey` auth and the driver app has the roles
+  (Search Service Contributor, Search Index Data Contributor, Search Index Data Reader); api-version
+  `2026-08-01-preview` is accepted. Before the roles existed, and against the OTHER service in `.env`
+  (`leaklab-search-dev`, which has no roles for the driver app), every call was HTTP 403 with an empty body.
+- Data source `type: sharepoint` with `indexerPermissionOptions: [userIds, groupIds]`, a client-secret
+  connection string (SharePointOnlineEndpoint = the SITE url) and container `useQuery` was accepted (201).
+  `includeFolder=` REQUIRES a full URL with `https://`: the docs' example without the scheme gave
+  HTTP 400 "Invalid URI format 'leaklabdev.sharepoint.com/sites/LeakLab/Shared Documents/ll-lab'" at
+  indexer creation. With `https://...` the indexer was created (201).
+- The indexer ran by itself on creation (an explicit `run` straight after answered HTTP 409 "Another
+  indexer invocation is currently in progress"). First run: 07:53:07 -> 07:53:25 (18 s), status success,
+  itemsProcessed 43, itemsFailed 0, one warning: "Folder propagation was automatically enabled because
+  ACL ingestion is configured. Child items will be re-indexed when folder permissions change. To explicitly
+  opt in and suppress this warning, add 'propagateFolderChanges=true' to the indexer query." That CONTRADICTS
+  the docs' statement that parent-scope changes are not picked up automatically: to be tested (revoke --rerun).
+- OPEN, unexplained: the index reports `documentCount` 36 (still 36 minutes later) although the indexer
+  processed 43 items with 0 failures and the tenant has 43 documents. Which 7 are missing is unknown until
+  an elevated read or a persona query can list them.
+- With the app token only (no user identity), `search=*` returned 0 documents with HTTP 200: protected
+  documents are not returned without a user token (as the docs say). All 43 documents are protected here.
+- `x-ms-enable-elevated-read: true` answers HTTP 400 "requires an AAD user access token. App-only tokens are
+  not supported." with the app token, and HTTP 400 "cannot be used in conjunction with header
+  x-ms-query-source-authorization" when a user token is also sent. The docs' OData path
+  `/indexes('name')/search.post.search` answered HTTP 405 (POST). So an elevated read needs a signed-in USER
+  (the admin) with the Search Index Data Contributor role as the Authorization bearer, on the ordinary
+  `/indexes/{name}/docs/search` path.
+- Persona sign-in for `https://search.azure.com/.default` FAILS with AADSTS65001 ("user or administrator has
+  not consented to use the application ... leaklab-persona"): the persona app has no consent for the Azure AI
+  Search resource. Until it does, no persona query (and no admin elevated read through the same app) can run.
+- Admin device-code sign-in for the same scope also fails (2026-10-17): AADSTS650057 "Invalid resource ...
+  Resource value from request: https://search.azure.com. Resource app ID: 880da380-985e-4198-81b9-e05b1cc53158.
+  List of valid resources from app registration: 00000003-0000-0000-c000-000000000000" (= Microsoft Graph only).
+  So `https://search.azure.com` IS resource app 880da380-985e-4198-81b9-e05b1cc53158, and the persona app
+  must have a delegated permission on it added in its API permissions (then admin consent) before any user
+  token for the search service can be issued through it. Which scope name that resource offers: UNVERIFIED.
+
+### Setup A probes, trimming and revocation (2026-10-17; probes/out/search_acl_trim_*, _revoke_*, _entra_add_lag_*)
+Service `leaklab-search-772918cf`, plain SharePoint-indexer ACL configuration (client-secret ingestion app, no SharePoint-group
+configuration), api-version 2026-08-01-preview, tenant generated from the 10-folder spec. All numbers below are single runs
+unless a count is given.
+- USER TOKEN: after adding the Azure AI Search resource (app 880da380-985e-4198-81b9-e05b1cc53158) to `leaklab-persona`'s API
+  permissions with admin consent, persona tokens are issued with `aud` = `https://search.azure.com`, `scp` = `user_impersonation`
+  (scope requested: `https://search.azure.com/.default`). The caller's own Authorization bearer is the DRIVER app's app-only token for
+  the same scope; the user's token travels in `x-ms-query-source-authorization`. Without it: HTTP 200, 0 documents (protected
+  documents are not returned; verified for a persona query and for an app-token-only query).
+- BASIC TRIMMING (token as above, `search=*`, top 1000), compared with the oracle: p-intern 6/6, p-finana 12/12, p-finlead 16/16,
+  p-hr 12/12, p-ceo 5/5 (exact match, 0 leaks, 0 lockouts); p-plateng 21 of 23 expected, 0 leaks. So the four UNLICENSED personas are
+  trimmed correctly (a license is not needed for the search ACL view), and one canary queried by exact string came back only for the
+  persona allowed to read it. Union over the six personas = 41 documents; the other 2 (S1-SPGroup) are returned to nobody.
+- GRANT TYPES in the index (inferred from who gets what; the stored values themselves could not be read, see below):
+  Entra group grant (S1-Entra): honored (p-plateng, a member through `grp-s1-entra`). Direct user grant (S1-Direct): honored.
+  SHAREPOINT-GROUP grant (S1-SPGroup, p-plateng is a direct member of the SharePoint group): NOT honored in the plain
+  configuration: p-plateng does not get the 2 documents. Whether the grant was stored as an unmatched value, as an `spg:` id, or
+  dropped is UNVERIFIED: an elevated read (needs a signed-in user with Search Index Data Contributor; the admin has no data-plane
+  role yet: HTTP 403) was not possible.
+- `documentCount` in index statistics is a LAGGING number: 36 right after the first run (and for minutes), 43 later, although
+  queries already returned 41 distinct documents.
+- Indexer: first run (started by the indexer's creation) 18 s for 43 items, 0 failed.
+- GROUP MEMBERSHIP IS EVALUATED AT QUERY TIME, with a delay of minutes in BOTH directions, and independently of the token's age:
+  removing p-plateng from `grp-s1-entra` (no indexer run): the S1-Entra documents were still served to BOTH an old token (taken
+  before) and a fresh one until 187 s (run 1; the probe died of Entra throttling after that) and until between 289 and 301 s
+  (run 2, 12 s polls), then denied to both. Re-adding the member: not served at 3.9-119.6 s and at ~180 s in one check, served at
+  176 s after the start of the next poll series (run of probes/out/search_acl_entra_add_lag_*.json), i.e. ~3 minutes. A first,
+  earlier check about 3 minutes after the re-add had still found the arm not served. So a query-time membership cache of roughly
+  3-5 minutes is the best reading; the exact figure is UNVERIFIED (2 removals, 2 additions).
+- DIRECT GRANT REMOVAL: with the grant removed on the S1-Direct FOLDER (the 2 documents inherit it), the index kept serving p-plateng
+  for the whole time until the indexer was run (21 polls, 253 s): the ACL is FROZEN in the index. An ordinary (incremental) indexer
+  run 4 minutes after the change processed exactly 2 items in 3.4 s (wall 12 s) and the very next query denied p-plateng. So the
+  incremental run DID pick up a folder-level (parent-scope) change for its children, because of the "folder propagation" that the
+  service enabled by itself ("Folder propagation was automatically enabled because ACL ingestion is configured...
+  propagateFolderChanges=true"): this contradicts the docs' statement that parent-scope changes need /resync. A later resync +
+  run (`resync` HTTP 204, then a run of 43 items in 17.8 s) changed nothing visible (already denied).
+  Consequence for Setup A: a direct/folder grant change is invisible until an indexer run (nothing schedules one here), then
+  effective within seconds of the run's end; a group-membership change is effective after a query-time lag of ~3-5 minutes.
+- Entra throttles repeated password sign-ins: a fresh persona token on every poll gave AADSTS50196 ("client request loop") after
+  about 20 polls; the probe now takes a fresh token every 120 s.
+- NOT YET DONE: elevated read / stored ACL values (needs the admin data-plane role), the SharePoint-group second phase
+  (federated credential + SharePoint API permission + sharePointConnectorAppRegistration), a revocation of the SharePoint-group arm
+  (nothing to revoke), whether the index ACL of S1-Direct is correct after the tenant was regenerated.
+
+### Setup A: the ACL values the indexer stored (elevated read, 2026-10-17; probes/out/search_acl_dump_20261017T094854Z.json)
+Elevated read worked once the endpoint was the one the admin holds Search Index Data Contributor on (HTTP 200, 43 documents):
+admin user token as the Authorization bearer, `x-ms-enable-elevated-read: true`, ordinary `/indexes/{name}/docs/search` path,
+no x-ms-query-source-authorization. (The earlier 403s came from pointing at the other service; see the endpoint note.)
+What the plain configuration (no SharePoint-group setup) stored, per folder, in `UserIds` / `GroupIds`:
+- Entra group grant -> the group's object id in GroupIds (Board, Engineering, Finance, Finance/Leadership, HR,
+  Platform-Secrets, S1-Entra: one id each, nothing expanded to members).
+- Direct user grant -> the user's object id in UserIds (Board: p-ceo; special file: p-ceo and p-hr).
+- SHAREPOINT-GROUP grant (S1-SPGroup) -> STORED, not dropped: GroupIds = `spg:https://leaklabdev.sharepoint.com/sites/leaklab:168`
+  (the prefix `spg:`, the site url in lower case, the SharePoint group id 168). Yet p-plateng, a member of that group, was not served
+  those documents (trim stage): without `sharePointConnectorAppRegistration` the value is stored but never matched at query time.
+- Inherited documents (General, via the site root) carry grp-all-staff AND `spg:...:3`, `spg:...:4`, `spg:...:5` (the site's own
+  Owners, Members and Visitors groups, the associated groups seen earlier). Those three are therefore stored too and equally unmatched.
+- The ADMIN's object id (1a993a79-..., identical to the admin token's `oid`) is in UserIds of EVERY document, including the unique
+  folders (the admin is a site collection admin / Owner). The oracle excludes the admin by decision; the search index includes it.
+- An empty list is stored as the one string `none`: GroupIds = ["none"] for S1-Direct (user grant only) and for the special file.
+- The S1-Direct documents have NO p-plateng id in UserIds: the index is stale there. The grant was removed in the direct-arm test,
+  the incremental run recorded the removal, and the tenant was regenerated afterwards (the grant is back in SharePoint) without a new
+  indexer run. This is the frozen-ACL behavior seen from the inside.
+- Consequence for the oracle/runner: for Setup A the admin must be treated as allowed everywhere (or excluded from comparison as now);
+  `spg:` ids and "none" are values the Setup B overlay will meet if it reads the same index.
+
 ## Open questions
 
 - [ ] Persona sign-in works for two LICENSED users. Not yet tested: UNLICENSED personas (four in

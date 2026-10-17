@@ -1,0 +1,36 @@
+{
+  "stage": "dump",
+  "started_utc": "2026-10-17T07:54:09.360520+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "elevated read, OData path from the docs",
+      "t": 1792223661.299,
+      "http": 405,
+      "result": null
+    },
+    {
+      "step": "elevated read (no query-source token)",
+      "t": 1792223662.059,
+      "http": 400,
+      "count": null,
+      "result": {
+        "error": {
+          "code": "",
+          "message": "Header 'x-ms-enable-elevated-read' requires an AAD user access token. App-only tokens are not supported."
+        }
+      }
+    },
+    {
+      "step": "elevated read (driver token as query-source)",
+      "t": 1792223662.3,
+      "http": 400,
+      "result": {
+        "error": {
+          "code": "",
+          "message": "Header 'x-ms-enable-elevated-read' cannot be used in conjunction with header 'x-ms-query-source-authorization'. Elevated read mode cannot be enabled if a user token is provided."
+        }
+      }
+    }
+  ]
+}

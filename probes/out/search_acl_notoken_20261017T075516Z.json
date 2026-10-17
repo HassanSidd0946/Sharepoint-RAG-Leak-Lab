@@ -1,0 +1,26 @@
+{
+  "stage": "notoken",
+  "started_utc": "2026-10-17T07:55:11.684678+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "index statistics",
+      "t": 1792223715.973,
+      "http": 200,
+      "result": {
+        "@odata.context": "https://leaklab-search-772918cf.search.windows.net/$metadata#Microsoft.Azure.Search.V2026_08_01_Preview.IndexStatistics",
+        "documentCount": 36,
+        "storageSize": 162865,
+        "vectorIndexSize": 0
+      }
+    },
+    {
+      "step": "search * with the app token only (no x-ms-query-source-authorization)",
+      "t": 1792223716.307,
+      "http": 200,
+      "count": 0,
+      "canaries_returned": 0,
+      "result": "ok"
+    }
+  ]
+}

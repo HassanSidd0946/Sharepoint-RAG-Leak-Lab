@@ -1,0 +1,20 @@
+{
+  "stage": "dump",
+  "started_utc": "2026-10-17T07:49:55.203621+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "elevated read (no query-source token)",
+      "t": 1792223409.208,
+      "http": 405,
+      "count": null,
+      "result": null
+    },
+    {
+      "step": "elevated read (driver token as query-source)",
+      "t": 1792223409.536,
+      "http": 405,
+      "result": null
+    }
+  ]
+}

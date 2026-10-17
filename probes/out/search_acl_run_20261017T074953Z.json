@@ -1,0 +1,27 @@
+{
+  "stage": "run",
+  "started_utc": "2026-10-17T07:34:43.794152+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "initial run: run",
+      "t": 1792222489.33,
+      "http": 403,
+      "result": null
+    },
+    {
+      "step": "initial run: finished",
+      "t": 1792223393.746,
+      "label": "initial run",
+      "wall_s": 904.7,
+      "status": null,
+      "startTime": null,
+      "endTime": null,
+      "itemsProcessed": null,
+      "itemsFailed": null,
+      "errorMessage": null,
+      "errors": null,
+      "warnings": null
+    }
+  ]
+}

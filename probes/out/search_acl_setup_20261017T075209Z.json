@@ -1,0 +1,142 @@
+{
+  "stage": "setup",
+  "started_utc": "2026-10-17T07:51:50.855592+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "create data source",
+      "t": 1792223519.565,
+      "http": 201,
+      "request": {
+        "name": "ll-sp-datasource",
+        "type": "sharepoint",
+        "indexerPermissionOptions": [
+          "userIds",
+          "groupIds"
+        ],
+        "credentials": {
+          "connectionString": "<redacted>"
+        },
+        "container": {
+          "name": "useQuery",
+          "query": "includeFolder=leaklabdev.sharepoint.com/sites/LeakLab/Shared Documents/ll-lab"
+        }
+      },
+      "result": {
+        "@odata.context": "https://leaklab-search-772918cf.search.windows.net/$metadata#datasources/$entity",
+        "@odata.etag": "\"0x8DF2C23855AAAD0\"",
+        "name": "ll-sp-datasource",
+        "description": null,
+        "type": "sharepoint",
+        "subtype": null,
+        "indexerPermissionOptions": [
+          "userIds",
+          "groupIds"
+        ],
+        "credentials": {
+          "connectionString": null
+        },
+        "container": {
+          "name": "useQuery",
+          "query": "includeFolder=leaklabdev.sharepoint.com/sites/LeakLab/Shared Documents/ll-lab"
+        },
+        "dataChangeDetectionPolicy": null,
+        "dataDeletionDetectionPolicy": null,
+        "encryptionKey": null,
+        "identity": null
+      },
+      "unverified": "SharePointOnlineEndpoint = the SITE url (docs example shows the tenant root)"
+    },
+    {
+      "step": "create index",
+      "t": 1792223521.479,
+      "http": 201,
+      "request": {
+        "name": "ll-sp-index",
+        "fields": [
+          {
+            "name": "id",
+            "type": "Edm.String",
+            "key": true,
+            "searchable": false
+          },
+          {
+            "name": "metadata_spo_item_name",
+            "type": "Edm.String",
+            "searchable": true,
+            "retrievable": true
+          },
+          {
+            "name": "metadata_spo_item_path",
+            "type": "Edm.String",
+            "searchable": false,
+            "retrievable": true
+          },
+          {
+            "name": "content",
+            "type": "Edm.String",
+            "searchable": true,
+            "retrievable": true
+          },
+          {
+            "name": "UserIds",
+            "type": "Collection(Edm.String)",
+            "permissionFilter": "userIds",
+            "filterable": true,
+            "retrievable": true
+          },
+          {
+            "name": "GroupIds",
+            "type": "Collection(Edm.String)",
+            "permissionFilter": "groupIds",
+            "filterable": true,
+            "retrievable": true
+          }
+        ],
+        "permissionFilterOption": "enabled"
+      },
+      "result": "{\"@odata.context\": \"https://leaklab-search-772918cf.search.windows.net/$metadata#indexes/$entity\", \"@odata.etag\": \"\\\"0x8DF2C238671E40E\\\"\", \"name\": \"ll-sp-index\", \"description\": null, \"defaultScoringProfile\": null, \"permissionFilterOption\": \"enabled\", \"purviewEnabled\": false, \"fields\": [{\"name\": \"id\", \"type\": \"Edm.String\", \"searchable\": false, \"filterable\": true, \"retrievable\": true, \"stored\": true, \"sortable\": true, \"facetable\": true, \"key\": true, \"indexAnalyzer\": null, \"searchAnalyzer\": null, \"analyzer\": null, \"normalizer\": null, \"dimensions\": null, \"vectorSearchProfile\": null, \"vectorEncoding\": null, \"permissionFilter\": null, \"sensitivityLabelId\": null, \"sensitivityLabelName\": null, \"sourceDocumentId\": null, \"sharepointSiteUrl\": null, \"synonymMaps\": []}, {\"name\": \"metadata_spo_item_name\", \"type\": \"Edm.String\", \"searchable\": true, \"filterable\": true, \"retrievable\": true, \"stored\": true, \"sortable\": true, \"facetable\": true, \"key\": false, \"indexAnalyzer\": null, \"searchAnalyzer\": null, \"analyzer\": null, \"normalizer\": null, \"dimensions\": null, \"vectorSearchProfile\": null, \"vectorEncoding\": null, \"permissionFilter\": null, \"sensitivityLabelId\": null, \"sensitivityLabelName\": null, \"sourc...<cut>",
+      "note": "retrievable=true on the ACL fields is for this probe only (docs: development only)"
+    },
+    {
+      "step": "create indexer",
+      "t": 1792223529.872,
+      "http": 400,
+      "request": {
+        "name": "ll-sp-indexer",
+        "dataSourceName": "ll-sp-datasource",
+        "targetIndexName": "ll-sp-index",
+        "parameters": {
+          "configuration": {
+            "indexedFileNameExtensions": ".txt",
+            "dataToExtract": "contentAndMetadata",
+            "failOnUnsupportedContentType": false
+          }
+        },
+        "fieldMappings": [
+          {
+            "sourceFieldName": "metadata_spo_site_library_item_id",
+            "targetFieldName": "id",
+            "mappingFunction": {
+              "name": "base64Encode"
+            }
+          },
+          {
+            "sourceFieldName": "metadata_user_ids",
+            "targetFieldName": "UserIds"
+          },
+          {
+            "sourceFieldName": "metadata_group_ids",
+            "targetFieldName": "GroupIds"
+          }
+        ]
+      },
+      "result": {
+        "error": {
+          "code": "",
+          "message": "Error with data source: Invalid URI format 'leaklabdev.sharepoint.com/sites/LeakLab/Shared Documents/ll-lab'.  Please adjust your data source definition in order to proceed."
+        }
+      }
+    }
+  ]
+}

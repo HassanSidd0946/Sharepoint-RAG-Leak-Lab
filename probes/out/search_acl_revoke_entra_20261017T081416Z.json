@@ -1,0 +1,136 @@
+{
+  "stage": "revoke_entra",
+  "started_utc": "2026-10-17T08:10:00.787115+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "baseline: arm documents served to p-plateng",
+      "t": 1792224607.899,
+      "result": true
+    },
+    {
+      "step": "mutation applied",
+      "t": 1792224623.68,
+      "note": "S1-entra; the indexer has NOT been run",
+      "status": "confirmed",
+      "confirmed_at": 1792224621.0636988
+    }
+  ],
+  "samples": [
+    {
+      "t_s": 3.0,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 15.1,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 27.2,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 39.5,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 51.5,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 63.7,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 76.1,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 88.1,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 100.2,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 112.3,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 124.8,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 136.9,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 148.9,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 162.0,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 174.8,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true
+    },
+    {
+      "t_s": 187.3,
+      "phase": "after change (no indexer)",
+      "old_token": false,
+      "fresh_token": false
+    },
+    {
+      "t_s": 199.3,
+      "phase": "after change (no indexer)",
+      "old_token": false,
+      "fresh_token": false
+    },
+    {
+      "t_s": 211.3,
+      "phase": "after change (no indexer)",
+      "old_token": false,
+      "fresh_token": false
+    },
+    {
+      "t_s": 223.3,
+      "phase": "after change (no indexer)",
+      "old_token": false,
+      "fresh_token": false
+    }
+  ],
+  "error": "Traceback (most recent call last):\n  File \"D:\\leaklab\\probes\\search_acl_probe.py\", line 244, in guarded\n    fn(rec)\n  File \"D:\\leaklab\\probes\\search_acl_probe.py\", line 523, in stage\n    fresh = user_token(upn)\n            ^^^^^^^^^^^^^^^\n  File \"D:\\leaklab\\probes\\search_acl_probe.py\", line 224, in user_token\n    return get_persona_token(upn, [SEARCH_SCOPE], allow_device_code=False, use_cache=False)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\leaklab\\src\\leaklab\\auth.py\", line 185, in get_persona_token\n    raise PersonaSignInError(upn, result)\nleaklab.auth.PersonaSignInError: Username/password sign-in failed for ll-p-plateng@leaklabdev.onmicrosoft.com: invalid_grant [50196]: AADSTS50196: The server terminated an operation because it encountered a client request loop. Please contact your app vendor. Trace ID: f18bef6a-be1d-4875-8eaa-ece6cb527900 Correlation ID: 3f78125d-9648-4181-a912-92eaff0e3633 Timestamp: 2026-10-17 08:14:14Z\n"
+}

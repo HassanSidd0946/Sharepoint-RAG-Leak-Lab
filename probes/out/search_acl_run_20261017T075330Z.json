@@ -1,0 +1,40 @@
+{
+  "stage": "run",
+  "started_utc": "2026-10-17T07:53:12.838387+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "initial run: run",
+      "t": 1792223597.867,
+      "http": 409,
+      "result": {
+        "error": {
+          "code": "",
+          "message": "Another indexer invocation is currently in progress; concurrent invocations are not allowed."
+        }
+      }
+    },
+    {
+      "step": "initial run: finished",
+      "t": 1792223610.263,
+      "label": "initial run",
+      "wall_s": 12.7,
+      "status": "success",
+      "startTime": "2026-10-17T07:53:07.469Z",
+      "endTime": "2026-10-17T07:53:25.372Z",
+      "itemsProcessed": 43,
+      "itemsFailed": 0,
+      "errorMessage": null,
+      "errors": [],
+      "warnings": [
+        {
+          "key": null,
+          "name": "DocumentExtraction.sharepoint.ll-sp-datasource",
+          "message": "Folder propagation was automatically enabled because ACL ingestion is configured. Child items will be re-indexed when folder permissions change. To explicitly opt in and suppress this warning, add 'propagateFolderChanges=true' to the indexer query.",
+          "details": null,
+          "documentationLink": null
+        }
+      ]
+    }
+  ]
+}

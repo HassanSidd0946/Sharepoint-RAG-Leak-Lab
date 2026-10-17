@@ -1,0 +1,249 @@
+{
+  "stage": "revoke_entra",
+  "started_utc": "2026-10-17T08:39:18.905056+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "baseline: arm documents served to p-plateng",
+      "t": 1792226365.332,
+      "result": true
+    },
+    {
+      "step": "mutation applied",
+      "t": 1792226383.184,
+      "note": "S1-entra; the indexer has NOT been run",
+      "status": "confirmed",
+      "confirmed_at": 1792226380.5089953
+    },
+    {
+      "step": "stop",
+      "t": 1792226751.19,
+      "note": "neither token served the arm for 6 polls in a row"
+    }
+  ],
+  "samples": [
+    {
+      "t_s": 3.1,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 14.7,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 27.0,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 39.2,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 50.8,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 62.7,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 74.3,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 86.0,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 97.7,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 109.8,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 121.6,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 135.7,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 147.2,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 159.2,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 171.4,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 183.2,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 194.8,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 206.4,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 217.9,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 229.5,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 241.1,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 252.8,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 266.2,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 277.7,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 289.3,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 300.9,
+      "phase": "after change (no indexer)",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 312.4,
+      "phase": "after change (no indexer)",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 324.0,
+      "phase": "after change (no indexer)",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 335.5,
+      "phase": "after change (no indexer)",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 347.3,
+      "phase": "after change (no indexer)",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 358.9,
+      "phase": "after change (no indexer)",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    }
+  ],
+  "summary": {
+    "arm": "entra",
+    "polls": 31,
+    "polls_still_served_by_either_token": 25,
+    "first_poll_where_neither_token_is_served_s": 300.9
+  }
+}

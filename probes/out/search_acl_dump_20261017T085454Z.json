@@ -1,0 +1,29 @@
+{
+  "stage": "dump",
+  "started_utc": "2026-10-17T08:52:05.300589+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "admin token",
+      "t": 1792227291.778,
+      "note": "claims only",
+      "claims": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://search.azure.com",
+        "scp": "user_impersonation",
+        "oid": "1a993a79-1c75-44b0-8ad4-e87488148353",
+        "upn": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+        "appid": "b50a2418-9e90-4246-911c-76a43b97791a",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792231382
+      }
+    },
+    {
+      "step": "elevated read as the admin user",
+      "t": 1792227294.876,
+      "http": 403,
+      "count": null,
+      "result": null
+    }
+  ]
+}

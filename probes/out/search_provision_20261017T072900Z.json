@@ -1,0 +1,41 @@
+{
+  "started_utc": "2026-10-17T07:19:20.954431+00:00",
+  "steps": [],
+  "subscriptions_visible": [
+    {
+      "id": "a10436e5...",
+      "name": "Azure subscription 1",
+      "state": "Enabled"
+    }
+  ],
+  "resource_group": "leaklab-rg",
+  "service": "leaklab-search-772918cf",
+  "location": "eastus",
+  "provider_state": "Registered",
+  "created": true,
+  "provisioningState": "succeeded",
+  "sku": {
+    "name": "basic"
+  },
+  "identity_principal_id": "2dc53dc6-dac0-4b41-a728-21a1840da829",
+  "authOptions": {
+    "aadOrApiKey": {
+      "aadAuthFailureMode": "http401WithBearerChallenge"
+    }
+  },
+  "driver_app_object_id_known": true,
+  "role_assignments": [
+    {
+      "role": "Search Service Contributor",
+      "http": 201
+    },
+    {
+      "role": "Search Index Data Contributor",
+      "http": 201
+    },
+    {
+      "role": "Search Index Data Reader",
+      "http": 201
+    }
+  ]
+}

@@ -1,0 +1,620 @@
+{
+  "stage": "revoke_direct",
+  "started_utc": "2026-10-17T08:23:55.223751+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "baseline: arm documents served to p-plateng",
+      "t": 1792225440.386,
+      "result": true
+    },
+    {
+      "step": "mutation applied",
+      "t": 1792225446.711,
+      "note": "S1-direct; the indexer has NOT been run",
+      "status": "confirmed",
+      "confirmed_at": 1792225446.363278
+    },
+    {
+      "step": "incremental run after the change: run",
+      "t": 1792225695.158,
+      "http": 202,
+      "result": null
+    },
+    {
+      "step": "incremental run after the change: finished",
+      "t": 1792225706.838,
+      "label": "incremental run after the change",
+      "wall_s": 12.1,
+      "status": "success",
+      "startTime": "2026-10-17T08:28:19.056Z",
+      "endTime": "2026-10-17T08:28:22.423Z",
+      "itemsProcessed": 2,
+      "itemsFailed": 0,
+      "errorMessage": null,
+      "errors": [],
+      "warnings": [
+        {
+          "key": null,
+          "name": "DocumentExtraction.sharepoint.ll-sp-datasource",
+          "message": "Folder propagation was automatically enabled because ACL ingestion is configured. Child items will be re-indexed when folder permissions change. To explicitly opt in and suppress this warning, add 'propagateFolderChanges=true' to the indexer query.",
+          "details": null,
+          "documentationLink": null
+        }
+      ]
+    },
+    {
+      "step": "indexer",
+      "t": 1792225706.838,
+      "result": {
+        "label": "incremental run after the change",
+        "wall_s": 12.1,
+        "status": "success",
+        "startTime": "2026-10-17T08:28:19.056Z",
+        "endTime": "2026-10-17T08:28:22.423Z",
+        "itemsProcessed": 2,
+        "itemsFailed": 0,
+        "errorMessage": null,
+        "errors": [],
+        "warnings": [
+          {
+            "key": null,
+            "name": "DocumentExtraction.sharepoint.ll-sp-datasource",
+            "message": "Folder propagation was automatically enabled because ACL ingestion is configured. Child items will be re-indexed when folder permissions change. To explicitly opt in and suppress this warning, add 'propagateFolderChanges=true' to the indexer query.",
+            "details": null,
+            "documentationLink": null
+          }
+        ]
+      }
+    },
+    {
+      "step": "resync permissions",
+      "t": 1792225931.381,
+      "http": 204,
+      "result": null
+    },
+    {
+      "step": "run after resync: run",
+      "t": 1792225931.953,
+      "http": 202,
+      "result": null
+    },
+    {
+      "step": "run after resync: finished",
+      "t": 1792225949.493,
+      "label": "run after resync",
+      "wall_s": 17.8,
+      "status": "success",
+      "startTime": "2026-10-17T08:32:14.611Z",
+      "endTime": "2026-10-17T08:32:27.449Z",
+      "itemsProcessed": 43,
+      "itemsFailed": 0,
+      "errorMessage": null,
+      "errors": [],
+      "warnings": [
+        {
+          "key": null,
+          "name": "DocumentExtraction.sharepoint.ll-sp-datasource",
+          "message": "Folder propagation was automatically enabled because ACL ingestion is configured. Child items will be re-indexed when folder permissions change. To explicitly opt in and suppress this warning, add 'propagateFolderChanges=true' to the indexer query.",
+          "details": null,
+          "documentationLink": null
+        }
+      ]
+    },
+    {
+      "step": "indexer",
+      "t": 1792225949.493,
+      "result": {
+        "label": "run after resync",
+        "wall_s": 17.8,
+        "status": "success",
+        "startTime": "2026-10-17T08:32:14.611Z",
+        "endTime": "2026-10-17T08:32:27.449Z",
+        "itemsProcessed": 43,
+        "itemsFailed": 0,
+        "errorMessage": null,
+        "errors": [],
+        "warnings": [
+          {
+            "key": null,
+            "name": "DocumentExtraction.sharepoint.ll-sp-datasource",
+            "message": "Folder propagation was automatically enabled because ACL ingestion is configured. Child items will be re-indexed when folder permissions change. To explicitly opt in and suppress this warning, add 'propagateFolderChanges=true' to the indexer query.",
+            "details": null,
+            "documentationLink": null
+          }
+        ]
+      }
+    }
+  ],
+  "samples": [
+    {
+      "t_s": 0.8,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 12.5,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 24.1,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 35.7,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 47.3,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 59.2,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 70.8,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 82.5,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 94.1,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 105.8,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 117.3,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 130.7,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 142.2,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 153.8,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 165.4,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 177.0,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 188.6,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 200.3,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 212.3,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 223.8,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 235.5,
+      "phase": "after change (no indexer)",
+      "old_token": true,
+      "fresh_token": true,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 261.8,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 272.4,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 284.5,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 296.0,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 307.6,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 319.2,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 330.9,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 342.7,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 354.3,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 365.8,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 377.5,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 390.7,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 402.3,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 413.9,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 425.4,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 437.0,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 448.7,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 460.3,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 472.0,
+      "phase": "after indexer run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 503.1,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 515.3,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 530.8,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 542.4,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 554.0,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 565.5,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 577.1,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 588.7,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 600.3,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 611.9,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 623.4,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 635.0,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 648.5,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 660.1,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 671.9,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 683.5,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 695.1,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 706.7,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 718.8,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 730.5,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 742.2,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 753.9,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 765.5,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 779.0,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 790.8,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 802.4,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 814.0,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 825.7,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    },
+    {
+      "t_s": 837.4,
+      "phase": "after resync + run",
+      "old_token": false,
+      "fresh_token": false,
+      "fresh_token_error": null
+    }
+  ],
+  "summary": {
+    "arm": "direct",
+    "polls": 69,
+    "polls_still_served_by_either_token": 21,
+    "first_poll_where_neither_token_is_served_s": 261.8
+  }
+}

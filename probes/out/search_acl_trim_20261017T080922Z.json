@@ -1,0 +1,352 @@
+{
+  "stage": "trim",
+  "started_utc": "2026-10-17T08:09:03.112099+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "p-intern: token",
+      "t": 1792224545.746,
+      "note": "claims only",
+      "claims": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://search.azure.com",
+        "scp": "user_impersonation",
+        "oid": "f6312739-77f1-406e-8292-85bfa1973692",
+        "upn": "ll-p-intern@leaklabdev.onmicrosoft.com",
+        "appid": "b50a2418-9e90-4246-911c-76a43b97791a",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792229688
+      }
+    },
+    {
+      "step": "p-intern: search *",
+      "t": 1792224548.84,
+      "http": 200,
+      "result": "ok"
+    },
+    {
+      "step": "p-intern: vs oracle",
+      "t": 1792224548.84,
+      "returned": 6,
+      "expected": 6,
+      "leaks": [],
+      "lockouts": [],
+      "ok": true
+    },
+    {
+      "step": "p-intern: query one canary (S1-Direct doc 1)",
+      "t": 1792224549.421,
+      "http": 200,
+      "returned": false
+    },
+    {
+      "step": "p-intern: query one canary (General doc 1)",
+      "t": 1792224549.69,
+      "http": 200,
+      "returned": true
+    },
+    {
+      "step": "p-intern: no token at all",
+      "t": 1792224549.69,
+      "note": "only public documents expected"
+    },
+    {
+      "step": "p-intern: query WITHOUT x-ms-query-source-authorization",
+      "t": 1792224549.942,
+      "http": 200,
+      "result": {
+        "@odata.context": "https://leaklab-search-772918cf.search.windows.net/indexes('ll-sp-index')/$metadata#docs(*)",
+        "@odata.count": 0,
+        "value": []
+      }
+    },
+    {
+      "step": "p-plateng: token",
+      "t": 1792224550.777,
+      "note": "claims only",
+      "claims": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://search.azure.com",
+        "scp": "user_impersonation",
+        "oid": "abb071c1-10bf-4821-9447-f1d19dfd53a1",
+        "upn": "ll-p-plateng@leaklabdev.onmicrosoft.com",
+        "appid": "b50a2418-9e90-4246-911c-76a43b97791a",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792228462
+      }
+    },
+    {
+      "step": "p-plateng: search *",
+      "t": 1792224551.041,
+      "http": 200,
+      "result": "ok"
+    },
+    {
+      "step": "p-plateng: vs oracle",
+      "t": 1792224551.041,
+      "returned": 21,
+      "expected": 23,
+      "leaks": [],
+      "lockouts": [
+        "CANARY-S1S-01-326576",
+        "CANARY-S1S-02-174bc5"
+      ],
+      "ok": false
+    },
+    {
+      "step": "p-plateng: query one canary (S1-Direct doc 1)",
+      "t": 1792224551.323,
+      "http": 200,
+      "returned": true
+    },
+    {
+      "step": "p-plateng: query one canary (General doc 1)",
+      "t": 1792224551.611,
+      "http": 200,
+      "returned": true
+    },
+    {
+      "step": "p-plateng: no token at all",
+      "t": 1792224551.613,
+      "note": "only public documents expected"
+    },
+    {
+      "step": "p-plateng: query WITHOUT x-ms-query-source-authorization",
+      "t": 1792224551.884,
+      "http": 200,
+      "result": {
+        "@odata.context": "https://leaklab-search-772918cf.search.windows.net/indexes('ll-sp-index')/$metadata#docs(*)",
+        "@odata.count": 0,
+        "value": []
+      }
+    },
+    {
+      "step": "p-finana: token",
+      "t": 1792224552.724,
+      "note": "claims only",
+      "claims": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://search.azure.com",
+        "scp": "user_impersonation",
+        "oid": "2f12adba-0f2c-46f1-8970-254c10b300f1",
+        "upn": "ll-p-finana@leaklabdev.onmicrosoft.com",
+        "appid": "b50a2418-9e90-4246-911c-76a43b97791a",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792229226
+      }
+    },
+    {
+      "step": "p-finana: search *",
+      "t": 1792224553.918,
+      "http": 200,
+      "result": "ok"
+    },
+    {
+      "step": "p-finana: vs oracle",
+      "t": 1792224553.92,
+      "returned": 12,
+      "expected": 12,
+      "leaks": [],
+      "lockouts": [],
+      "ok": true
+    },
+    {
+      "step": "p-finana: query one canary (S1-Direct doc 1)",
+      "t": 1792224554.18,
+      "http": 200,
+      "returned": false
+    },
+    {
+      "step": "p-finana: query one canary (General doc 1)",
+      "t": 1792224554.5,
+      "http": 200,
+      "returned": true
+    },
+    {
+      "step": "p-finana: no token at all",
+      "t": 1792224554.501,
+      "note": "only public documents expected"
+    },
+    {
+      "step": "p-finana: query WITHOUT x-ms-query-source-authorization",
+      "t": 1792224554.752,
+      "http": 200,
+      "result": {
+        "@odata.context": "https://leaklab-search-772918cf.search.windows.net/indexes('ll-sp-index')/$metadata#docs(*)",
+        "@odata.count": 0,
+        "value": []
+      }
+    },
+    {
+      "step": "p-finlead: token",
+      "t": 1792224555.527,
+      "note": "claims only",
+      "claims": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://search.azure.com",
+        "scp": "user_impersonation",
+        "oid": "22937ac3-fa34-4b88-bde6-5a2d8baedd7b",
+        "upn": "ll-p-finlead@leaklabdev.onmicrosoft.com",
+        "appid": "b50a2418-9e90-4246-911c-76a43b97791a",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792229517
+      }
+    },
+    {
+      "step": "p-finlead: search *",
+      "t": 1792224556.617,
+      "http": 200,
+      "result": "ok"
+    },
+    {
+      "step": "p-finlead: vs oracle",
+      "t": 1792224556.618,
+      "returned": 16,
+      "expected": 16,
+      "leaks": [],
+      "lockouts": [],
+      "ok": true
+    },
+    {
+      "step": "p-finlead: query one canary (S1-Direct doc 1)",
+      "t": 1792224556.889,
+      "http": 200,
+      "returned": false
+    },
+    {
+      "step": "p-finlead: query one canary (General doc 1)",
+      "t": 1792224557.153,
+      "http": 200,
+      "returned": true
+    },
+    {
+      "step": "p-finlead: no token at all",
+      "t": 1792224557.155,
+      "note": "only public documents expected"
+    },
+    {
+      "step": "p-finlead: query WITHOUT x-ms-query-source-authorization",
+      "t": 1792224557.406,
+      "http": 200,
+      "result": {
+        "@odata.context": "https://leaklab-search-772918cf.search.windows.net/indexes('ll-sp-index')/$metadata#docs(*)",
+        "@odata.count": 0,
+        "value": []
+      }
+    },
+    {
+      "step": "p-hr: token",
+      "t": 1792224558.186,
+      "note": "claims only",
+      "claims": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://search.azure.com",
+        "scp": "user_impersonation",
+        "oid": "3d0d55fa-4485-43b2-9c76-353242e2fc1d",
+        "upn": "ll-p-hr@leaklabdev.onmicrosoft.com",
+        "appid": "b50a2418-9e90-4246-911c-76a43b97791a",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792229437
+      }
+    },
+    {
+      "step": "p-hr: search *",
+      "t": 1792224558.939,
+      "http": 200,
+      "result": "ok"
+    },
+    {
+      "step": "p-hr: vs oracle",
+      "t": 1792224558.94,
+      "returned": 12,
+      "expected": 12,
+      "leaks": [],
+      "lockouts": [],
+      "ok": true
+    },
+    {
+      "step": "p-hr: query one canary (S1-Direct doc 1)",
+      "t": 1792224559.198,
+      "http": 200,
+      "returned": false
+    },
+    {
+      "step": "p-hr: query one canary (General doc 1)",
+      "t": 1792224559.479,
+      "http": 200,
+      "returned": true
+    },
+    {
+      "step": "p-hr: no token at all",
+      "t": 1792224559.48,
+      "note": "only public documents expected"
+    },
+    {
+      "step": "p-hr: query WITHOUT x-ms-query-source-authorization",
+      "t": 1792224559.8,
+      "http": 200,
+      "result": {
+        "@odata.context": "https://leaklab-search-772918cf.search.windows.net/indexes('ll-sp-index')/$metadata#docs(*)",
+        "@odata.count": 0,
+        "value": []
+      }
+    },
+    {
+      "step": "p-ceo: token",
+      "t": 1792224560.642,
+      "note": "claims only",
+      "claims": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://search.azure.com",
+        "scp": "user_impersonation",
+        "oid": "8299e3eb-56dc-4c9c-b139-e934306bf413",
+        "upn": "ll-p-ceo@leaklabdev.onmicrosoft.com",
+        "appid": "b50a2418-9e90-4246-911c-76a43b97791a",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792229938
+      }
+    },
+    {
+      "step": "p-ceo: search *",
+      "t": 1792224561.646,
+      "http": 200,
+      "result": "ok"
+    },
+    {
+      "step": "p-ceo: vs oracle",
+      "t": 1792224561.647,
+      "returned": 5,
+      "expected": 5,
+      "leaks": [],
+      "lockouts": [],
+      "ok": true
+    },
+    {
+      "step": "p-ceo: query one canary (S1-Direct doc 1)",
+      "t": 1792224561.922,
+      "http": 200,
+      "returned": false
+    },
+    {
+      "step": "p-ceo: query one canary (General doc 1)",
+      "t": 1792224562.187,
+      "http": 200,
+      "returned": false
+    },
+    {
+      "step": "p-ceo: no token at all",
+      "t": 1792224562.189,
+      "note": "only public documents expected"
+    },
+    {
+      "step": "p-ceo: query WITHOUT x-ms-query-source-authorization",
+      "t": 1792224562.438,
+      "http": 200,
+      "result": {
+        "@odata.context": "https://leaklab-search-772918cf.search.windows.net/indexes('ll-sp-index')/$metadata#docs(*)",
+        "@odata.count": 0,
+        "value": []
+      }
+    }
+  ]
+}

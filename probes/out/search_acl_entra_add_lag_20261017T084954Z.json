@@ -1,0 +1,45 @@
+{
+  "note": "p-plateng re-added to grp-s1-entra by generate ~20 min before",
+  "polls": [
+    {
+      "t_s": 3.9,
+      "served": false
+    },
+    {
+      "t_s": 20.4,
+      "served": false
+    },
+    {
+      "t_s": 36.9,
+      "served": false
+    },
+    {
+      "t_s": 53.4,
+      "served": false
+    },
+    {
+      "t_s": 70.1,
+      "served": false
+    },
+    {
+      "t_s": 86.6,
+      "served": false
+    },
+    {
+      "t_s": 103.1,
+      "served": false
+    },
+    {
+      "t_s": 119.6,
+      "served": false
+    },
+    {
+      "t_s": 159.6,
+      "served": false
+    },
+    {
+      "t_s": 176.2,
+      "served": true
+    }
+  ]
+}

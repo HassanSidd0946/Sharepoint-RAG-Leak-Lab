@@ -1,0 +1,17 @@
+{
+  "stage": "revoke_entra",
+  "started_utc": "2026-10-17T08:23:46.737427+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "baseline: arm documents served to p-plateng",
+      "t": 1792225433.273,
+      "result": false
+    },
+    {
+      "step": "ABORT",
+      "t": 1792225433.273,
+      "note": "the arm is not served before the change; nothing to revoke"
+    }
+  ]
+}

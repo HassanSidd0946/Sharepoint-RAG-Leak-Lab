@@ -1,0 +1,32 @@
+{
+  "stage": "preflight",
+  "started_utc": "2026-10-17T07:34:26.698875+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "servicestats",
+      "t": 1792222471.772,
+      "http": 403,
+      "result": null
+    },
+    {
+      "step": "indexes",
+      "t": 1792222472.105,
+      "http": 403,
+      "result": null
+    },
+    {
+      "step": "driver token",
+      "t": 1792222472.107,
+      "note": "claims only",
+      "claims": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://search.azure.com",
+        "oid": "a34ceda0-5d19-44fc-bfa5-bca1388a0a8b",
+        "appid": "56553d1b-0a31-4a28-bdf5-439b2d7b6474",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792226067
+      }
+    }
+  ]
+}

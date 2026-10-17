@@ -1,0 +1,182 @@
+{
+  "stage": "dump",
+  "started_utc": "2026-10-17T09:47:41.737989+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "admin token",
+      "t": 1792230531.68,
+      "note": "claims only",
+      "claims": {
+        "tid": "e71d45d5-5b8c-4e4b-9287-fd36fd8bef63",
+        "aud": "https://search.azure.com",
+        "scp": "user_impersonation",
+        "oid": "1a993a79-1c75-44b0-8ad4-e87488148353",
+        "upn": "HassanSiddiqui@leaklabdev.onmicrosoft.com",
+        "appid": "b50a2418-9e90-4246-911c-76a43b97791a",
+        "iss": "https://sts.windows.net/e71d45d5-5b8c-4e4b-9287-fd36fd8bef63/",
+        "exp": 1792234451
+      }
+    },
+    {
+      "step": "admin: list indexes (any data-plane role?)",
+      "t": 1792230534.044,
+      "http": 200,
+      "result": {
+        "@odata.context": "https://leaklab-search-772918cf.search.windows.net/$metadata#indexes(name)",
+        "value": [
+          {
+            "name": "ll-sp-index"
+          }
+        ]
+      }
+    },
+    {
+      "step": "endpoint used",
+      "t": 1792230534.044,
+      "note": "https://leaklab-search-772918cf.search.windows.net"
+    },
+    {
+      "step": "elevated read as the admin user",
+      "t": 1792230534.368,
+      "http": 200,
+      "count": 43,
+      "result": "ok"
+    },
+    {
+      "step": "documents",
+      "t": 1792230534.369,
+      "count": 43
+    }
+  ],
+  "acl_by_folder_code": {
+    "BRD": [
+      {
+        "UserIds": [
+          "UNMAPPED:1a993a79-1c75-44b0-8ad4-e87488148353",
+          "user:p-ceo"
+        ],
+        "GroupIds": [
+          "group:grp-board"
+        ]
+      }
+    ],
+    "ENG": [
+      {
+        "UserIds": [
+          "UNMAPPED:1a993a79-1c75-44b0-8ad4-e87488148353"
+        ],
+        "GroupIds": [
+          "group:grp-engineering"
+        ]
+      }
+    ],
+    "FIN": [
+      {
+        "UserIds": [
+          "UNMAPPED:1a993a79-1c75-44b0-8ad4-e87488148353"
+        ],
+        "GroupIds": [
+          "group:grp-finance"
+        ]
+      }
+    ],
+    "FLD": [
+      {
+        "UserIds": [
+          "UNMAPPED:1a993a79-1c75-44b0-8ad4-e87488148353"
+        ],
+        "GroupIds": [
+          "group:grp-finance-leads"
+        ]
+      }
+    ],
+    "HR": [
+      {
+        "UserIds": [
+          "UNMAPPED:1a993a79-1c75-44b0-8ad4-e87488148353"
+        ],
+        "GroupIds": [
+          "group:grp-hr"
+        ]
+      }
+    ],
+    "S1S": [
+      {
+        "UserIds": [
+          "UNMAPPED:1a993a79-1c75-44b0-8ad4-e87488148353"
+        ],
+        "GroupIds": [
+          "SHAREPOINT-GROUP-ID:spg:https://leaklabdev.sharepoint.com/sites/leaklab:168"
+        ]
+      }
+    ],
+    "PLT": [
+      {
+        "UserIds": [
+          "UNMAPPED:1a993a79-1c75-44b0-8ad4-e87488148353"
+        ],
+        "GroupIds": [
+          "group:grp-eng-platform"
+        ]
+      }
+    ],
+    "SPC": [
+      {
+        "UserIds": [
+          "UNMAPPED:1a993a79-1c75-44b0-8ad4-e87488148353",
+          "user:p-ceo",
+          "user:p-hr"
+        ],
+        "GroupIds": [
+          "UNMAPPED:none"
+        ]
+      }
+    ],
+    "GEN": [
+      {
+        "UserIds": [
+          "UNMAPPED:1a993a79-1c75-44b0-8ad4-e87488148353"
+        ],
+        "GroupIds": [
+          "SHAREPOINT-GROUP-ID:spg:https://leaklabdev.sharepoint.com/sites/leaklab:3",
+          "SHAREPOINT-GROUP-ID:spg:https://leaklabdev.sharepoint.com/sites/leaklab:4",
+          "SHAREPOINT-GROUP-ID:spg:https://leaklabdev.sharepoint.com/sites/leaklab:5",
+          "group:grp-all-staff"
+        ]
+      }
+    ],
+    "S1D": [
+      {
+        "UserIds": [
+          "UNMAPPED:1a993a79-1c75-44b0-8ad4-e87488148353"
+        ],
+        "GroupIds": [
+          "UNMAPPED:none"
+        ]
+      }
+    ],
+    "S1E": [
+      {
+        "UserIds": [
+          "UNMAPPED:1a993a79-1c75-44b0-8ad4-e87488148353"
+        ],
+        "GroupIds": [
+          "group:grp-s1-entra"
+        ]
+      }
+    ]
+  },
+  "sample_document": {
+    "@search.score": 1.0,
+    "metadata_spo_item_name": "ll-brd-01.txt",
+    "content": "Board document 01\nThis is a synthetic test document for the LeakLab benchmark.\nTopic: incident review\nReference code: CANARY-BRD-01-bf3d5e\nc44f4f12 11788825 95300a2b 649fc439 a82320a7 de6cea8b\n\n",
+    "UserIds": [
+      "1a993a79-1c75-44b0-8ad4-e87488148353",
+      "8299e3eb-56dc-4c9c-b139-e934306bf413"
+    ],
+    "GroupIds": [
+      "46e4a79b-8382-49bd-9f02-a040db9941b8"
+    ]
+  }
+}

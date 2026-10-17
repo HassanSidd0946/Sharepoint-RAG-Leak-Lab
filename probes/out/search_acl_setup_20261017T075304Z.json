@@ -1,0 +1,158 @@
+{
+  "stage": "setup",
+  "started_utc": "2026-10-17T07:52:21.870907+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "create data source",
+      "t": 1792223550.274,
+      "http": 204,
+      "request": {
+        "name": "ll-sp-datasource",
+        "type": "sharepoint",
+        "indexerPermissionOptions": [
+          "userIds",
+          "groupIds"
+        ],
+        "credentials": {
+          "connectionString": "<redacted>"
+        },
+        "container": {
+          "name": "useQuery",
+          "query": "includeFolder=https://leaklabdev.sharepoint.com/sites/LeakLab/Shared Documents/ll-lab"
+        }
+      },
+      "result": null,
+      "unverified": "SharePointOnlineEndpoint = the SITE url (docs example shows the tenant root)"
+    },
+    {
+      "step": "create index",
+      "t": 1792223550.575,
+      "http": 204,
+      "request": {
+        "name": "ll-sp-index",
+        "fields": [
+          {
+            "name": "id",
+            "type": "Edm.String",
+            "key": true,
+            "searchable": false
+          },
+          {
+            "name": "metadata_spo_item_name",
+            "type": "Edm.String",
+            "searchable": true,
+            "retrievable": true
+          },
+          {
+            "name": "metadata_spo_item_path",
+            "type": "Edm.String",
+            "searchable": false,
+            "retrievable": true
+          },
+          {
+            "name": "content",
+            "type": "Edm.String",
+            "searchable": true,
+            "retrievable": true
+          },
+          {
+            "name": "UserIds",
+            "type": "Collection(Edm.String)",
+            "permissionFilter": "userIds",
+            "filterable": true,
+            "retrievable": true
+          },
+          {
+            "name": "GroupIds",
+            "type": "Collection(Edm.String)",
+            "permissionFilter": "groupIds",
+            "filterable": true,
+            "retrievable": true
+          }
+        ],
+        "permissionFilterOption": "enabled"
+      },
+      "result": null,
+      "note": "retrievable=true on the ACL fields is for this probe only (docs: development only)"
+    },
+    {
+      "step": "create indexer",
+      "t": 1792223584.925,
+      "http": 201,
+      "request": {
+        "name": "ll-sp-indexer",
+        "dataSourceName": "ll-sp-datasource",
+        "targetIndexName": "ll-sp-index",
+        "parameters": {
+          "configuration": {
+            "indexedFileNameExtensions": ".txt",
+            "dataToExtract": "contentAndMetadata",
+            "failOnUnsupportedContentType": false
+          }
+        },
+        "fieldMappings": [
+          {
+            "sourceFieldName": "metadata_spo_site_library_item_id",
+            "targetFieldName": "id",
+            "mappingFunction": {
+              "name": "base64Encode"
+            }
+          },
+          {
+            "sourceFieldName": "metadata_user_ids",
+            "targetFieldName": "UserIds"
+          },
+          {
+            "sourceFieldName": "metadata_group_ids",
+            "targetFieldName": "GroupIds"
+          }
+        ]
+      },
+      "result": {
+        "@odata.context": "https://leaklab-search-772918cf.search.windows.net/$metadata#indexers/$entity",
+        "@odata.etag": "\"0x8DF2C23AC4216BE\"",
+        "name": "ll-sp-indexer",
+        "description": null,
+        "dataSourceName": "ll-sp-datasource",
+        "skillsetName": null,
+        "targetIndexName": "ll-sp-index",
+        "disabled": null,
+        "schedule": null,
+        "parameters": {
+          "batchSize": null,
+          "maxFailedItems": null,
+          "maxFailedItemsPerBatch": null,
+          "configuration": {
+            "indexedFileNameExtensions": ".txt",
+            "dataToExtract": "contentAndMetadata",
+            "failOnUnsupportedContentType": false
+          }
+        },
+        "fieldMappings": [
+          {
+            "sourceFieldName": "metadata_spo_site_library_item_id",
+            "targetFieldName": "id",
+            "mappingFunction": {
+              "name": "base64Encode",
+              "parameters": null
+            }
+          },
+          {
+            "sourceFieldName": "metadata_user_ids",
+            "targetFieldName": "UserIds",
+            "mappingFunction": null
+          },
+          {
+            "sourceFieldName": "metadata_group_ids",
+            "targetFieldName": "GroupIds",
+            "mappingFunction": null
+          }
+        ],
+        "outputFieldMappings": [],
+        "cache": null,
+        "encryptionKey": null
+      }
+    }
+  ]
+}
