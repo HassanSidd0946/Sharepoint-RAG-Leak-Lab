@@ -26,6 +26,8 @@ Fail closed: a role we cannot interpret, an Entra group inside a SharePoint grou
 special claim becomes a Grant of kind "unknown" and NEVER grants access.
 """
 
+import copy
+import threading
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import Protocol
@@ -93,46 +95,64 @@ class AclStore:
         self._clock = clock
         self._container = container  # only items under the folder with this name are tracked
         self._directory = directory  # maps the UPNs of user grants to object ids
+        # poll_once and the (slow) verification run in different threads: this lock serialises
+        # every read-modify-write of the snapshot; the verification's REST reads stay outside it.
+        self._lock = threading.Lock()
 
     # -- the 5 s poll: drive delta ----------------------------------------------------------------
 
     def poll_once(self) -> AclPollResult:
-        attempt = self._clock()
-        state = self._repo.get_state(NAME)
-        try:
+        with self._lock:
+            attempt = self._clock()
+            state = self._repo.get_state(NAME)
             try:
-                page = self._drive.fetch(state.link if state else None)
-            except ResyncRequired:
-                page = self._drive.fetch(None)
-            seen_at = self._clock()
-            snap = AclSnapshot() if page.full else self._repo.load_acl()
-            old = self._repo.load_acl()
-            refresh = self._merge_items(snap, page.items, full=page.full)
-            if page.full or ROOT_SCOPE not in snap.grants:
-                refresh.add(ROOT_SCOPE)
-            self._refresh(snap, refresh)
-            return self._commit(old, snap, seen_at, attempt, page.link, found_by="delta")
-        except Exception as exc:
-            return self._failed(attempt, exc)
+                try:
+                    page = self._drive.fetch(state.link if state else None)
+                except ResyncRequired:
+                    page = self._drive.fetch(None)
+                seen_at = self._clock()
+                snap = AclSnapshot() if page.full else self._repo.load_acl()
+                old = self._repo.load_acl()
+                refresh = self._merge_items(snap, page.items, full=page.full)
+                if page.full or ROOT_SCOPE not in snap.grants:
+                    refresh.add(ROOT_SCOPE)
+                self._refresh(snap, refresh)
+                return self._commit(old, snap, seen_at, attempt, page.link, found_by="delta")
+            except Exception as exc:
+                return self._failed(attempt, exc)
 
     # -- the safety net / the polling fallback --------------------------------------------------
 
     def verify_all(self, *, recheck_unique: bool = True) -> AclPollResult:
-        """Re-read every scope (and, by default, every item's unique flag); log what had drifted."""
+        """Re-read every scope (and, by default, every item's unique flag); log what had drifted.
+
+        Slow (tens of REST calls), so it runs in two phases: the reads happen WITHOUT the lock,
+        while the 5 s delta polls carry on; then, under the lock, only what no poll has touched
+        since the reads began is merged (a poll that finished meanwhile is newer than the
+        verification's read and must not be overwritten by it).
+        """
         attempt = self._clock()
         try:
-            old = self._repo.load_acl()
-            snap = self._repo.load_acl()
+            start = self._repo.load_acl()
+            work = copy.deepcopy(start)
             seen_at = self._clock()
             if recheck_unique:
-                for item_id, item in list(snap.items.items()):
+                for item_id, item in list(work.items.items()):
                     if self._tracked_parent(item):
-                        snap.items[item_id] = replace(item, unique=self._sp.has_unique(item))
-            self._refresh(snap, {ROOT_SCOPE, *(i for i, r in snap.items.items() if r.unique)})
-            state = self._repo.get_state(NAME)
-            return self._commit(
-                old, snap, seen_at, attempt, state.link if state else None, found_by="verify"
-            )
+                        work.items[item_id] = replace(item, unique=self._sp.has_unique(item))
+            self._refresh(work, {ROOT_SCOPE, *(i for i, r in work.items.items() if r.unique)})
+            with self._lock:
+                current = self._repo.load_acl()
+                merged = merge_verified(current, start, work)
+                state = self._repo.get_state(NAME)
+                return self._commit(
+                    current,
+                    merged,
+                    seen_at,
+                    attempt,
+                    state.link if state else None,
+                    found_by="verify",
+                )
         except Exception as exc:
             return self._failed(attempt, exc)
 
@@ -286,6 +306,24 @@ class AclStore:
             )
         )
         return AclPollResult(ok=False, error=error)
+
+
+def merge_verified(current: AclSnapshot, start: AclSnapshot, work: AclSnapshot) -> AclSnapshot:
+    """`current` plus what the verification read in `work`, except where `current` has moved on
+    since `start` (the snapshot the verification began from): there a delta poll already wrote
+    something newer, and it wins."""
+    result = copy.deepcopy(current)
+    for item_id, fresh in work.items.items():
+        if item_id in current.items and current.items[item_id] == start.items.get(item_id):
+            result.items[item_id] = fresh
+    for scope, grants in work.grants.items():
+        if current.grants.get(scope) == start.grants.get(scope):
+            result.grants[scope] = grants
+    for scope in [s for s in result.grants if s != ROOT_SCOPE]:
+        item = result.items.get(scope)
+        if item is None or not item.unique:
+            result.grants.pop(scope)  # no longer a scope of its own
+    return result
 
 
 def diff_events(

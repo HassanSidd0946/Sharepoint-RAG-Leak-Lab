@@ -2,10 +2,12 @@
 
 from collections.abc import Callable
 
-from leaklab.setup_b.state.model import ROOT_SCOPE, Grant
+from leaklab.setup_b.state.acl import merge_verified
+from leaklab.setup_b.state.model import ROOT_SCOPE, AclSnapshot, DocRecord, Grant
 from leaklab.setup_b.state.repository import StateRepository
 from leaklab.spec import generate_canaries
 from runner_fakes import SPEC
+from setup_b_fakes import FakeSharePointSource
 from setup_b_world import World
 
 Factory = Callable[[], StateRepository]
@@ -339,3 +341,76 @@ def test_a_directory_that_cannot_resolve_means_a_user_grant_denies(make_repo: Fa
     w.directory.fail = False
     w.sync()
     assert allowed(w, "p-ceo", CAN["special:f-direct-share"][0])
+
+
+class RacySharePoint(FakeSharePointSource):
+    """Returns the OLD answer for one scope, and only then lets a change happen and be polled: the
+    verification's read is then older than the store's state."""
+
+    def __init__(self, tenant: object, after_read: Callable[[], None]) -> None:
+        super().__init__(tenant)  # type: ignore[arg-type]
+        self.after_read: Callable[[], None] | None = after_read
+
+    def assignments(self, item: DocRecord | None):  # type: ignore[no-untyped-def]
+        result = super().assignments(item)
+        if item is not None and item.name == "S1-Direct" and self.after_read is not None:
+            hook, self.after_read = self.after_read, None
+            hook()
+        return result
+
+
+def test_a_poll_that_lands_during_the_verification_is_not_overwritten_by_it(
+    make_repo: Factory,
+) -> None:
+    w = World(make_repo())
+    w.sync()
+
+    def change_and_poll() -> None:  # runs between the verification's read and its merge
+        w.apply(
+            "grant_removed", target="S1-Direct", principal_kind="user", principal_ref="p-plateng"
+        )
+        assert w.acl.poll_once().ok  # the lock is free: the verification holds none while reading
+
+    w.acl._sp = RacySharePoint(w.tenant, change_and_poll)  # type: ignore[assignment]
+    assert allowed(w, "p-plateng", CAN["S1-Direct"][0])
+    result = w.acl.verify_all()
+    assert result.ok
+    assert not allowed(w, "p-plateng", CAN["S1-Direct"][0])  # the NEWER state survived the merge
+    verify_events = [e for e in w.repo.events("acl") if e.detail.get("found_by") == "verify"]
+    assert not [
+        e for e in verify_events if e.kind == "grant_added"
+    ]  # it did not resurrect the grant
+    assert w.acl.verify_all().events == 0  # and a later verification finds the store consistent
+
+
+def test_merge_verified_keeps_what_moved_on_and_takes_the_rest() -> None:
+    def item(i: str, unique: bool = False) -> DocRecord:
+        return DocRecord(i, i, "p", True, None, unique)
+
+    g_old, g_new, g_fresh = (Grant("user", u, "Read") for u in ("old@t", "new@t", "fresh@t"))
+    start = AclSnapshot(
+        {"a": item("a", True), "b": item("b", True)}, {"a": (g_old,), "b": (g_old,)}
+    )
+    current = AclSnapshot(
+        {"a": item("a", True), "b": item("b", True)}, {"a": (g_new,), "b": (g_old,)}
+    )  # a poll changed scope a while the verification was reading
+    work = AclSnapshot(
+        {"a": item("a", True), "b": item("b", True)}, {"a": (g_old,), "b": (g_fresh,)}
+    )
+    merged = merge_verified(current, start, work)
+    assert merged.grants["a"] == (g_new,)  # a: the poll's newer state wins
+    assert merged.grants["b"] == (
+        g_fresh,
+    )  # b: untouched meanwhile, the verification's read applies
+    assert current.grants["a"] == (g_new,)  # the inputs are not modified
+
+
+def test_merge_verified_drops_the_grants_of_a_scope_that_stopped_being_one() -> None:
+    def item(i: str, unique: bool) -> DocRecord:
+        return DocRecord(i, i, "p", True, None, unique)
+
+    g = Grant("user", "a@t", "Read")
+    start = AclSnapshot({"a": item("a", True)}, {"a": (g,)})
+    work = AclSnapshot({"a": item("a", False)}, {"a": (g,)})  # inheritance came back
+    merged = merge_verified(start, start, work)
+    assert merged.items["a"].unique is False and "a" not in merged.grants

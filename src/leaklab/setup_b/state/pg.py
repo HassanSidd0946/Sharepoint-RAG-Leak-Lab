@@ -22,6 +22,7 @@ from contextlib import contextmanager
 from typing import Any
 
 import psycopg
+from psycopg.conninfo import conninfo_to_dict
 
 from leaklab.setup_b.state.model import (
     AclSnapshot,
@@ -64,9 +65,14 @@ class PgRepository:
         self._dsn = dsn
         self._schema = schema
         self._lock = threading.RLock()
-        with psycopg.connect(dsn, autocommit=True) as boot:
-            boot.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
-        self._conn = psycopg.connect(dsn, options=f"-c search_path={schema}")
+        try:
+            with psycopg.connect(dsn, autocommit=True, connect_timeout=10) as boot:
+                boot.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
+        except (psycopg.OperationalError, psycopg.ProgrammingError) as exc:
+            raise RuntimeError(
+                _unreachable(dsn, exc)
+            ) from None  # never echo the DSN: it has the password
+        self._conn = psycopg.connect(dsn, options=f"-c search_path={schema}", connect_timeout=10)
         with self._conn.transaction():
             self._conn.execute(SCHEMA_SQL)
 
@@ -232,6 +238,23 @@ class PgRepository:
             (source, source),
         )
         return [Event(s, k, sub, dict(d), seen, applied) for s, k, sub, d, seen, applied in rows]
+
+
+def _unreachable(dsn: str, exc: Exception) -> str:
+    """Why Postgres could not be reached, with host/port/database/user but NEVER the password."""
+    try:
+        info = conninfo_to_dict(dsn)
+    except psycopg.ProgrammingError:
+        return "LEAKLAB_PG_DSN is not a valid PostgreSQL connection string"
+    where = (
+        f"host={info.get('host', 'localhost')} port={info.get('port', 5432)} "
+        f"dbname={info.get('dbname', '?')} user={info.get('user', '?')}"
+    )
+    first = str(exc).strip().splitlines()[0] if str(exc).strip() else type(exc).__name__
+    return (
+        f"cannot connect to PostgreSQL ({where}): {first}. For docker-compose.yml the DSN is "
+        "postgresql://leaklab:<LEAKLAB_PG_PASSWORD>@127.0.0.1:5433/leaklab"
+    )
 
 
 def _kind(value: str) -> MemberKind:

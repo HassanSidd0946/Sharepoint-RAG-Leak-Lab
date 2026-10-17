@@ -130,3 +130,15 @@ def test_a_nested_atomic_block_rolls_back_with_the_outer_one(make_repo: Factory)
             repo.save_acl(snapshot())
         raise RuntimeError("outer fails")
     assert repo.load_directory() == {} and repo.load_acl().items == {}
+
+
+def test_an_unreachable_postgres_is_explained_without_leaking_the_password() -> None:
+    from leaklab.setup_b.state.pg import PgRepository
+
+    with pytest.raises(RuntimeError) as err:
+        PgRepository("postgresql://leaklab:Sup3rSecret@127.0.0.1:1/leaklab")  # nothing listens on 1
+    message = str(err.value)
+    assert "port=1" in message and "dbname=leaklab" in message and "user=leaklab" in message
+    assert "Sup3rSecret" not in message and "5433" in message  # the hint names the compose port
+    with pytest.raises(RuntimeError, match="not a valid"):
+        PgRepository("this is not a dsn=")
