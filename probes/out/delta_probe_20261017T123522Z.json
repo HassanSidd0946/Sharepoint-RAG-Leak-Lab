@@ -1,0 +1,1396 @@
+{
+  "started_utc": "2026-10-17T12:18:55.955877+00:00",
+  "header_sets": {
+    "A_none": {},
+    "B_hierarchicalsharing": {
+      "Prefer": "hierarchicalsharing"
+    },
+    "C_three_headers": {
+      "Prefer": "deltashowremovedasdeleted, deltatraversepermissiongaps, deltashowsharingchanges"
+    },
+    "D_three_plus_hierarchicalsharing": {
+      "Prefer": "deltashowremovedasdeleted, deltatraversepermissiongaps, deltashowsharingchanges, hierarchicalsharing"
+    }
+  },
+  "changes": [
+    {
+      "change": "1a remove p-plateng Read on folder S1-Direct",
+      "per_header_set": {
+        "A_none": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "B_hierarchicalsharing": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "C_three_headers": {
+          "first_seen_after_s": 4.7,
+          "item_count": 3,
+          "items": [
+            {
+              "name": "root",
+              "kind": "folder",
+              "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdDateTime",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "root",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "ll-lab",
+              "kind": "folder",
+              "id": "01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "S1-Direct",
+              "kind": "folder",
+              "id": "01RQLOFTSHUNWX5X2AQJDI3GZN2RDNZGTE",
+              "annotations_and_sharing": {
+                "@microsoft.graph.sharedChanged": true,
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@microsoft.graph.sharedChanged",
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            }
+          ],
+          "sharedChanged_true": [
+            "S1-Direct"
+          ]
+        },
+        "D_three_plus_hierarchicalsharing": {
+          "first_seen_after_s": 5.2,
+          "item_count": 3,
+          "items": [
+            {
+              "name": "root",
+              "kind": "folder",
+              "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {}
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdDateTime",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "root",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "ll-lab",
+              "kind": "folder",
+              "id": "01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "S1-Direct",
+              "kind": "folder",
+              "id": "01RQLOFTSHUNWX5X2AQJDI3GZN2RDNZGTE",
+              "annotations_and_sharing": {
+                "@microsoft.graph.sharedChanged": true,
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@microsoft.graph.sharedChanged",
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            }
+          ],
+          "sharedChanged_true": [
+            "S1-Direct"
+          ]
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 2.77,
+        "note": "removed 1 role binding(s)"
+      }
+    },
+    {
+      "change": "1b add it back",
+      "per_header_set": {
+        "A_none": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "B_hierarchicalsharing": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "C_three_headers": {
+          "first_seen_after_s": 5.3,
+          "item_count": 3,
+          "items": [
+            {
+              "name": "root",
+              "kind": "folder",
+              "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdDateTime",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "root",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "ll-lab",
+              "kind": "folder",
+              "id": "01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "S1-Direct",
+              "kind": "folder",
+              "id": "01RQLOFTSHUNWX5X2AQJDI3GZN2RDNZGTE",
+              "annotations_and_sharing": {
+                "@microsoft.graph.sharedChanged": true,
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@microsoft.graph.sharedChanged",
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            }
+          ],
+          "sharedChanged_true": [
+            "S1-Direct"
+          ]
+        },
+        "D_three_plus_hierarchicalsharing": {
+          "first_seen_after_s": 5.7,
+          "item_count": 3,
+          "items": [
+            {
+              "name": "root",
+              "kind": "folder",
+              "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {}
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdDateTime",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "root",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "ll-lab",
+              "kind": "folder",
+              "id": "01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "S1-Direct",
+              "kind": "folder",
+              "id": "01RQLOFTSHUNWX5X2AQJDI3GZN2RDNZGTE",
+              "annotations_and_sharing": {
+                "@microsoft.graph.sharedChanged": true,
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@microsoft.graph.sharedChanged",
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            }
+          ],
+          "sharedChanged_true": [
+            "S1-Direct"
+          ]
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 2.68,
+        "note": ""
+      }
+    },
+    {
+      "change": "2a remove p-hr Read on file f-direct-share",
+      "per_header_set": {
+        "A_none": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "B_hierarchicalsharing": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "C_three_headers": {
+          "first_seen_after_s": 6.0,
+          "item_count": 4,
+          "items": [
+            {
+              "name": "root",
+              "kind": "folder",
+              "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdDateTime",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "root",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "ll-lab",
+              "kind": "folder",
+              "id": "01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "General",
+              "kind": "folder",
+              "id": "01RQLOFTSTFR2Y43B2IZH2QZHWGRK3K6WP",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "offer-letter-draft.txt",
+              "kind": "file",
+              "id": "01RQLOFTWJQF52H45MSZC3PGYAVP5QPTWF",
+              "annotations_and_sharing": {
+                "@microsoft.graph.sharedChanged": true,
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@microsoft.graph.sharedChanged",
+                "@odata.type",
+                "cTag",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "file",
+                "fileSystemInfo",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            }
+          ],
+          "sharedChanged_true": [
+            "offer-letter-draft.txt"
+          ]
+        },
+        "D_three_plus_hierarchicalsharing": {
+          "first_seen_after_s": 6.4,
+          "item_count": 4,
+          "items": [
+            {
+              "name": "root",
+              "kind": "folder",
+              "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {}
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdDateTime",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "root",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "ll-lab",
+              "kind": "folder",
+              "id": "01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "General",
+              "kind": "folder",
+              "id": "01RQLOFTSTFR2Y43B2IZH2QZHWGRK3K6WP",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "offer-letter-draft.txt",
+              "kind": "file",
+              "id": "01RQLOFTWJQF52H45MSZC3PGYAVP5QPTWF",
+              "annotations_and_sharing": {
+                "@microsoft.graph.sharedChanged": true,
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@microsoft.graph.sharedChanged",
+                "@odata.type",
+                "cTag",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "file",
+                "fileSystemInfo",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            }
+          ],
+          "sharedChanged_true": [
+            "offer-letter-draft.txt"
+          ]
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 2.84,
+        "note": "removed 1 role binding(s)"
+      }
+    },
+    {
+      "change": "2b add it back",
+      "per_header_set": {
+        "A_none": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "B_hierarchicalsharing": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "C_three_headers": {
+          "first_seen_after_s": 5.1,
+          "item_count": 4,
+          "items": [
+            {
+              "name": "root",
+              "kind": "folder",
+              "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdDateTime",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "root",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "ll-lab",
+              "kind": "folder",
+              "id": "01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "General",
+              "kind": "folder",
+              "id": "01RQLOFTSTFR2Y43B2IZH2QZHWGRK3K6WP",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "offer-letter-draft.txt",
+              "kind": "file",
+              "id": "01RQLOFTWJQF52H45MSZC3PGYAVP5QPTWF",
+              "annotations_and_sharing": {
+                "@microsoft.graph.sharedChanged": true,
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@microsoft.graph.sharedChanged",
+                "@odata.type",
+                "cTag",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "file",
+                "fileSystemInfo",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            }
+          ],
+          "sharedChanged_true": [
+            "offer-letter-draft.txt"
+          ]
+        },
+        "D_three_plus_hierarchicalsharing": {
+          "first_seen_after_s": 5.4,
+          "item_count": 4,
+          "items": [
+            {
+              "name": "root",
+              "kind": "folder",
+              "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {}
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdDateTime",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "root",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "ll-lab",
+              "kind": "folder",
+              "id": "01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "General",
+              "kind": "folder",
+              "id": "01RQLOFTSTFR2Y43B2IZH2QZHWGRK3K6WP",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "offer-letter-draft.txt",
+              "kind": "file",
+              "id": "01RQLOFTWJQF52H45MSZC3PGYAVP5QPTWF",
+              "annotations_and_sharing": {
+                "@microsoft.graph.sharedChanged": true,
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@microsoft.graph.sharedChanged",
+                "@odata.type",
+                "cTag",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "file",
+                "fileSystemInfo",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            }
+          ],
+          "sharedChanged_true": [
+            "offer-letter-draft.txt"
+          ]
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 2.64,
+        "note": ""
+      }
+    },
+    {
+      "change": "3a remove p-plateng from SharePoint group sp-s1-spgroup",
+      "per_header_set": {
+        "A_none": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "B_hierarchicalsharing": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "C_three_headers": {
+          "first_seen_after_s": 7.3,
+          "item_count": 3,
+          "items": [
+            {
+              "name": "root",
+              "kind": "folder",
+              "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdDateTime",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "root",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "ll-lab",
+              "kind": "folder",
+              "id": "01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "S1-SPGroup",
+              "kind": "folder",
+              "id": "01RQLOFTQACJXO4Y3MNRDK7TFMOWWFWAXK",
+              "annotations_and_sharing": {
+                "@microsoft.graph.sharedChanged": true,
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@microsoft.graph.sharedChanged",
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            }
+          ],
+          "sharedChanged_true": [
+            "S1-SPGroup"
+          ]
+        },
+        "D_three_plus_hierarchicalsharing": {
+          "first_seen_after_s": 7.8,
+          "item_count": 3,
+          "items": [
+            {
+              "name": "root",
+              "kind": "folder",
+              "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {}
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdDateTime",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "root",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "ll-lab",
+              "kind": "folder",
+              "id": "01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "S1-SPGroup",
+              "kind": "folder",
+              "id": "01RQLOFTQACJXO4Y3MNRDK7TFMOWWFWAXK",
+              "annotations_and_sharing": {
+                "@microsoft.graph.sharedChanged": true,
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@microsoft.graph.sharedChanged",
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            }
+          ],
+          "sharedChanged_true": [
+            "S1-SPGroup"
+          ]
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 2.8,
+        "note": ""
+      }
+    },
+    {
+      "change": "3b add back",
+      "per_header_set": {
+        "A_none": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "B_hierarchicalsharing": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "C_three_headers": {
+          "first_seen_after_s": 8.3,
+          "item_count": 3,
+          "items": [
+            {
+              "name": "root",
+              "kind": "folder",
+              "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdDateTime",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "root",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "ll-lab",
+              "kind": "folder",
+              "id": "01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "S1-SPGroup",
+              "kind": "folder",
+              "id": "01RQLOFTQACJXO4Y3MNRDK7TFMOWWFWAXK",
+              "annotations_and_sharing": {
+                "@microsoft.graph.sharedChanged": true,
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@microsoft.graph.sharedChanged",
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            }
+          ],
+          "sharedChanged_true": [
+            "S1-SPGroup"
+          ]
+        },
+        "D_three_plus_hierarchicalsharing": {
+          "first_seen_after_s": 8.7,
+          "item_count": 3,
+          "items": [
+            {
+              "name": "root",
+              "kind": "folder",
+              "id": "01RQLOFTV6Y2GOVW7725BZO354PWSELRRZ",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {}
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdDateTime",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "root",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "ll-lab",
+              "kind": "folder",
+              "id": "01RQLOFTV7MCASOMDVUNFJX34CFWSMHP3X",
+              "annotations_and_sharing": {
+                "@odata.type": "#microsoft.graph.driveItem"
+              },
+              "all_keys": [
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "size",
+                "webUrl"
+              ]
+            },
+            {
+              "name": "S1-SPGroup",
+              "kind": "folder",
+              "id": "01RQLOFTQACJXO4Y3MNRDK7TFMOWWFWAXK",
+              "annotations_and_sharing": {
+                "@microsoft.graph.sharedChanged": true,
+                "@odata.type": "#microsoft.graph.driveItem",
+                "shared": {
+                  "scope": "users"
+                }
+              },
+              "all_keys": [
+                "@microsoft.graph.sharedChanged",
+                "@odata.type",
+                "createdBy",
+                "createdDateTime",
+                "eTag",
+                "fileSystemInfo",
+                "folder",
+                "id",
+                "isAuthoritative",
+                "lastModifiedBy",
+                "lastModifiedDateTime",
+                "name",
+                "parentReference",
+                "shared",
+                "size",
+                "webUrl"
+              ]
+            }
+          ],
+          "sharedChanged_true": [
+            "S1-SPGroup"
+          ]
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 2.28,
+        "note": ""
+      }
+    },
+    {
+      "change": "4a remove p-plateng from Entra group grp-s1-entra",
+      "per_header_set": {
+        "A_none": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "B_hierarchicalsharing": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "C_three_headers": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "D_three_plus_hierarchicalsharing": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 5.9,
+        "note": "witness user p-plateng"
+      }
+    },
+    {
+      "change": "4b add back",
+      "per_header_set": {
+        "A_none": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "B_hierarchicalsharing": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "C_three_headers": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        },
+        "D_three_plus_hierarchicalsharing": {
+          "first_seen_after_s": null,
+          "item_count": 0,
+          "items": [],
+          "sharedChanged_true": []
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 10.29,
+        "note": "witness user p-plateng"
+      }
+    }
+  ],
+  "initial_status": {
+    "A_none": 200,
+    "B_hierarchicalsharing": 200,
+    "C_three_headers": 200,
+    "D_three_plus_hierarchicalsharing": 200
+  },
+  "restore": {
+    "users_reused": 11,
+    "groups_reused": 8,
+    "members_already": 18,
+    "sp_groups_reused": 1,
+    "sp_members_already": 1,
+    "folders_reused": 10,
+    "files_reused": 43
+  }
+}

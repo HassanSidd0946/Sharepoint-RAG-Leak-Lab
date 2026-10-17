@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     usage_location: str = ""  # two-letter country code, needed before assigning licenses
     # Setup A (Azure AI Search). The endpoint is not secret; the ingestion app secret IS.
     search_endpoint: str = ""  # https://<service>.search.windows.net
+    # Setup B state (docker-compose.yml): postgresql://leaklab:<password>@127.0.0.1:5433/leaklab
+    pg_dsn: SecretStr = SecretStr("")  # contains the database password: never logged or saved
     search_key: SecretStr = SecretStr("")  # that service's ADMIN key (never logged or saved)
     ingest_app_id: str = (
         ""  # Entra app the SharePoint INDEXER signs in as (application permissions)

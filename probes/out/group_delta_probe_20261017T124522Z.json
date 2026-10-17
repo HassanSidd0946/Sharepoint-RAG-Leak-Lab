@@ -1,0 +1,539 @@
+{
+  "started_utc": "2026-10-17T12:36:17.573876+00:00",
+  "changes": [
+    {
+      "change": "1a remove p-plateng from grp-s1-entra",
+      "feeds": {
+        "default": {
+          "first_seen_after_s": 22.4,
+          "our_groups_returned": [
+            "grp-s1-entra"
+          ],
+          "objects": [
+            {
+              "id": "4fa06b9c-0640-4c3a-9c48-f25ea07fdd83",
+              "displayName": "ll-grp-s1-entra",
+              "keys": [
+                "displayName",
+                "id",
+                "members@delta"
+              ],
+              "removed": null,
+              "members_delta": [
+                {
+                  "@odata.type": "#microsoft.graph.user",
+                  "id": "abb071c1-10bf-4821-9447-f1d19dfd53a1",
+                  "@removed": {
+                    "reason": "deleted"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "return_minimal": {
+          "first_seen_after_s": 22.8,
+          "our_groups_returned": [
+            "grp-s1-entra"
+          ],
+          "objects": [
+            {
+              "id": "4fa06b9c-0640-4c3a-9c48-f25ea07fdd83",
+              "displayName": null,
+              "keys": [
+                "id",
+                "members@delta"
+              ],
+              "removed": null,
+              "members_delta": [
+                {
+                  "@odata.type": "#microsoft.graph.user",
+                  "id": "abb071c1-10bf-4821-9447-f1d19dfd53a1",
+                  "@removed": {
+                    "reason": "deleted"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 18.37
+      }
+    },
+    {
+      "change": "1b add back",
+      "feeds": {
+        "default": {
+          "first_seen_after_s": 16.2,
+          "our_groups_returned": [
+            "grp-s1-entra"
+          ],
+          "objects": [
+            {
+              "id": "4fa06b9c-0640-4c3a-9c48-f25ea07fdd83",
+              "displayName": "ll-grp-s1-entra",
+              "keys": [
+                "displayName",
+                "id",
+                "members@delta"
+              ],
+              "removed": null,
+              "members_delta": [
+                {
+                  "@odata.type": "#microsoft.graph.user",
+                  "id": "abb071c1-10bf-4821-9447-f1d19dfd53a1"
+                }
+              ]
+            }
+          ]
+        },
+        "return_minimal": {
+          "first_seen_after_s": 16.5,
+          "our_groups_returned": [
+            "grp-s1-entra"
+          ],
+          "objects": [
+            {
+              "id": "4fa06b9c-0640-4c3a-9c48-f25ea07fdd83",
+              "displayName": null,
+              "keys": [
+                "id",
+                "members@delta"
+              ],
+              "removed": null,
+              "members_delta": [
+                {
+                  "@odata.type": "#microsoft.graph.user",
+                  "id": "abb071c1-10bf-4821-9447-f1d19dfd53a1"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 12.6
+      }
+    },
+    {
+      "change": "2a remove grp-eng-platform from grp-engineering",
+      "feeds": {
+        "default": {
+          "first_seen_after_s": 15.0,
+          "our_groups_returned": [
+            "grp-engineering"
+          ],
+          "objects": [
+            {
+              "id": "a9c38522-100f-49de-911e-4c77c0a4ce6d",
+              "displayName": "ll-grp-engineering",
+              "keys": [
+                "displayName",
+                "id",
+                "members@delta"
+              ],
+              "removed": null,
+              "members_delta": [
+                {
+                  "@odata.type": "#microsoft.graph.group",
+                  "id": "3a7aba6f-e754-4a7d-a89f-6df803ed9fae",
+                  "@removed": {
+                    "reason": "deleted"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "return_minimal": {
+          "first_seen_after_s": 15.3,
+          "our_groups_returned": [
+            "grp-engineering"
+          ],
+          "objects": [
+            {
+              "id": "a9c38522-100f-49de-911e-4c77c0a4ce6d",
+              "displayName": null,
+              "keys": [
+                "id",
+                "members@delta"
+              ],
+              "removed": null,
+              "members_delta": [
+                {
+                  "@odata.type": "#microsoft.graph.group",
+                  "id": "3a7aba6f-e754-4a7d-a89f-6df803ed9fae",
+                  "@removed": {
+                    "reason": "deleted"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 5.87
+      }
+    },
+    {
+      "change": "2b add back",
+      "feeds": {
+        "default": {
+          "first_seen_after_s": 16.8,
+          "our_groups_returned": [
+            "grp-engineering"
+          ],
+          "objects": [
+            {
+              "id": "a9c38522-100f-49de-911e-4c77c0a4ce6d",
+              "displayName": "ll-grp-engineering",
+              "keys": [
+                "displayName",
+                "id",
+                "members@delta"
+              ],
+              "removed": null,
+              "members_delta": [
+                {
+                  "@odata.type": "#microsoft.graph.group",
+                  "id": "3a7aba6f-e754-4a7d-a89f-6df803ed9fae"
+                }
+              ]
+            }
+          ]
+        },
+        "return_minimal": {
+          "first_seen_after_s": 11.5,
+          "our_groups_returned": [
+            "grp-engineering"
+          ],
+          "objects": [
+            {
+              "id": "a9c38522-100f-49de-911e-4c77c0a4ce6d",
+              "displayName": null,
+              "keys": [
+                "id",
+                "members@delta"
+              ],
+              "removed": null,
+              "members_delta": [
+                {
+                  "@odata.type": "#microsoft.graph.group",
+                  "id": "3a7aba6f-e754-4a7d-a89f-6df803ed9fae"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 1.02
+      }
+    },
+    {
+      "change": "3a remove p-plateng from grp-eng-platform",
+      "feeds": {
+        "default": {
+          "first_seen_after_s": 23.8,
+          "our_groups_returned": [
+            "grp-eng-platform"
+          ],
+          "objects": [
+            {
+              "id": "3a7aba6f-e754-4a7d-a89f-6df803ed9fae",
+              "displayName": "ll-grp-eng-platform",
+              "keys": [
+                "displayName",
+                "id",
+                "members@delta"
+              ],
+              "removed": null,
+              "members_delta": [
+                {
+                  "@odata.type": "#microsoft.graph.user",
+                  "id": "abb071c1-10bf-4821-9447-f1d19dfd53a1",
+                  "@removed": {
+                    "reason": "deleted"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "return_minimal": {
+          "first_seen_after_s": 24.1,
+          "our_groups_returned": [
+            "grp-eng-platform"
+          ],
+          "objects": [
+            {
+              "id": "3a7aba6f-e754-4a7d-a89f-6df803ed9fae",
+              "displayName": null,
+              "keys": [
+                "id",
+                "members@delta"
+              ],
+              "removed": null,
+              "members_delta": [
+                {
+                  "@odata.type": "#microsoft.graph.user",
+                  "id": "abb071c1-10bf-4821-9447-f1d19dfd53a1",
+                  "@removed": {
+                    "reason": "deleted"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 8.05
+      }
+    },
+    {
+      "change": "3b add back",
+      "feeds": {
+        "default": {
+          "first_seen_after_s": 14.2,
+          "our_groups_returned": [
+            "grp-eng-platform"
+          ],
+          "objects": [
+            {
+              "id": "3a7aba6f-e754-4a7d-a89f-6df803ed9fae",
+              "displayName": "ll-grp-eng-platform",
+              "keys": [
+                "displayName",
+                "id",
+                "members@delta"
+              ],
+              "removed": null,
+              "members_delta": [
+                {
+                  "@odata.type": "#microsoft.graph.user",
+                  "id": "abb071c1-10bf-4821-9447-f1d19dfd53a1"
+                }
+              ]
+            }
+          ]
+        },
+        "return_minimal": {
+          "first_seen_after_s": 14.6,
+          "our_groups_returned": [
+            "grp-eng-platform"
+          ],
+          "objects": [
+            {
+              "id": "3a7aba6f-e754-4a7d-a89f-6df803ed9fae",
+              "displayName": null,
+              "keys": [
+                "id",
+                "members@delta"
+              ],
+              "removed": null,
+              "members_delta": [
+                {
+                  "@odata.type": "#microsoft.graph.user",
+                  "id": "abb071c1-10bf-4821-9447-f1d19dfd53a1"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "applied": {
+        "status": "confirmed",
+        "confirmed_after_s": 10.68
+      }
+    }
+  ],
+  "initial_groups_total": 225,
+  "initial_our_groups": [
+    {
+      "id": "4fa06b9c-0640-4c3a-9c48-f25ea07fdd83",
+      "displayName": "ll-grp-s1-entra",
+      "keys": [
+        "displayName",
+        "id",
+        "members@delta"
+      ],
+      "removed": null,
+      "members_delta": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "abb071c1-10bf-4821-9447-f1d19dfd53a1"
+        }
+      ]
+    },
+    {
+      "id": "b6d06c1b-8596-40a6-a4a8-8db89252ecfb",
+      "displayName": "ll-grp-all-staff",
+      "keys": [
+        "displayName",
+        "id",
+        "members@delta"
+      ],
+      "removed": null,
+      "members_delta": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "9784f9a7-3828-48ff-8e70-d8f63b5477b4"
+        },
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "f6312739-77f1-406e-8292-85bfa1973692"
+        },
+        {
+          "@odata.type": "#microsoft.graph.group",
+          "id": "46215f48-3c54-4bf3-815b-df4d3ce8ca4c"
+        },
+        {
+          "@odata.type": "#microsoft.graph.group",
+          "id": "1be09f57-ccb2-43da-ba0a-dff428968eb9"
+        },
+        {
+          "@odata.type": "#microsoft.graph.group",
+          "id": "a9c38522-100f-49de-911e-4c77c0a4ce6d"
+        },
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "93586e6d-5765-4f24-8376-e5878a52731f"
+        }
+      ]
+    },
+    {
+      "id": "a9c38522-100f-49de-911e-4c77c0a4ce6d",
+      "displayName": "ll-grp-engineering",
+      "keys": [
+        "displayName",
+        "id",
+        "members@delta"
+      ],
+      "removed": null,
+      "members_delta": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "3fe47942-b3ea-4366-8aaa-595b44ecd040"
+        },
+        {
+          "@odata.type": "#microsoft.graph.group",
+          "id": "3a7aba6f-e754-4a7d-a89f-6df803ed9fae"
+        }
+      ]
+    },
+    {
+      "id": "46e4a79b-8382-49bd-9f02-a040db9941b8",
+      "displayName": "ll-grp-board",
+      "keys": [
+        "displayName",
+        "id",
+        "members@delta"
+      ],
+      "removed": null,
+      "members_delta": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "8299e3eb-56dc-4c9c-b139-e934306bf413"
+        },
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "9784f9a7-3828-48ff-8e70-d8f63b5477b4"
+        }
+      ]
+    },
+    {
+      "id": "3a7aba6f-e754-4a7d-a89f-6df803ed9fae",
+      "displayName": "ll-grp-eng-platform",
+      "keys": [
+        "displayName",
+        "id",
+        "members@delta"
+      ],
+      "removed": null,
+      "members_delta": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "abb071c1-10bf-4821-9447-f1d19dfd53a1"
+        },
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "376c6e7f-de55-4f25-afba-68b3cbf71cf5"
+        }
+      ]
+    },
+    {
+      "id": "3e76656e-a3e3-4806-96c2-d7bd411ba0d7",
+      "displayName": "ll-grp-finance-leads",
+      "keys": [
+        "displayName",
+        "id",
+        "members@delta"
+      ],
+      "removed": null,
+      "members_delta": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "22937ac3-fa34-4b88-bde6-5a2d8baedd7b"
+        }
+      ]
+    },
+    {
+      "id": "46215f48-3c54-4bf3-815b-df4d3ce8ca4c",
+      "displayName": "ll-grp-hr",
+      "keys": [
+        "displayName",
+        "id",
+        "members@delta"
+      ],
+      "removed": null,
+      "members_delta": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "3d0d55fa-4485-43b2-9c76-353242e2fc1d"
+        }
+      ]
+    },
+    {
+      "id": "1be09f57-ccb2-43da-ba0a-dff428968eb9",
+      "displayName": "ll-grp-finance",
+      "keys": [
+        "displayName",
+        "id",
+        "members@delta"
+      ],
+      "removed": null,
+      "members_delta": [
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "fb3c8b31-6466-4d5f-a45d-e337ee853b3a"
+        },
+        {
+          "@odata.type": "#microsoft.graph.user",
+          "id": "2f12adba-0f2c-46f1-8970-254c10b300f1"
+        },
+        {
+          "@odata.type": "#microsoft.graph.group",
+          "id": "3e76656e-a3e3-4806-96c2-d7bd411ba0d7"
+        }
+      ]
+    }
+  ],
+  "restore": {
+    "users_reused": 11,
+    "groups_reused": 8,
+    "members_already": 18,
+    "sp_groups_reused": 1,
+    "sp_members_already": 1,
+    "folders_reused": 10,
+    "files_reused": 43
+  }
+}

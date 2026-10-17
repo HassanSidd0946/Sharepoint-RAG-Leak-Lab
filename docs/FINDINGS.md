@@ -1390,6 +1390,79 @@ Times are seconds after the mutation's `confirmed_at`; "idx run" = when the firs
 - Stack: 385+ tests; the new code was checked with 18 planted bugs, all caught (15 first time, 3 after strengthening a test and
   fixing two mutant patterns).
 
+## Setup B: authoritative state (src/leaklab/setup_b/state/), Prompt 19a (2026-10-17)
+
+### Probe: does Graph drive delta report permission changes? YES, but only with three Prefer headers
+(probes/delta_probe.py, probes/out/delta_probe_20261017T123522Z.json; four header sets polled side by side every 5 s while
+real changes were made and undone; docs: graph/api/driveitem-delta)
+- A none, B `Prefer: hierarchicalsharing`: NOTHING reported for any permission change (0 items in 90 s, every change).
+- C `Prefer: deltashowremovedasdeleted, deltatraversepermissiongaps, deltashowsharingchanges` and D (C plus hierarchicalsharing):
+  the same, reported 4.7-8.7 s after the change (the 5 s poll included):
+  | change | items returned | flagged `@microsoft.graph.sharedChanged: true` |
+  | folder S1-Direct: grant removed / added | 3 (drive root, ll-lab, S1-Direct) | S1-Direct only |
+  | file offer-letter-draft.txt: grant removed / added | 4 (root, ll-lab, General, the file) | the file only |
+  | SharePoint group sp-s1-spgroup: member removed / added | 3 (root, ll-lab, S1-SPGroup) | S1-SPGroup only (the folder that grants to the group) |
+  | Entra group grp-s1-entra: member removed / added | 0 | nothing: an Entra membership change is NOT reported |
+  So the flag marks the SCOPE (the folder or file with its own role assignments); its children are not listed; the ancestors come
+  along unflagged; a SharePoint-group membership change is reported on the scopes that grant to the group.
+- Not probed: changes to the SITE ROOT's role assignments, breaking/restoring inheritance, deletes, moves.
+  Decision: acl_store uses the drive delta (3 headers, sent on EVERY call) as its 5 s signal, re-reads the unique flag of every
+  item the delta returns, re-reads the role assignments (REST, SharePoint groups expanded via REST) of flagged/new/newly-unique
+  scopes only, and runs `verify_all()` (every scope + every unique flag, root included) every 60 s as the safety net; a change first
+  seen by the verification is logged as found_by "verify". A pure polling fallback (`poll_scopes`: unique scopes + root every cycle) exists.
+
+### Probe: Graph group delta (probes/group_delta_probe.py, probes/out/group_delta_probe_*.json)
+- `GET /groups/delta?$select=displayName,members`: the tenant has 225 groups (system groups included); the first enumeration returns
+  each with its FULL membership in `members@delta` ({"@odata.type": #microsoft.graph.user or group, "id"}).
+- A removal arrives as the same entry plus `"@removed": {"reason": "deleted"}`; an addition without it.
+- ONLY the changed group appears: a user leaving a child group does not put the parent in the feed (nesting is computed locally).
+- `Prefer: return=minimal` on the delta link: only changed properties (no displayName), same latency.
+- Appears 11-24 s after the call (user and group members alike; the same lag as transitiveMemberOf).
+
+### What was built
+membership_store (group delta poll, edges + transitive closure table + directory, last_success_at, event log), acl_store (drive delta
++ REST, scope tree, grants with SharePoint groups expanded, event log), StateReader (decide/can_read/readable; fail closed: stale or
+never-succeeded pollers, unknown documents, unknown claims, unresolved users all DENY with a reason), PgRepository + MemoryRepository
+behind one StateRepository protocol, `python -m leaklab.setup_b.state up|once|status`, docker-compose.yml (Postgres 16, 127.0.0.1:5433,
+password only from LEAKLAB_PG_PASSWORD). Event log: every change has `seen_at` (the poll returned) and `applied_at` (just before the commit).
+- Every poll is ONE atomic commit (state + events + last_success_at). A failed poll changes nothing, records the error, and does NOT move
+  last_success_at. A dead link (HTTP 410) triggers a full re-enumeration whose events are only the differences.
+- Grant kinds: `unknown` (special claims such as "Everyone", the site's own groups as seen, an Entra group inside a SharePoint group) never
+  grant; "Limited Access" is dropped; only Read, Edit, Full Control grant read (as the oracle).
+- Closure: recomputed in full at every change (cycle-safe). Fine for tens of groups; at enterprise scale it needs an incremental update.
+
+### Bug found by the oracle property test (and fixed)
+Remove p-hr from grp-hr: the store stopped letting p-hr read the file p-hr has a DIRECT grant on. Cause: the directory (object id <-> UPN) only
+covered users who are members of some group; p-hr had left their only group, so the UPN of the user grant could no longer be matched to the
+id. Fix: directory.py covers every user in an edge OR named by a user grant. Regression tests added; a 250-example x 10-mutation run passes.
+
+### Verification
+- Contract tests run on the in-memory AND a real PostgreSQL 16 (embedded `pgserver`, or LEAKLAB_TEST_PG_DSN): same results.
+- Property test (Hypothesis, up to 6 mutations: grants on unique scopes for users/Entra groups/the SharePoint group, user and nested-group
+  membership changes, SharePoint-group members, file moves; plus each spec scenario): after the sequence, what the store says each persona may
+  read EQUALS the oracle's expected access, a further poll finds nothing, `verify_all()` finds no drift. The oracle is imported by tests only
+  (tests/test_setup_b_isolation.py scans src/ for it; setup_b does not import the spec either).
+- Planted bugs: 19 in the stores (no nesting, removals ignored, SharePoint groups not expanded, unknown/Limited Access granting, stale data
+  trusted, a flagged scope not re-read, container filter off, a failed poll moving last_success_at, events not logged, unique flag not re-read,
+  scope resolution wrong, closure not saved, memory repository without rollback, Postgres keeping old edges, deleted groups keeping edges):
+  all 19 caught.
+- LIVE (tests/test_setup_b_state_live.py, real Graph + SharePoint + embedded Postgres, 308 s): after the first sync the store equals the oracle
+  for all six personas; three real changes, seconds from the mutation call to the reader's new answer (p-plateng loses the arm):
+  direct grant removed 8.2 s (6.1 s after confirmed_at); SharePoint-group member removed 8.1 s (6.3 s); Entra-group member removed 9.6 s (4.0 s);
+  `verify_all` found 0 drift events; after the restore the store equals the oracle again. The call-to-answer times include apply_mutation's own
+  confirmation polling (several seconds) and the 5 s poll interval. Seen->applied per event 0-2.8 s (the REST reads inside a poll).
+  ONE run; the earlier group-delta probe saw 11-24 s for Entra changes, so expect that spread.
+
+### Limits and open questions
+- Docker: the Docker CLI is installed but Docker Desktop's engine would not start from this session (the Linux engine pipe never appeared), so
+  docker-compose.yml has NOT been run; the tests use the embedded Postgres. Run `docker compose up -d` and `python -m leaklab.setup_b.state once`
+  to check it.
+- Site-ROOT permission changes, inheritance break/restore, deletes and moves in the REAL drive delta were not probed; the fake delta used in the
+  tests emulates only what the probe showed. verify_all (60 s) is what bounds those.
+- Scale: the ACL snapshot is replaced whole at each change and the closure is recomputed whole; fine here, not for thousands of scopes.
+- Nested Entra groups inside SharePoint groups are not expanded (unverified; also not by Azure AI Search): they deny.
+- The reader does not talk to Graph or SharePoint: a user the directory could not resolve has no UPN, so user grants deny for them.
+
 ## Open questions
 
 - [ ] Persona sign-in works for two LICENSED users. Not yet tested: UNLICENSED personas (four in

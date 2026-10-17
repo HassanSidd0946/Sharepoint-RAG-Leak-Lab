@@ -1,0 +1,26 @@
+# PostgreSQL for Setup B's authoritative state (src/leaklab/setup_b/state).
+#
+#   docker compose up -d          (needs LEAKLAB_PG_PASSWORD in the environment or in .env)
+#   LEAKLAB_PG_DSN=postgresql://leaklab:<password>@127.0.0.1:5433/leaklab
+#
+# Listens on 127.0.0.1 only. The password is never written in this file.
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: leaklab
+      POSTGRES_PASSWORD: ${LEAKLAB_PG_PASSWORD:?set LEAKLAB_PG_PASSWORD in .env}
+      POSTGRES_DB: leaklab
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - leaklab-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leaklab -d leaklab"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  leaklab-pgdata:
