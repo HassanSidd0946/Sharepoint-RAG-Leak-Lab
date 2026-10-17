@@ -1454,9 +1454,18 @@ id. Fix: directory.py covers every user in an edge OR named by a user grant. Reg
   ONE run; the earlier group-delta probe saw 11-24 s for Entra changes, so expect that spread.
 
 ### Limits and open questions
-- Docker: the Docker CLI is installed but Docker Desktop's engine would not start from this session (the Linux engine pipe never appeared), so
-  docker-compose.yml has NOT been run; the tests use the embedded Postgres. Run `docker compose up -d` and `python -m leaklab.setup_b.state once`
-  to check it.
+- Docker (verified by the user, 2026-10-17): `docker compose up -d` pulled postgres:16 and started it healthy on 127.0.0.1:5433;
+  `python -m leaklab.setup_b.state once` then ran both stores against the real tenant on it (membership: full enumeration, 35 edges;
+  acl: 68 events for the first sync). The first attempt failed only because LEAKLAB_PG_DSN pointed at port 5432 / user postgres instead
+  of the compose database (5433, user and database `leaklab`); PgRepository now reports host/port/dbname/user (never the password) and
+  times out after 10 s.
+- Timings on the real tenant (compose Postgres): delta polls 0.4 s each when nothing changed (links persist across runs, so a restart
+  does not re-enumerate); the first ACL sync about 38 s; `verify_all` 29.5 s (every unique flag and every scope: tens of REST calls).
+- FIXED after measuring: in one sequential loop the 30 s verification held the membership poll back (membership age 38 s > the 30 s
+  freshness limit: the reader would have DENIED everything for those seconds). `up` now runs membership, ACL delta and verification as
+  three independent threads, and verify_all works in two phases (reads without the lock, then a merge under the lock that keeps whatever
+  a delta poll wrote meanwhile: merge_verified). Measured with `up` running 140 s (two verifications inside) and a second process sampling
+  the reader every 5 s: worst membership age 5.2 s, worst ACL age 5.2 s while running, 0 of 30 samples stale.
 - Site-ROOT permission changes, inheritance break/restore, deletes and moves in the REAL drive delta were not probed; the fake delta used in the
   tests emulates only what the probe showed. verify_all (60 s) is what bounds those.
 - Scale: the ACL snapshot is replaced whole at each change and the closure is recomputed whole; fine here, not for thousands of scopes.
