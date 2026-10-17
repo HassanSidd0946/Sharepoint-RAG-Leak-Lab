@@ -52,6 +52,7 @@ def _fmt(value: float | None) -> str:
 
 
 def render(report: RunReport) -> None:
+    out = console if console.is_terminal else Console(width=170)  # piped output: do not cut columns
     table = Table(title=f"run {report.run_id}")
     for column in (
         "scenario",
@@ -62,6 +63,7 @@ def render(report: RunReport) -> None:
         "leak s",
         "conformance s",
         "lockout s",
+        "idx run s",
         "err",
         "reads",
     ):
@@ -79,12 +81,13 @@ def render(report: RunReport) -> None:
             _fmt(r.leak_exposure_s),
             conformance,
             _fmt(r.lockout_s),
+            _fmt(r.first_indexer_run_end_after_change_s),
             str(r.errors),
             str(r.observations),
         )
-    console.print(table)
+    out.print(table)
     for note in report.notes:
-        console.print(f"[yellow]note: {note}[/yellow]")
+        out.print(f"[yellow]note: {note}[/yellow]")
 
 
 @app.command("run")

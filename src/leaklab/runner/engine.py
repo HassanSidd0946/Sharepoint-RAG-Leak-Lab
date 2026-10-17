@@ -179,6 +179,7 @@ class Engine:
             started = self.clock()
             pairs = sorted({pair for s in active for pair in s.plan.pairs})
             batch = self._read_cycle(pairs, cycle)
+            self._journal_system_events()
             self._feed(batch)
             for s in active:
                 self._advance(s)
@@ -218,6 +219,19 @@ class Engine:
             for system, pair in jobs:
                 record(self._safe_read(system, pair))
         return batch
+
+    def _journal_system_events(self) -> None:
+        """Events a system reports about itself (Setup A: indexer runs), journaled as they come."""
+        for system in self.systems:
+            drain = getattr(system, "drain_events", None)
+            if not callable(drain):
+                continue
+            try:
+                events = drain()
+            except Exception as exc:  # reporting must never stop the run
+                events = [{"kind": "drain_failed", "error": type(exc).__name__}]
+            for event in events:
+                self.journal.append({"type": "system_event", "system": system.name, **event})
 
     # -- judging reads --------------------------------------------------------------------------
 

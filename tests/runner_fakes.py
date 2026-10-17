@@ -13,6 +13,7 @@ perfect system). On top of that a test can inject:
   error_pairs   {pair: time}: from then on that pair ALWAYS errors (a persistently failing path)
   raise_every   every n-th read RAISES (a broken adapter); the engine must survive it
   crash_after   after this many reads raise KeyboardInterrupt (simulates a crash of the process)
+  indexer_every_s  report an indexer run this often through drain_events (like Setup A)
 Time comes from the same FakeClock as the generator, so reads and mutations share one timeline.
 """
 
@@ -42,6 +43,7 @@ class FakeSystem:
         error_pairs: Mapping[Pair, float] | None = None,
         raise_every: int = 0,
         crash_after: int | None = None,
+        indexer_every_s: float | None = None,
     ) -> None:
         self.name = name
         self._spec = spec
@@ -57,6 +59,8 @@ class FakeSystem:
         self._error_pairs = dict(error_pairs or {})
         self._raise_every = raise_every
         self._crash_after = crash_after
+        self._indexer_every = indexer_every_s
+        self._next_run: float | None = None
         self.reads = 0
         self.calls: list[tuple[float, Pair]] = []
         self.prepared: list[tuple[list[str], list[str]]] = []
@@ -68,6 +72,29 @@ class FakeSystem:
 
     def close(self) -> None:
         pass
+
+    def drain_events(self) -> list[dict[str, object]]:
+        """Like Setup A: report an indexer run every `indexer_every_s` seconds (3 s long)."""
+        if self._indexer_every is None:
+            return []
+        now = self._clock.time()
+        if self._next_run is None:
+            self._next_run = now + self._indexer_every
+        out: list[dict[str, object]] = []
+        while self._next_run <= now:
+            start = self._next_run
+            out.append(
+                {
+                    "kind": "indexer_run",
+                    "start": start,
+                    "end": start + 3.0,
+                    "status": "success",
+                    "items_processed": 2,
+                    "items_failed": 0,
+                }
+            )
+            self._next_run += self._indexer_every
+        return out
 
     def _intent(self) -> IntentTimeline:
         applied = self._applied()

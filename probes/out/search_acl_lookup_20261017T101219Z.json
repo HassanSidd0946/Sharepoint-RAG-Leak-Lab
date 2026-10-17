@@ -1,0 +1,90 @@
+{
+  "stage": "lookup",
+  "started_utc": "2026-10-17T10:11:55.999976+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "derived key equals the key the index stores (General doc 1)",
+      "t": 1792231931.019,
+      "http": 200,
+      "equal": false,
+      "note": "UNVERIFIED before this run"
+    },
+    {
+      "step": "admin key from LEAKLAB_SEARCH_KEY",
+      "t": 1792231932.362,
+      "http": 403,
+      "note": "403 = the key belongs to another service"
+    },
+    {
+      "step": "admin key from listAdminKeys (driver app, management plane)",
+      "t": 1792231935.5,
+      "http": 200
+    },
+    {
+      "step": "admin key obtained",
+      "t": 1792231935.504,
+      "result": true
+    },
+    {
+      "step": "lookup: General doc (p-intern may read): admin api-key only",
+      "t": 1792231937.568,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: General doc (p-intern may read): driver bearer only",
+      "t": 1792231937.855,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: General doc (p-intern may read): driver bearer + p-intern token",
+      "t": 1792231938.107,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: General doc (p-intern may read): driver bearer + p-ceo token",
+      "t": 1792231938.359,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: Board doc (p-intern may NOT read): admin api-key only",
+      "t": 1792231938.67,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: Board doc (p-intern may NOT read): driver bearer only",
+      "t": 1792231938.975,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: Board doc (p-intern may NOT read): driver bearer + p-intern token",
+      "t": 1792231939.243,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: Board doc (p-intern may NOT read): driver bearer + p-ceo token",
+      "t": 1792231939.502,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: a key that does not exist: driver bearer + p-intern token",
+      "t": 1792231939.742,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: a key that does not exist: admin api-key only",
+      "t": 1792231939.979,
+      "http": 404,
+      "result": ""
+    }
+  ]
+}

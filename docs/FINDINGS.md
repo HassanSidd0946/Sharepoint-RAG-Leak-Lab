@@ -1335,6 +1335,61 @@ What the plain configuration (no SharePoint-group setup) stored, per folder, in 
 - Consequence for the oracle/runner: for Setup A the admin must be treated as allowed everywhere (or excluded from comparison as now);
   `spg:` ids and "none" are values the Setup B overlay will meet if it reads the same index.
 
+### Prompt 18 probes: lookup by key, and the smallest indexer schedule (2026-10-17)
+(a) CAN A DOCUMENT BE FETCHED BY KEY WITH THE ADMIN KEY WHILE PERMISSION FILTERING IS ON?  NO.
+(probes/out/search_acl_lookup_*.json; the admin key was read from the management plane by the driver app, which holds Search
+Service Contributor, because the key in `.env` belonged to the other service: HTTP 403.)
+- The key of a document is derivable: URL-safe base64 of `<site id>::<drive id>::<drive item id>` where the item part is Graph's
+  driveItem id PLUS one extra character "5" (6 of 6 documents compared; after adding it, lookups by derived key succeeded).
+  `src/leaklab/setup_a/keys.py`. Empirical, not documented.
+- GET /indexes/{index}/docs/{key} answers: admin api-key only -> 404 (empty body) for a document that exists AND for one that does
+  not; driver bearer only -> 404; driver bearer + a user token that may read it -> 200; + a user token that may not -> 404.
+  So every lookup is ACL-trimmed, the admin key included (as the docs' November-2025 note says), and a 404 cannot tell "not indexed"
+  from "not allowed".
+- Consequence: setup_a_basic cannot use a lookup for its presence check. It uses evidence the filter cannot hide: (1) any persona
+  was served the canary through the system, or (2) the indexer completed a successful run with 0 failed items, none naming the
+  document, that STARTED after the document was created (Graph createdDateTime). Otherwise served=None, error "not_indexed"
+  ("presence_unknown" if the creation time is unknown), never served=False. Limit: (2) shows the run saw the document, not that the
+  index holds it. An elevated read would be the exact method but needs a signed-in user with Search Index Data Contributor (a
+  dedicated test user with that role would allow it from code; not set up).
+(b) THE SMALLEST INDEXER SCHEDULE: 5 minutes. Docs (search-howto-schedule-indexers): interval 5 minutes to 1,440 minutes (24 h),
+`P(nD)(T(nH)(nM))`, the interval is between the START of two runs, an overlapping run is postponed to the next slot. Set on the
+service: PT1M, PT2M and PT4M were all rejected (HTTP 400 "Indexing schedule interval 00:0nM is shorter than the shortest supported
+interval 00:05:00"); PT5M was accepted (204) and reads back as {"interval": "PT5M", "startTime": ...}. The indexer is on PT5M.
+`src/leaklab/setup_a/` (system "setup_a_basic"): client.py (SearchPort, HttpSearchPort), system.py (SetupABasic), provision.py
+(idempotent data source/index/indexer with PT5M; no SharePoint-group configuration), keys.py. Persona tokens are reused 120 s.
+Indexer runs are reported by the system (`drain_events`), journaled by the engine as `system_event` and shown in the report
+(`indexer_runs_after_change`, `first_indexer_run_end_after_change_s`, column "idx run s").
+
+### Setup 0 vs setup_a_basic, one run, same polling loop (2026-10-17; runs/run_20261017T102152Z.jsonl, git-ignored)
+`--scenario S1-direct --scenario S1-spgroup --scenario S1-entra --systems setup0,setup_a_basic`, 5 s cycle, baseline 5 reads per
+pair, n = 10, cap 60 min, one replicate, no errors in any of the 6,000+ reads. Setup A: indexer on PT5M (its runs ended every ~5 min).
+Times are seconds after the mutation's `confirmed_at`; "idx run" = when the first indexer run ENDED after the change.
+
+| scenario | system | first denial | leak exposure | converged | idx run | verdict |
+|---|---|---|---|---|---|---|
+| S1-direct | setup0 | 1.7 | 0.0 | 1.7 | - | OK |
+| S1-direct | setup_a_basic | 143.6 | 138.2 | 143.6 | 141.4 | LEAK |
+| S1-spgroup | setup0 | 4.8 | 0.0 | 4.8 | - | OK |
+| S1-spgroup | setup_a_basic | (nothing to revoke) | - | - | 162.8 | LOCKOUT |
+| S1-entra | setup0 | 2780.5 (46.3 min) | 3541.3 (59.0 min) | 3546.2 (59.1 min) | - | LEAK |
+| S1-entra | setup_a_basic | 249.2 (4.2 min) | 244.5 | 249.2 | 108.1 | LEAK |
+
+- S1-direct on Setup A: the document stayed served until the indexer run that ended 141.4 s after the change; the first denial
+  came 2.2 s after that run ended. So the exposure is the wait for the next scheduled run (<= 5 min + run time), not a property of
+  the query. (Setup 0: denied by the first read.)
+- S1-entra on Setup A: the indexer run that ended 108 s after the change did NOT matter; the denial came at 249 s, the query-time
+  membership lookup catching up (3 earlier samples: 187, ~295 s; now 249 s: the lag is 3-5 min, variable). Setup 0: first denial at
+  46.3 min, 10 denials in a row only at 59.1 min (the previous runner run, 2 hours earlier, flapped until the 60-minute cap).
+- S1-spgroup on Setup A: p-plateng was DENIED the S1-SPGroup documents the whole time (lockout 895 s = the baseline cap), so there
+  was nothing to revoke: the SharePoint-group grant is not honored by the basic configuration. The runner flags it (BASELINE_UNSTABLE,
+  `nothing_to_revoke` 2, convergence NOTHING_TO_REVOKE) and prints no revocation numbers for it. Setup 0 honored it (4.8 s).
+- Report fixes made after this run (the journal is unchanged): the baseline is now judged PER SYSTEM from that system's own reads
+  (the engine's baseline wait is joint, so Setup 0's S1-spgroup row had inherited "UNSTABLE" from Setup A; `baseline_joint` keeps
+  the engine's value); a revoked pair that was not served before the change reports no first denial/exposure.
+- Stack: 385+ tests; the new code was checked with 18 planted bugs, all caught (15 first time, 3 after strengthening a test and
+  fixing two mutant patterns).
+
 ## Open questions
 
 - [ ] Persona sign-in works for two LICENSED users. Not yet tested: UNLICENSED personas (four in

@@ -37,6 +37,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import httpx
 import typer
@@ -482,6 +483,124 @@ def notoken() -> None:
         )
 
     guarded("notoken", stage)
+
+
+def admin_key(search: Search, rec: Recorder) -> str | None:
+    """The service's ADMIN key, never printed or saved. First LEAKLAB_SEARCH_KEY (checked against
+    this endpoint: a key is per service); else the management plane (listAdminKeys), which the
+    driver app may call because search_provision.py gave it Search Service Contributor."""
+    key = get_settings().search_key.get_secret_value()
+    if key:
+        resp = httpx.get(
+            f"{search.endpoint}/servicestats?api-version={API}",
+            headers={"api-key": key},
+            timeout=60,
+        )
+        rec.step("admin key from LEAKLAB_SEARCH_KEY", http=resp.status_code, note="403 = the key belongs to another service")  # fmt: skip
+        if resp.status_code == 200:
+            return key
+    saved = ROOT / "runs" / "search_service.json"
+    if not saved.exists():
+        return None
+    info = json.loads(saved.read_text(encoding="utf-8"))
+    token = get_app_token("https://management.azure.com/.default")
+    url = (
+        f"https://management.azure.com/subscriptions/{info['subscription_id']}"
+        f"/resourceGroups/{info['resource_group']}/providers/Microsoft.Search"
+        f"/searchServices/{info['service']}/listAdminKeys?api-version=2023-11-01"
+    )
+    resp = httpx.post(url, headers={"Authorization": f"Bearer {token}"}, timeout=60)
+    rec.step("admin key from listAdminKeys (driver app, management plane)", http=resp.status_code)
+    return str(resp.json().get("primaryKey")) if resp.status_code == 200 else None
+
+
+@app.command()
+def lookup() -> None:
+    """Probe (a): can a document be fetched BY KEY with the admin key while ACL filtering is on?"""
+
+    def stage(rec: Recorder) -> None:
+        from leaklab.graph_client import GraphClient
+        from leaklab.runner.tenant import resolve_item_ids
+        from leaklab.setup_a.keys import doc_key
+
+        s = get_settings()
+        search = Search(endpoint_from_config())
+        spec = load_spec(SPEC_PATH)
+        canaries = generate_canaries(spec)
+        general, board = canaries["General"][0], canaries["Board"][0]
+        with GraphClient() as gc, open_env(SPEC_PATH) as env:
+            site = gc.get(f"/sites/{s.sp_host.strip()}:{urlsplit(s.site_url).path.rstrip('/')}")
+            drive = gc.get(f"/sites/{site['id']}/drive")
+            items = resolve_item_ids(env, [general, board])
+        keys = {c: doc_key(str(site["id"]), str(drive["id"]), items[c]) for c in (general, board)}
+        # the key as the INDEX stores it, read as p-intern (who may read General)
+        intern = f"{spec.naming.prefix}p-intern@{spec.naming.domain}"
+        ptoken = user_token(intern)
+        body = {"search": f'"{general}"', "select": "id,metadata_spo_item_name", "top": 1}
+        status, data = search.call("POST", f"/indexes/{INDEX}/docs/search", body, {"x-ms-query-source-authorization": ptoken})  # fmt: skip
+        stored = (data or {}).get("value", [{}])[0].get("id") if isinstance(data, dict) else None
+        rec.step("derived key equals the key the index stores (General doc 1)", http=status, equal=stored == keys[general], note="UNVERIFIED before this run")  # fmt: skip
+        key_for_api = admin_key(search, rec)
+        rec.step("admin key obtained", result=key_for_api is not None)
+        bearer = {"Authorization": f"Bearer {search.driver_token()}"}
+        ceo = f"{spec.naming.prefix}p-ceo@{spec.naming.domain}"
+        ctoken = user_token(ceo)
+        cases: list[tuple[str, str, dict[str, str]]] = []
+        for label, canary in (("General doc (p-intern may read)", general), ("Board doc (p-intern may NOT read)", board)):  # fmt: skip
+            if key_for_api:
+                cases.append(
+                    (f"{label}: admin api-key only", keys[canary], {"api-key": key_for_api})
+                )
+            cases += [
+                (f"{label}: driver bearer only", keys[canary], bearer),
+                (
+                    f"{label}: driver bearer + p-intern token",
+                    keys[canary],
+                    {**bearer, "x-ms-query-source-authorization": ptoken},
+                ),  # fmt: skip
+                (
+                    f"{label}: driver bearer + p-ceo token",
+                    keys[canary],
+                    {**bearer, "x-ms-query-source-authorization": ctoken},
+                ),  # fmt: skip
+            ]
+        cases.append(("a key that does not exist: driver bearer + p-intern token", doc_key("x", "y", "z"), {**bearer, "x-ms-query-source-authorization": ptoken}))  # fmt: skip
+        if key_for_api:
+            cases.append(("a key that does not exist: admin api-key only", doc_key("x", "y", "z"), {"api-key": key_for_api}))  # fmt: skip
+        http = httpx.Client(timeout=60)
+        for label, key, headers in cases:
+            resp = http.get(
+                f"{search.endpoint}/indexes/{INDEX}/docs/{key}",
+                params={"api-version": API, "$select": "metadata_spo_item_name"},
+                headers=headers,
+            )
+            rec.step(f"lookup: {label}", http=resp.status_code, result=resp.text[:200])
+
+    guarded("lookup", stage)
+
+
+@app.command()
+def schedule() -> None:
+    """Probe (b): the smallest indexer schedule the service accepts (docs: 5 minutes)."""
+
+    def stage(rec: Recorder) -> None:
+        search = Search(endpoint_from_config())
+        status, current = search.call("GET", f"/indexers/{INDEXER}")
+        rec.step("current indexer", http=status, schedule=(current or {}).get("schedule") if isinstance(current, dict) else None)  # fmt: skip
+        if not isinstance(current, dict):
+            return
+        for interval in ("PT1M", "PT2M", "PT4M", "PT5M"):
+            body = {k: v for k, v in current.items() if not k.startswith("@")}
+            body["schedule"] = {"interval": interval}
+            status, data = search.call("PUT", f"/indexers/{INDEXER}", body)
+            rec.step(f"set schedule {interval}", http=status, result=excerpt(data) if status >= 300 else "accepted")  # fmt: skip
+            if status < 300:
+                rec.data["smallest_accepted"] = interval
+                break
+        status, after = search.call("GET", f"/indexers/{INDEXER}")
+        rec.step("indexer after", http=status, schedule=(after or {}).get("schedule") if isinstance(after, dict) else None)  # fmt: skip
+
+    guarded("schedule", stage)
 
 
 @app.command()

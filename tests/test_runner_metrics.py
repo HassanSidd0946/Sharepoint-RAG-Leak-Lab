@@ -167,6 +167,13 @@ def test_a_revoked_pair_that_was_not_served_before_the_change_has_nothing_to_rev
     events += [obs("p-plateng", D1, float(ts), False, 20) for ts in range(1010, 1060, 10)]
     [r] = build_report(SPEC, events).results
     assert f"p-plateng:{D1}" in r.nothing_to_revoke
+    # and its "revocation numbers" are not reported at all: nothing was served, nothing was revoked
+    assert r.time_to_first_deny_s is None and r.leak_exposure_s is None
+    assert r.convergence == "NOTHING_TO_REVOKE" and r.time_to_conformance_s is None
+    assert r.pairs_never_denied == []
+    assert {p.convergence for p in r.pairs if p.role == "revoking"} == {"NOTHING_TO_REVOKE"}
+    for p in (p for p in r.pairs if p.role == "revoking"):  # also per pair, not only in the total
+        assert p.time_to_first_deny_s is None and p.leak_exposure_s is None
     assert any("nothing to revoke" in n for n in build_report(SPEC, events).notes)
     assert r.lockout_s is not None  # it was denied while intent allowed it, before the change
 
@@ -188,12 +195,41 @@ def test_an_unconfirmed_mutation_is_not_scored() -> None:
     assert r.mutation_status == "unconfirmed" and r.convergence == "NOT_RUN" and r.t_change is None
 
 
-def test_an_unstable_baseline_is_noted() -> None:
-    events = full_journal()
+def test_an_unstable_baseline_is_noted_and_judged_from_the_systems_own_reads() -> None:
+    events = [
+        e
+        for e in full_journal()
+        if not (e["type"] == "obs" and e["ts"] < 1000.0 and e["canary"] == PLAT)
+    ]
+    for k, ts in enumerate(range(900, 1000, 10)):
+        events.insert(3, obs("p-plateng", PLAT, float(ts), False, k))  # denied while intent allowed
     events[2] = {"type": "baseline_done", "scenario": "S1-direct", "status": "BASELINE_UNSTABLE"}
     report = build_report(SPEC, events)
     assert report.results[0].baseline_status == "BASELINE_UNSTABLE"
+    assert report.results[0].baseline_joint == "BASELINE_UNSTABLE"
     assert any("never became stable" in n for n in report.notes)
+
+
+def test_the_baseline_is_judged_per_system_not_by_the_joint_decision() -> None:
+    """Two systems share one baseline decision; a system that was fine must not inherit the other's
+    failure (live case: setup_a_basic could not serve the SharePoint-group arm, setup0 could)."""
+    events = full_journal()
+    events[0] = {**events[0], "systems": ["good", "bad"]}
+    events[2] = {"type": "baseline_done", "scenario": "S1-direct", "status": "BASELINE_UNSTABLE"}
+    good = [{**e, "system": "good"} for e in events if e["type"] == "obs"]
+    bad = [
+        {**e, "system": "bad", "served": False if e["persona"] == "p-plateng" else e["served"]}
+        for e in events
+        if e["type"] == "obs"
+    ]
+    rest = [e for e in events if e["type"] != "obs"]
+    report = build_report(SPEC, rest + good + bad)
+    by = {r.system: r for r in report.results}
+    assert by["good"].baseline_status == "BASELINE_OK"
+    assert by["bad"].baseline_status == "BASELINE_UNSTABLE"
+    assert by["good"].baseline_joint == by["bad"].baseline_joint == "BASELINE_UNSTABLE"
+    notes = " ".join(report.notes)
+    assert "S1-direct/bad" in notes and "S1-direct/good: the baseline" not in notes
 
 
 def test_a_journal_without_a_header_is_refused() -> None:

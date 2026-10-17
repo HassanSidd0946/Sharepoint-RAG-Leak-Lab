@@ -1,0 +1,90 @@
+{
+  "stage": "lookup",
+  "started_utc": "2026-10-17T10:14:35.638791+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "derived key equals the key the index stores (General doc 1)",
+      "t": 1792232090.323,
+      "http": 200,
+      "equal": true,
+      "note": "UNVERIFIED before this run"
+    },
+    {
+      "step": "admin key from LEAKLAB_SEARCH_KEY",
+      "t": 1792232091.7,
+      "http": 403,
+      "note": "403 = the key belongs to another service"
+    },
+    {
+      "step": "admin key from listAdminKeys (driver app, management plane)",
+      "t": 1792232095.054,
+      "http": 200
+    },
+    {
+      "step": "admin key obtained",
+      "t": 1792232095.054,
+      "result": true
+    },
+    {
+      "step": "lookup: General doc (p-intern may read): admin api-key only",
+      "t": 1792232097.293,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: General doc (p-intern may read): driver bearer only",
+      "t": 1792232097.565,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: General doc (p-intern may read): driver bearer + p-intern token",
+      "t": 1792232098.639,
+      "http": 200,
+      "result": "{\"@odata.context\":\"https://leaklab-search-772918cf.search.windows.net/indexes('ll-sp-index')/$metadata#docs(*)/$entity\",\"metadata_spo_item_name\":\"ll-gen-01.txt\"}"
+    },
+    {
+      "step": "lookup: General doc (p-intern may read): driver bearer + p-ceo token",
+      "t": 1792232098.893,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: Board doc (p-intern may NOT read): admin api-key only",
+      "t": 1792232099.135,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: Board doc (p-intern may NOT read): driver bearer only",
+      "t": 1792232099.389,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: Board doc (p-intern may NOT read): driver bearer + p-intern token",
+      "t": 1792232099.649,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: Board doc (p-intern may NOT read): driver bearer + p-ceo token",
+      "t": 1792232099.954,
+      "http": 200,
+      "result": "{\"@odata.context\":\"https://leaklab-search-772918cf.search.windows.net/indexes('ll-sp-index')/$metadata#docs(*)/$entity\",\"metadata_spo_item_name\":\"ll-brd-01.txt\"}"
+    },
+    {
+      "step": "lookup: a key that does not exist: driver bearer + p-intern token",
+      "t": 1792232100.251,
+      "http": 404,
+      "result": ""
+    },
+    {
+      "step": "lookup: a key that does not exist: admin api-key only",
+      "t": 1792232100.501,
+      "http": 404,
+      "result": ""
+    }
+  ]
+}

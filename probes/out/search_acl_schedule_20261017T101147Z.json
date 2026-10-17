@@ -1,0 +1,62 @@
+{
+  "stage": "schedule",
+  "started_utc": "2026-10-17T10:11:12.896085+00:00",
+  "api_version": "2026-08-01-preview",
+  "steps": [
+    {
+      "step": "current indexer",
+      "t": 1792231878.158,
+      "http": 200,
+      "schedule": null
+    },
+    {
+      "step": "set schedule PT1M",
+      "t": 1792231878.975,
+      "http": 400,
+      "result": {
+        "error": {
+          "code": "",
+          "message": "Indexing schedule interval 00:01:00 is shorter than the shortest supported interval 00:05:00"
+        }
+      }
+    },
+    {
+      "step": "set schedule PT2M",
+      "t": 1792231879.282,
+      "http": 400,
+      "result": {
+        "error": {
+          "code": "",
+          "message": "Indexing schedule interval 00:02:00 is shorter than the shortest supported interval 00:05:00"
+        }
+      }
+    },
+    {
+      "step": "set schedule PT4M",
+      "t": 1792231879.569,
+      "http": 400,
+      "result": {
+        "error": {
+          "code": "",
+          "message": "Indexing schedule interval 00:04:00 is shorter than the shortest supported interval 00:05:00"
+        }
+      }
+    },
+    {
+      "step": "set schedule PT5M",
+      "t": 1792231907.364,
+      "http": 204,
+      "result": "accepted"
+    },
+    {
+      "step": "indexer after",
+      "t": 1792231907.6,
+      "http": 200,
+      "schedule": {
+        "interval": "PT5M",
+        "startTime": "2026-10-17T10:11:18.597Z"
+      }
+    }
+  ],
+  "smallest_accepted": "PT5M"
+}

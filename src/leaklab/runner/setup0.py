@@ -47,13 +47,15 @@ class TokenCache:
         margin_s: float = 300.0,
         backoff_s: float = 30.0,
         lifetime_if_unknown_s: float = 600.0,
+        max_age_s: float | None = None,
     ) -> None:
         self._source = source
         self._clock = clock
         self._margin_s = margin_s
         self._backoff_s = backoff_s
         self._unknown_s = lifetime_if_unknown_s
-        self._tokens: dict[str, tuple[str, float]] = {}
+        self._max_age_s = max_age_s  # also renew a token this old, whatever its expiry says
+        self._tokens: dict[str, tuple[str, float, float]] = {}
         self._failed: dict[str, tuple[float, str]] = {}
         self._lock = threading.Lock()
         self.fetches = 0
@@ -62,7 +64,11 @@ class TokenCache:
         with self._lock:
             now = self._clock()
             cached = self._tokens.get(upn)
-            if cached is not None and cached[1] - self._margin_s > now:
+            if (
+                cached is not None
+                and cached[1] - self._margin_s > now
+                and (self._max_age_s is None or now - cached[2] < self._max_age_s)
+            ):
                 return cached[0]
             failure = self._failed.get(upn)
             if failure is not None and now - failure[0] < self._backoff_s:
@@ -76,7 +82,7 @@ class TokenCache:
             self._failed.pop(upn, None)
             exp = describe_token(token).get("exp")
             expires = float(exp) if isinstance(exp, int | float) else now + self._unknown_s
-            self._tokens[upn] = (token, expires)
+            self._tokens[upn] = (token, expires, now)
             return token
 
     def invalidate(self, upn: str) -> None:

@@ -39,6 +39,7 @@ from leaklab.spec import TenantSpec
 
 NOT_APPLICABLE = "NOT_APPLICABLE"  # nothing flipped (e.g. S4), so there is nothing to converge
 NOT_RUN = "NOT_RUN"
+NOTHING_TO_REVOKE = "NOTHING_TO_REVOKE"  # the pair was not being served before the change
 
 
 class PairResult(BaseModel):
@@ -63,7 +64,8 @@ class PairResult(BaseModel):
 class ScenarioResult(BaseModel):
     scenario: str
     system: str
-    baseline_status: str
+    baseline_status: str  # judged for THIS system from its own reads (see _baseline_status)
+    baseline_joint: str = NOT_RUN  # what the engine decided, across all systems, before mutating
     mutation_status: str  # confirmed | unconfirmed | failed | not_run
     end_reason: str  # converged | cap | steady_window_elapsed | mutation_failed | ... | unfinished
     t_change: float | None
@@ -81,6 +83,10 @@ class ScenarioResult(BaseModel):
     nothing_to_revoke: list[str]
     pairs_never_denied: list[str]
     pairs: list[PairResult]
+    # Only for systems that report indexer runs (setup_a_basic): how many runs ENDED after the
+    # change and how long after it the first ended, to read next to time_to_first_deny_s.
+    indexer_runs_after_change: int | None = None
+    first_indexer_run_end_after_change_s: float | None = None
 
 
 class RunReport(BaseModel):
@@ -90,6 +96,7 @@ class RunReport(BaseModel):
     finished: bool
     results: list[ScenarioResult]
     notes: list[str]
+    indexer_runs: dict[str, list[dict[str, Any]]] = {}
 
 
 def _flip_time(
@@ -146,6 +153,9 @@ def _pair_result(
         before_reads = [o for o in scored if o.ts < change]
         served_before = bool(before_reads[-1].served) if before_reads else None
 
+    nothing = role == "revoking" and change is not None and served_before is not True
+    if nothing:  # nothing was served before the change: a "first denial" would be meaningless
+        first_deny = leak_exposure = None
     lockout_s: float | None = None
     if scored:
         spans = [
@@ -172,10 +182,16 @@ def _pair_result(
         time_to_first_deny_s=first_deny,
         leak_exposure_s=leak_exposure,
         lockout_s=lockout_s,
-        convergence=case.final_status.value if case and judged else Convergence.NO_DATA.value,
+        convergence=(
+            NOTHING_TO_REVOKE
+            if nothing
+            else case.final_status.value
+            if case and judged
+            else Convergence.NO_DATA.value
+        ),
         time_to_conformance_s=(
             round(case.final_time_to_conformance_s, 3)
-            if case and judged and case.final_time_to_conformance_s is not None
+            if case and judged and not nothing and case.final_time_to_conformance_s is not None
             else None
         ),
         read_interval_s=round(median(gaps), 3) if gaps else None,
@@ -193,6 +209,10 @@ _PRECEDENCE = [
 def _aggregate_convergence(flipped: list[PairResult]) -> tuple[str, float | None]:
     if not flipped:
         return NOT_APPLICABLE, None
+    judged = [p for p in flipped if p.convergence != NOTHING_TO_REVOKE]
+    if not judged:
+        return NOTHING_TO_REVOKE, None
+    flipped = judged
     statuses = {p.convergence for p in flipped}
     for status in _PRECEDENCE:
         if status in statuses:
@@ -203,6 +223,35 @@ def _aggregate_convergence(flipped: list[PairResult]) -> tuple[str, float | None
             ]
             return status, max(times) if times else None
     return Convergence.NO_DATA.value, None
+
+
+def _baseline_status(
+    pairs: Sequence[Pair],
+    reads: dict[tuple[str, Pair], list[Observation]],
+    system: str,
+    timeline: IntentTimeline,
+    until: float | None,
+    k: int,
+) -> str:
+    """BASELINE_OK if, for EVERY pair, this system's last k scored reads before `until` all matched
+    intent (errors skipped), else BASELINE_UNSTABLE. The engine's own baseline is joint across
+    systems, so one system's trouble must not label another system's reads."""
+    for persona, canary in pairs:
+        scored = sorted(
+            (
+                o
+                for o in reads.get((system, (persona, canary)), [])
+                if o.served is not None and (until is None or o.ts < until)
+            ),
+            key=lambda o: o.ts,
+        )
+        recent = scored[-k:]
+        if len(recent) < k:
+            return "BASELINE_UNSTABLE"
+        for o in recent:
+            if o.served != (canary in timeline.expected_at(o.ts).get(persona, ())):
+                return "BASELINE_UNSTABLE"
+    return "BASELINE_OK"
 
 
 def _max(values: Sequence[float | None]) -> float | None:
@@ -225,9 +274,13 @@ def build_report(spec: TenantSpec, events: Sequence[Event]) -> RunReport:
     done: dict[str, Event] = {}
     failed: set[str] = set()
     reads: dict[tuple[str, Pair], list[Observation]] = defaultdict(list)
+    runs: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for e in events:
         kind = e["type"]
-        if kind == "group_started":
+        if kind == "system_event":
+            if e.get("kind") == "indexer_run":
+                runs[str(e["system"])].append({k: v for k, v in e.items() if k != "type"})
+        elif kind == "group_started":
             for raw in e["scenarios"]:
                 plans[str(raw["id"])] = plan_from_dict(spec, raw)
         elif kind == "mutation":
@@ -279,11 +332,27 @@ def build_report(spec: TenantSpec, events: Sequence[Event]) -> RunReport:
             ]
             flipped = [p for p in pair_results if p.role in ("revoking", "granting")]
             convergence, ttc = _aggregate_convergence(flipped if times else [])
-            revoking = [p for p in pair_results if p.role == "revoking"]
+            all_revoking = [p for p in pair_results if p.role == "revoking"]
+            revoking = [p for p in all_revoking if p.convergence != NOTHING_TO_REVOKE]
             never = [f"{p.persona}:{p.canary}" for p in revoking if p.time_to_first_deny_s is None]
             nothing = [
-                f"{p.persona}:{p.canary}" for p in revoking if p.served_before_change is not True
+                f"{p.persona}:{p.canary}"
+                for p in all_revoking
+                if p.convergence == NOTHING_TO_REVOKE
             ]
+            joint = baseline.get(sid, NOT_RUN)
+            own_baseline = (
+                NOT_RUN
+                if joint == NOT_RUN
+                else _baseline_status(
+                    sorted(plan.pairs),
+                    reads,
+                    system,
+                    timeline,
+                    max(times) if times else None,
+                    int(config.get("baseline_k", 5)),
+                )
+            )
             verdicts = {p.verdict for p in pair_results}
             verdict = (
                 Verdict.LEAK.value
@@ -302,7 +371,8 @@ def build_report(spec: TenantSpec, events: Sequence[Event]) -> RunReport:
             result = ScenarioResult(
                 scenario=sid,
                 system=system,
-                baseline_status=baseline.get(sid, NOT_RUN),
+                baseline_status=own_baseline,
+                baseline_joint=joint,
                 mutation_status=status,
                 end_reason=str(done[sid]["reason"]) if sid in done else "unfinished",
                 t_change=max(times) if times else None,
@@ -325,6 +395,14 @@ def build_report(spec: TenantSpec, events: Sequence[Event]) -> RunReport:
                 pairs_never_denied=never,
                 pairs=pair_results,
             )
+            if runs.get(system) and times:
+                ended = sorted(
+                    float(r["end"]) - max(times)
+                    for r in runs[system]
+                    if r.get("end") is not None and float(r["end"]) >= max(times)
+                )
+                result.indexer_runs_after_change = len(ended)
+                result.first_indexer_run_end_after_change_s = round(ended[0], 3) if ended else None
             results.append(result)
             if result.baseline_status == "BASELINE_UNSTABLE":
                 notes.append(
@@ -351,4 +429,5 @@ def build_report(spec: TenantSpec, events: Sequence[Event]) -> RunReport:
         finished=finished,
         results=results,
         notes=notes,
+        indexer_runs=dict(runs),
     )

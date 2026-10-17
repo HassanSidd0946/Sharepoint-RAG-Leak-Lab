@@ -479,3 +479,43 @@ def test_a_granting_scenario_measures_how_long_access_was_withheld(tmp_path: Pat
     assert r.lockout_s is not None and 30.0 - INTERVAL <= r.lockout_s <= 30.0 + 0.01
     assert r.time_to_conformance_s is not None and denied_after(r.time_to_conformance_s, 30.0)
     assert r.time_to_first_deny_s is None and r.leak_exposure_s is None  # nothing was revoked
+
+
+# -- systems that report their own events (Setup A: indexer runs) ----------------------------------
+
+
+def test_system_events_are_journaled_and_related_to_the_change_in_the_report(
+    tmp_path: Path,
+) -> None:
+    report, _, events, _ = go(tmp_path, ["S1-direct"], lag_s=25.0, indexer_every_s=20.0)
+    logged = [e for e in events if e["type"] == "system_event"]
+    assert logged and all(e["system"] == "fake" and e["kind"] == "indexer_run" for e in logged)
+    r = result(report, "S1-direct")
+    assert r.t_change is not None
+    assert r.indexer_runs_after_change is not None and r.indexer_runs_after_change >= 1
+    # a run ends at most one interval (20 s) plus its length (3 s) after the change
+    assert r.first_indexer_run_end_after_change_s is not None
+    assert 0 <= r.first_indexer_run_end_after_change_s <= 23.5
+    assert report.indexer_runs["fake"] == [
+        {k: v for k, v in e.items() if k not in ("type",)} for e in logged
+    ]
+
+
+def test_a_system_without_events_reports_no_indexer_fields(tmp_path: Path) -> None:
+    report, _, events, _ = go(tmp_path, ["S1-direct"], lag_s=0.0)
+    r = result(report, "S1-direct")
+    assert r.indexer_runs_after_change is None and r.first_indexer_run_end_after_change_s is None
+    assert not [e for e in events if e["type"] == "system_event"] and report.indexer_runs == {}
+
+
+def test_a_system_whose_event_reporting_fails_does_not_stop_the_run(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def broken(self: FakeSystem) -> list[dict[str, object]]:
+        raise RuntimeError("status endpoint down")
+
+    monkeypatch.setattr(FakeSystem, "drain_events", broken)
+    report, _, events, _ = go(tmp_path, ["S1-direct"], lag_s=0.0)
+    assert result(report, "S1-direct").end_reason == "converged"
+    failed = [e for e in events if e["type"] == "system_event"]
+    assert failed and failed[0]["kind"] == "drain_failed" and failed[0]["error"] == "RuntimeError"
