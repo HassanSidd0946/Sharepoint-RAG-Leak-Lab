@@ -16,6 +16,7 @@ dependencies = [
     "fastapi>=0.143.3",
     "uvicorn[standard]>=0.54.0",
     "pyjwt[crypto]>=2.15.1",
+    "jinja2>=3.1.6",
 ]
 
 [dependency-groups]
@@ -48,7 +49,8 @@ select = ["E", "F", "W", "I", "UP", "B"]
 "probes/*delta_probe.py" = ["E501"]  # long recorded change labels
 "probes/search_*.py" = ["E501"]  # long REST bodies and request recordings read better unbroken
 "probes/*" = ["B008"]  # typer.Option(...) in argument defaults is typer's normal usage
-"src/leaklab/runner/cli.py" = ["B008"]  # same: typer.Option(...) defaults
+"src/leaklab/runner/cli.py" = ["B008"]
+"src/leaklab/benchmark/cli.py" = ["B008"]  # same: typer.Option(...) defaults
 
 [tool.mypy]
 python_version = "3.12"

@@ -1639,3 +1639,18 @@ Times in seconds after the change was confirmed; "leak" = how long after it the 
 - [ ] Whether unlicensed users can be granted access (SharePoint read as an unlicensed persona has
   not been tested) and be trimmed correctly in Azure AI Search.
 - [ ] Which token audience/scope the Azure AI Search ACL query requires for the end user.
+
+## Benchmark harness (src/leaklab/benchmark/), built 2026-10-17, NOT YET RUN LIVE
+- Spec change: S2 now has its own persona `p-nest`, groups `grp-s2-outer` > `grp-s2-inner` and folder `S2-Nested` (2 documents, code S2N),
+  so it shares no user, group, folder, document or control pair with the S1 arms. `S2-nested-group-removal` removes grp-s2-inner from
+  grp-s2-outer (control: General). The earlier scenario (grp-eng-platform out of grp-engineering) is kept as `S2-engineering-nested-removal`.
+  Verified by test: the planner puts S1-direct, S1-spgroup, S1-entra, S2 and S4 into ONE polling loop (their watched pairs are disjoint).
+  The tenant must be torn down and generated again to get the new objects (every benchmark run does that first). Canaries of the existing
+  folders did not change. UNVERIFIED: that p-nest can sign in for the search scope, and the real lag of an Entra nested-group removal.
+- Matrix: 5 runs; S1-direct and S1-spgroup in runs 1-3, S1-entra and S2 in runs 1-5, S4 in runs 1-2; baseline 1 min in odd runs and 10 min
+  in even runs (k = minutes*60 / interval conforming reads); read interval 5 s, N=10, cap 60 min, 3 systems in one loop. Upper bound for
+  the polling phases of the whole benchmark: 6.6 h (plus teardown/generate/settle per run).
+- Setup B's journal events now include `poller_lag` (every 30 s) and the runs of the indexer behind ll-sp-index-b.
+- Tests (fake tenant, fake clock, real engine journals): plan, resumable executor (crash -> resume from the journal, --redo), per-cell
+  statistics, caveats generated from the data, HTML/JSON report, and a guard that the HTML template contains no numbers of its own.
+

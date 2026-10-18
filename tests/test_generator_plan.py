@@ -33,7 +33,7 @@ def test_everything_generated_carries_the_prefix() -> None:
 
 def test_the_admin_is_not_generated_and_its_grant_is_skipped() -> None:
     assert "admin" not in {u.id for u in PLAN.users}
-    assert len(PLAN.users) == 11
+    assert len(PLAN.users) == 12
     assert [g.ref for g in PLAN.root_grants] == ["grp-all-staff"]
     assert any("admin" in s for s in PLAN.skipped)
 

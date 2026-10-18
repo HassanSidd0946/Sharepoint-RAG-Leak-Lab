@@ -34,6 +34,7 @@ S1_ENTRA = set(CAN["S1-Entra"])
 S1_SPGROUP = set(CAN["S1-SPGroup"])
 S1_DIRECT = set(CAN["S1-Direct"])
 S1_ARMS = S1_ENTRA | S1_SPGROUP | S1_DIRECT  # p-plateng reads all three, by three kinds of grant
+S2_NESTED = set(CAN["S2-Nested"])  # p-nest reads only this, through two nested groups
 
 
 def mut(kind: MutationType, at: float | None = 1.0, **params: Any) -> Mutation:
@@ -75,6 +76,7 @@ def test_baseline_expected_access_matches_the_spec() -> None:
         "p-finlead": GENERAL | FINANCE | LEADERSHIP,
         "p-hr": GENERAL | HR | SPECIAL,
         "p-ceo": BOARD | SPECIAL,
+        "p-nest": S2_NESTED,
     }
 
 

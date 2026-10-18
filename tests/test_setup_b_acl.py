@@ -31,7 +31,7 @@ def test_the_first_poll_builds_the_tree_the_scopes_and_the_grants(make_repo: Fac
     snap = w.repo.load_acl()
     files = [i for i in snap.items.values() if not i.is_folder]
     unique = {i.name for i in snap.items.values() if i.unique}
-    assert len(files) == 43
+    assert len(files) == 45
     assert unique == {
         "Engineering",
         "Platform-Secrets",
@@ -42,6 +42,7 @@ def test_the_first_poll_builds_the_tree_the_scopes_and_the_grants(make_repo: Fac
         "S1-Entra",
         "S1-SPGroup",
         "S1-Direct",
+        "S2-Nested",
         "offer-letter-draft.txt",
     }
     assert ROOT_SCOPE in snap.grants

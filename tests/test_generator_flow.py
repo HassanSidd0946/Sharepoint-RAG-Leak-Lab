@@ -66,10 +66,10 @@ def test_generate_builds_the_tenant_and_verify_agrees_with_the_spec(
     tenant, env = built
     report = verify(env)
     assert report.ok, report.issues
-    assert report.checked["users"] == 11 and report.checked["groups"] == 8
+    assert report.checked["users"] == 12 and report.checked["groups"] == 10
     assert report.checked["sp_groups"] == 1
-    assert report.checked["documents"] == 43  # 42 folder documents + the special file
-    assert len(tenant.users) == 11 and len(tenant.groups) == 8
+    assert report.checked["documents"] == 45  # 44 folder documents + the special file
+    assert len(tenant.users) == 12 and len(tenant.groups) == 10
     # licensed users hold the license, unlicensed do not
     assert tenant.users["ll-p-intern@leaklabdev.onmicrosoft.com"]["licenses"] == {"sku-1"}
     assert not tenant.users["ll-p-hr@leaklabdev.onmicrosoft.com"]["licenses"]
@@ -211,7 +211,7 @@ def test_teardown_removes_only_prefixed_objects(built: tuple[FakeTenant, Env]) -
 
     report = teardown(make_env(tenant))
     assert report.counts["container_deleted"] == 1
-    assert report.counts["groups_deleted"] == 8 and report.counts["users_deleted"] == 11
+    assert report.counts["groups_deleted"] == 10 and report.counts["users_deleted"] == 12
     assert report.counts["sp_groups_deleted"] == 1
     assert report.counts["root_assignments_removed"] == 1
 

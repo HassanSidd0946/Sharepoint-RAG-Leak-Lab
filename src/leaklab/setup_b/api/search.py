@@ -24,10 +24,11 @@ from typing import Any, Protocol
 import httpx
 
 from leaklab.auth import describe_token, get_app_token
-from leaklab.setup_a.client import API, SEARCH_SCOPE
+from leaklab.setup_a.client import API, SEARCH_SCOPE, IndexerRun, parse_run
 from leaklab.setup_a.keys import item_id_of_key
 
 INDEX_B = "ll-sp-index-b"
+INDEXER_B = "ll-sp-indexer-b"
 MAX_TOP = 1000
 ACL_CACHE_S = 30.0
 
@@ -62,6 +63,10 @@ class IndexPort(Protocol):
     def query(self, text: str, top: int) -> Fetched: ...
 
     def stored_acl(self, doc_id: str) -> IndexAcl | None: ...
+
+    def indexer_runs(self) -> list[IndexerRun]:
+        """Recent executions of the indexer that feeds this index (newest first); [] if unknown."""
+        ...
 
     def close(self) -> None: ...
 
@@ -162,6 +167,26 @@ class HttpIndexPort:
             with self._lock:
                 self._acl_cache = cached
         return cached[1].get(doc_id)
+
+    def indexer_runs(self) -> list[IndexerRun]:
+        try:
+            resp = self._http.get(
+                f"{self._endpoint}/indexers/{INDEXER_B}/status",
+                params={"api-version": API},
+                headers={"Authorization": f"Bearer {self._service_token()}"},
+            )
+            if resp.status_code != 200:
+                return []
+            data = resp.json()
+        except (httpx.HTTPError, ValueError, RuntimeError):
+            return []
+        raw = list(data.get("executionHistory") or [])
+        last = data.get("lastResult")
+        if isinstance(last, dict) and not any(
+            r.get("startTime") == last.get("startTime") for r in raw
+        ):
+            raw.insert(0, last)
+        return [parse_run(r) for r in raw if isinstance(r, dict)]
 
     def close(self) -> None:
         if self._owns_client:

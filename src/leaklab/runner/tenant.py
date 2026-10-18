@@ -188,6 +188,7 @@ def build_setup_b(ctx: SystemContext) -> SystemUnderTest:
             tokens=tokens,
             clock=ctx.clock,
             sleep=ctx.env.sleep,
+            indexer_runs=service.indexer_runs,
             closers=[stack.close],
         )
     except BaseException:

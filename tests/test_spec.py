@@ -46,8 +46,8 @@ def assert_invalid(data: dict[str, Any], message: str) -> None:
 def test_real_spec_loads() -> None:
     spec = load_spec(REPO_SPEC)
     assert spec.naming.prefix == "ll-"
-    assert len(spec.users) == 12
-    assert len(spec.folders) == 10
+    assert len(spec.users) == 13
+    assert len(spec.folders) == 11
     assert spec.special_files[0].id == "f-direct-share"
 
 
@@ -193,7 +193,7 @@ def test_canaries_deterministic_and_unique() -> None:
     expected[special_key("f-direct-share")] = 1
     assert {p: len(c) for p, c in first.items()} == expected
     flat = [c for canaries in first.values() for c in canaries]
-    assert len(flat) == 43  # 42 folder documents (36 + 3 S1 arms x 2) + 1 special file
+    assert len(flat) == 45  # 44 folder documents (36 + 3 S1 arms x 2 + S2 x 2) + 1 special file
     assert len(set(flat)) == len(flat)
     assert flat[0].startswith("CANARY-GEN-01-")
     assert len(flat[0].rsplit("-", 1)[1]) == 6

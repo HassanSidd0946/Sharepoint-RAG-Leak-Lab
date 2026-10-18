@@ -15,6 +15,9 @@ was removed by the filter is a real denial (served=False).
 
 Journal events (drain_events):
   system_health      the API's /health reading whenever its status changes (ok/degraded, ages)
+  poller_lag         the membership and ACL pollers' age (seconds since their last success), every
+                     `lag_every_s`: the lag of Setup B's own state, for the benchmark report
+  indexer_run(_started)  runs of the indexer that feeds ll-sp-index-b (same fields as Setup A's)
   postfilter_recall  the recall cost of post-filtering: for broad queries ("*") at several k, how
                      many results came back versus k, versus the number of readable documents
                      among ALL matches (a sample round at prepare, then every `recall_every_s`)
@@ -28,11 +31,13 @@ import httpx
 
 from leaklab.runner.model import Observation, RunnerError
 from leaklab.runner.setup0 import TokenCache
+from leaklab.setup_a.client import IndexerRun
 
 SYSTEM_NAME = "setup_b"
 BROAD_QUERY = "*"
 RECALL_KS = (3, 5, 10)
 READY_WAIT_S = 120.0
+RUNS_POLL_S = 15.0
 
 
 class SetupB:
@@ -49,6 +54,8 @@ class SetupB:
         k: int = 5,
         recall_ks: Sequence[int] = RECALL_KS,
         recall_every_s: float = 300.0,
+        lag_every_s: float = 30.0,
+        indexer_runs: Callable[[], list[IndexerRun]] | None = None,
         http: httpx.Client | None = None,
         closers: Sequence[Callable[[], object]] = (),
     ) -> None:
@@ -60,6 +67,12 @@ class SetupB:
         self._k = k
         self._recall_ks = tuple(recall_ks)
         self._recall_every_s = recall_every_s
+        self._lag_every_s = lag_every_s
+        self._indexer_runs = indexer_runs
+        self._lag_at = float("-inf")
+        self._runs_at = float("-inf")
+        self._emitted_start: set[float | None] = set()
+        self._emitted_done: set[float | None] = set()
         self._http = http or httpx.Client(timeout=60.0)
         self._closers = list(closers)
         self._lock = threading.Lock()
@@ -137,6 +150,17 @@ class SetupB:
                     "acl_age_s": health.get("acl_age_s"),
                 }
             )
+        if health is not None and self._clock() - self._lag_at >= self._lag_every_s:
+            self._lag_at = self._clock()
+            self._push(
+                {
+                    "kind": "poller_lag",
+                    "t": self._lag_at,
+                    "membership_age_s": health.get("membership_age_s"),
+                    "acl_age_s": health.get("acl_age_s"),
+                }
+            )
+        self._indexer_events()
         if self._clock() - self._recall_at >= self._recall_every_s:
             self._sample_recall()
         with self._lock:
@@ -217,6 +241,33 @@ class SetupB:
                         if total is not None
                         else 0,
                         "degraded": bool((body or {}).get("degraded")),
+                    }
+                )
+
+    def _indexer_events(self) -> None:
+        """Started / finished runs of the indexer behind ll-sp-index-b, each reported once."""
+        if self._indexer_runs is None or self._clock() - self._runs_at < RUNS_POLL_S:
+            return
+        self._runs_at = self._clock()
+        try:
+            runs = self._indexer_runs()
+        except Exception:  # reporting must never stop the run
+            return
+        for run in sorted(runs, key=lambda r: r.start or 0.0):
+            if run.start not in self._emitted_start:
+                self._emitted_start.add(run.start)
+                self._push({"kind": "indexer_run_started", "start": run.start})
+            if run.finished and run.start not in self._emitted_done:
+                self._emitted_done.add(run.start)
+                self._push(
+                    {
+                        "kind": "indexer_run",
+                        "start": run.start,
+                        "end": run.end,
+                        "status": run.status,
+                        "items_processed": run.items_processed,
+                        "items_failed": run.items_failed,
+                        "error": run.error,
                     }
                 )
 

@@ -192,10 +192,10 @@ def test_the_three_s1_arms_share_one_polling_loop(tmp_path: Path) -> None:
 
 def test_conflicting_scenarios_are_polled_in_separate_groups(tmp_path: Path) -> None:
     report, _, events, _ = go(
-        tmp_path, ["S1-parent-revocation", "S2-nested-group-removal"], lag_s=0
+        tmp_path, ["S1-parent-revocation", "S2-engineering-nested-removal"], lag_s=0
     )
     assert [e["type"] for e in events].count("group_started") == 2
-    s2 = result(report, "S2-nested-group-removal")
+    s2 = result(report, "S2-engineering-nested-removal")
     revoked_canaries = {p.canary for p in s2.pairs if p.role == "revoking"}
     # S1 already removed the Engineering documents: S2 only has the General ones left to revoke
     assert revoked_canaries == set(CAN["General"])

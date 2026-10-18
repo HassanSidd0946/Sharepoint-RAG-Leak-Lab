@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leak Lab benchmark</title>
+<style>
+  :root { --bg:#fafaf9; --fg:#1c1917; --muted:#57534e; --line:#d6d3d1; --card:#ffffff; --bad:#b91c1c; --ok:#15803d; --warn:#b45309; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#1c1917; --fg:#f5f5f4; --muted:#a8a29e; --line:#44403c; --card:#292524; --bad:#f87171; --ok:#4ade80; --warn:#fbbf24; }
+  }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui, sans-serif; }
+  main { max-width:1200px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:1.6rem; margin:0 0 4px; } h2 { font-size:1.2rem; margin:32px 0 8px; } h3 { font-size:1rem; margin:20px 0 6px; }
+  .muted { color:var(--muted); } .small { font-size:.85rem; }
+  .scroll { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; background:var(--card); border:1px solid var(--line); }
+  th, td { border-bottom:1px solid var(--line); padding:6px 10px; text-align:left; vertical-align:top; white-space:nowrap; }
+  th { font-weight:600; font-size:.8rem; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); }
+  td.num { font-variant-numeric:tabular-nums; }
+  .bad { color:var(--bad); font-weight:600; } .okc { color:var(--ok); } .warnc { color:var(--warn); }
+  ul.caveats li { margin:6px 0; } code { font-size:.9em; }
+  details { margin:6px 0; } summary { cursor:pointer; color:var(--muted); }
+  .label { background:var(--card); border:1px solid var(--line); padding:10px 14px; margin:12px 0; }
+</style>
+</head>
+<body>
+<main>
+{% macro secs(v) -%}
+  {%- if v is none -%}&ndash;{%- elif v < 120 -%}{{ '%.1f'|format(v) }} s{%- else -%}{{ '%.1f'|format(v / 60) }} min{%- endif -%}
+{%- endmacro %}
+{% macro triple(s) -%}
+  {%- if s.n == 0 -%}&ndash;{%- else -%}{{ secs(s.min) }} / {{ secs(s.median) }} / {{ secs(s.max) }}{%- endif -%}
+{%- endmacro %}
+{% macro counts(d) -%}
+  {%- if not d -%}&ndash;{%- else -%}{%- for k, v in d.items() | sort -%}{{ k }}&nbsp;{{ v }}{{ ", " if not loop.last }}{%- endfor -%}{%- endif -%}
+{%- endmacro %}
+
+<h1>Leak Lab benchmark</h1>
+<p class="muted">Generated {{ s.generated_utc }} &middot; spec <code>{{ s.spec_sha256[:12] }}</code> &middot; plan <code>{{ s.plan_sha256[:12] }}</code> &middot; systems: {{ s.systems | join(", ") }}</p>
+{% for text in labels %}<div class="label">{{ text }}</div>{% endfor %}
+<p class="small muted">Times are seconds after the change was confirmed, shown as minimum / median / maximum over the complete replicates. &ndash; means no value. Every number on this page is computed from the journals listed at the bottom.</p>
+
+<h2>Results by scenario</h2>
+{% for scenario in scenarios %}
+<h3>{{ scenario }}</h3>
+<div class="scroll"><table>
+<thead><tr>
+  <th>System</th><th>Replicates</th><th>First deny (min / med / max)</th><th>Leak exposure (min / med / max)</th>
+  <th>DID_NOT_CONVERGE</th><th>Lockout</th><th>Errors / reads</th><th>Baseline</th><th>Verdicts</th><th>Not evidence</th>
+</tr></thead>
+<tbody>
+{% for c in cells_by_scenario[scenario] %}
+<tr>
+  <td>{{ c.system }}</td>
+  <td class="num">{{ c.replicates }} of {{ c.planned }}{% if c.incomplete %} <span class="warnc">(+{{ c.incomplete }} incomplete)</span>{% endif %}</td>
+  <td class="num">{{ triple(c.first_deny) }}{% if c.first_deny.n %} <span class="muted">n={{ c.first_deny.n }}</span>{% endif %}</td>
+  <td class="num">{{ triple(c.leak_exposure) }}{% if c.leak_exposure.n %} <span class="muted">n={{ c.leak_exposure.n }}</span>{% endif %}</td>
+  <td class="num {% if c.did_not_converge %}bad{% endif %}">{{ c.did_not_converge }}</td>
+  <td class="num {% if c.lockout_replicates %}bad{% endif %}">{% if c.lockout_replicates %}{{ c.lockout_replicates }} replicate(s), max {{ secs(c.lockout_max_s) }}{% else %}{{ c.lockout_replicates }}{% endif %}</td>
+  <td class="num">{{ c.errors }} / {{ c.observations }}</td>
+  <td>{{ counts(c.baseline_status) }}</td>
+  <td>{{ counts(c.verdicts) }}</td>
+  <td class="num">{% if c.nothing_to_revoke %}{{ c.nothing_to_revoke }} nothing to revoke{% endif %}{% if c.never_denied %}{{ ", " if c.nothing_to_revoke }}{{ c.never_denied }} never denied{% endif %}{% if not c.nothing_to_revoke and not c.never_denied %}&ndash;{% endif %}</td>
+</tr>
+{% for b in c.by_baseline if c.by_baseline | length > 1 %}
+<tr class="muted small">
+  <td>&nbsp;&nbsp;baseline {{ b.baseline_minutes }} min</td><td class="num">{{ b.replicates }}</td>
+  <td class="num">{{ triple(b.first_deny) }}{% if b.first_deny.n %} n={{ b.first_deny.n }}{% endif %}</td>
+  <td class="num">{{ triple(b.leak_exposure) }}{% if b.leak_exposure.n %} n={{ b.leak_exposure.n }}{% endif %}</td>
+  <td colspan="6"></td>
+</tr>
+{% endfor %}
+{% endfor %}
+</tbody></table></div>
+<details><summary>Every replicate of {{ scenario }}</summary>
+<div class="scroll"><table>
+<thead><tr><th>System</th><th>Run</th><th>Baseline</th><th>Baseline status</th><th>Ended</th><th>Verdict</th><th>Convergence</th><th>First deny</th><th>Leak exposure</th><th>Conformance</th><th>Lockout</th><th>Errors</th><th>Journal</th></tr></thead>
+<tbody>
+{% for c in cells_by_scenario[scenario] %}{% for r in c.rows %}
+<tr>
+  <td>{{ c.system }}</td><td class="num">{{ r.run }}</td><td class="num">{{ r.baseline_minutes }} min</td><td>{{ r.baseline_status }}</td><td>{{ r.end_reason }}</td>
+  <td>{{ r.verdict }}</td><td>{{ r.convergence }}</td>
+  <td class="num">{{ secs(r.first_deny_s) }}</td><td class="num">{{ secs(r.leak_exposure_s) }}</td><td class="num">{{ secs(r.conformance_s) }}</td><td class="num">{{ secs(r.lockout_s) }}</td>
+  <td class="num">{{ r.errors }}</td><td><code>{{ r.journal }}</code></td>
+</tr>
+{% endfor %}{% endfor %}
+</tbody></table></div></details>
+{% endfor %}
+
+<h2>Caveats</h2>
+<ul class="caveats">{% for text in s.caveats %}<li>{{ text }}</li>{% endfor %}</ul>
+
+<h2>Runs</h2>
+<div class="scroll"><table>
+<thead><tr><th>Run</th><th>Status</th><th>Baseline</th><th>Scenarios</th><th>Started (UTC)</th><th>Ended (UTC)</th><th>Journal</th></tr></thead>
+<tbody>
+{% for r in s.runs %}
+<tr>
+  <td class="num">{{ r.index }}</td><td class="{% if r.status == 'failed' %}bad{% endif %}">{{ r.status }}{% if r.finished %} (finished){% endif %}</td>
+  <td class="num">{{ r.baseline_minutes }} min</td><td>{{ r.scenarios | join(", ") }}</td>
+  <td>{{ r.started_utc or "–" }}</td><td>{{ r.ended_utc or "–" }}</td><td>{% if r.journal %}<code>{{ r.journal }}</code>{% else %}&ndash;{% endif %}</td>
+</tr>
+{% endfor %}
+</tbody></table></div>
+
+{% if s.indexer_runs %}
+<h2>Indexer runs</h2>
+<div class="scroll"><table>
+<thead><tr><th>Run</th><th>System</th><th>Indexer runs</th><th>Failed</th><th>Duration (min / med / max)</th></tr></thead>
+<tbody>{% for i in s.indexer_runs %}
+<tr><td class="num">{{ i.run }}</td><td>{{ i.system }}</td><td class="num">{{ i.runs }}</td><td class="num {% if i.failed %}bad{% endif %}">{{ i.failed }}</td><td class="num">{{ triple(i.duration_s) }}</td></tr>
+{% endfor %}</tbody></table></div>
+{% endif %}
+
+{% if s.poller_lag %}
+<h2>Setup B poller lag</h2>
+<p class="small muted">Age of the state's last successful poll, sampled during the run. The API denies group-based grants above the limit.</p>
+<div class="scroll"><table>
+<thead><tr><th>Run</th><th>System</th><th>Samples</th><th>Membership age (min / med / max)</th><th>ACL age (min / med / max)</th><th>Degraded readings</th></tr></thead>
+<tbody>{% for l in s.poller_lag %}
+<tr><td class="num">{{ l.run }}</td><td>{{ l.system }}</td><td class="num">{{ l.samples }}</td><td class="num">{{ triple(l.membership_age_s) }}</td><td class="num">{{ triple(l.acl_age_s) }}</td><td class="num {% if l.degraded_events %}bad{% endif %}">{{ l.degraded_events }}</td></tr>
+{% endfor %}</tbody></table></div>
+{% endif %}
+
+{% if s.postfilter_recall.samples %}
+<h2>Recall cost of post-filtering (Setup B)</h2>
+<p class="small muted">Broad query at several k with a k&times;5 window: results returned versus the most the persona could have been given (readable documents among all matches, capped at k).</p>
+<div class="scroll"><table>
+<thead><tr><th>k</th><th>Samples</th><th>Returned</th><th>Possible</th><th>Lost</th><th>Samples short of k</th></tr></thead>
+<tbody>{% for k, v in s.postfilter_recall.by_k.items() %}
+<tr><td class="num">{{ k }}</td><td class="num">{{ v.samples }}</td><td class="num">{{ v.returned }}</td><td class="num">{{ v.possible }}</td><td class="num {% if v.lost %}bad{% endif %}">{{ v.lost }}</td><td class="num">{{ v.short_of_k }}</td></tr>
+{% endfor %}</tbody></table></div>
+{% endif %}
+
+<h2>Raw journals</h2>
+<p class="small muted">One JSON line per event; the runner's own reports sit next to them (<code>*.report.json</code>). Everything above can be rebuilt from these files with <code>python -m leaklab.benchmark report</code>.</p>
+<ul>{% for j in s.journals %}<li><a href="{{ j }}"><code>{{ j }}</code></a></li>{% endfor %}</ul>
+</main>
+</body>
+</html>

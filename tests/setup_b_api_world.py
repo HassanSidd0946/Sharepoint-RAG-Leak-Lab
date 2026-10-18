@@ -13,6 +13,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi.testclient import TestClient
 
 from leaklab.runner.tenant import resolve_items
+from leaklab.setup_a.client import IndexerRun
 from leaklab.setup_b.api.app import create_app
 from leaklab.setup_b.api.decisionlog import DecisionLog, MemoryDecisionLog
 from leaklab.setup_b.api.search import Fetched, Hit, IndexAcl, IndexUnavailable
@@ -87,6 +88,9 @@ class FakeIndex:
 
     def stored_acl(self, doc_id: str) -> IndexAcl | None:
         return self.stored.get(doc_id)
+
+    def indexer_runs(self) -> list[IndexerRun]:
+        return []
 
     def close(self) -> None:
         pass

@@ -14,7 +14,7 @@ from runner_fakes import SPEC, SPEC_PATH
 
 CAN = generate_canaries(SPEC)
 PLAT = CAN["Engineering/Platform-Secrets"][0]
-OTHERS = {"p-ceo", "p-finana", "p-finlead", "p-hr", "p-intern"}
+OTHERS = {"p-ceo", "p-finana", "p-finlead", "p-hr", "p-intern", "p-nest"}
 
 
 @pytest.mark.parametrize(
@@ -43,8 +43,15 @@ def test_s1_parent_revocation_flips_the_engineering_documents() -> None:
     assert canary in CAN["General"] or canary in CAN["Engineering/Platform-Secrets"]
 
 
-def test_s2_flips_what_p_plateng_reached_through_the_nested_group() -> None:
+def test_s2_flips_only_what_p_nest_reached_through_the_two_nested_groups() -> None:
     plan = derive_plan(SPEC, "S2-nested-group-removal")
+    assert plan.revoking == {("p-nest", c) for c in CAN["S2-Nested"]}
+    assert plan.control is not None and plan.control[0] != "p-nest"
+    assert plan.control[1] in CAN["General"]
+
+
+def test_the_company_hierarchy_nested_removal_flips_what_p_plateng_reached() -> None:
+    plan = derive_plan(SPEC, "S2-engineering-nested-removal")
     assert plan.revoking == {("p-plateng", c) for c in CAN["General"] + CAN["Engineering"]}
 
 
@@ -69,7 +76,7 @@ def test_an_unknown_scenario_is_refused_and_the_known_ones_are_listed() -> None:
 def test_prior_mutations_change_what_a_later_scenario_flips() -> None:
     s1 = derive_plan(SPEC, "S1-parent-revocation")
     applied = [m.model_copy(update={"confirmed_at": 5.0}) for m in s1.mutations]
-    after = derive_plan(SPEC, "S2-nested-group-removal", applied)
+    after = derive_plan(SPEC, "S2-engineering-nested-removal", applied)
     assert after.revoking == {("p-plateng", c) for c in CAN["General"]}  # Engineering already gone
 
 
@@ -87,11 +94,25 @@ def test_disjoint_scenarios_share_a_group_and_overlapping_ones_do_not() -> None:
     assert [[p.id for p in g] for g in group_scenarios(arms)] == [
         ["S1-direct", "S1-spgroup", "S1-entra"]
     ]
-    clash = [derive_plan(SPEC, s) for s in ("S1-parent-revocation", "S2-nested-group-removal")]
+    clash = [
+        derive_plan(SPEC, s) for s in ("S1-parent-revocation", "S2-engineering-nested-removal")
+    ]
     assert [[p.id for p in g] for g in group_scenarios(clash)] == [
         ["S1-parent-revocation"],
-        ["S2-nested-group-removal"],
+        ["S2-engineering-nested-removal"],
     ]
+    # the benchmark's S2 has its own persona and folder: it shares a loop with every S1 arm and S4
+    everything = [
+        derive_plan(SPEC, s)
+        for s in (
+            "S1-direct",
+            "S1-spgroup",
+            "S1-entra",
+            "S2-nested-group-removal",
+            "S4-move-into-restricted",
+        )
+    ]
+    assert len(group_scenarios(everything)) == 1
     # S1-parent only touches Engineering: it does not collide with the S1 arms, so all share a loop
     mixed = [derive_plan(SPEC, s) for s in ("S1-direct", "S1-parent-revocation", "S1-entra")]
     assert len(group_scenarios(mixed)) == 1

@@ -150,3 +150,43 @@ def _repo():  # type: ignore[no-untyped-def]
     from leaklab.setup_b.state.repository import MemoryRepository
 
     return MemoryRepository()
+
+
+def test_poller_lag_and_indexer_runs_are_reported_for_the_benchmark() -> None:
+    from leaklab.setup_a.client import IndexerRun
+
+    api = Api(World(_repo()))
+    api.world.sync()
+    runs = [IndexerRun(100.0, 112.0, "success", 45, 0), IndexerRun(400.0, None, "inProgress", 0, 0)]
+    clock = api.world.clock
+    sut = SetupB(
+        base_url="http://testserver",
+        upns={p: f"{p}@example.test" for p in PERSONAS},
+        tokens=TokenCache(
+            lambda upn: api.keys.token(api.world.uid(upn.split("@")[0]), upn), clock.time
+        ),
+        clock=clock.time,
+        sleep=clock.sleep,
+        lag_every_s=30.0,
+        indexer_runs=lambda: runs,
+        http=api.client,
+    )
+    sut.prepare(PERSONAS, ALL)
+    first = sut.drain_events()
+    lag = [e for e in first if e["kind"] == "poller_lag"]
+    assert (
+        len(lag) == 1 and lag[0]["membership_age_s"] is not None and lag[0]["acl_age_s"] is not None
+    )
+    kinds = [e["kind"] for e in first if e["kind"].startswith("indexer")]
+    assert sorted(kinds) == ["indexer_run", "indexer_run_started", "indexer_run_started"]
+    done = next(e for e in first if e["kind"] == "indexer_run")
+    assert (done["start"], done["end"], done["items_processed"]) == (100.0, 112.0, 45)
+    assert [e["kind"] for e in sut.drain_events() if e["kind"] != "postfilter_recall"] == []
+    for _ in range(7):  # 35 s pass, the pollers keep running
+        api.world.sync()
+    runs[1] = IndexerRun(400.0, 409.0, "success", 45, 0)  # the second run ends
+    again = sut.drain_events()
+    assert [e["kind"] for e in again if e["kind"] != "postfilter_recall"] == [
+        "poller_lag",
+        "indexer_run",
+    ]

@@ -14,6 +14,7 @@ D1, D2 = CAN["S1-Direct"]
 PLAT = CAN["Engineering/Platform-Secrets"][0]
 CHANGE = 1000.0
 CONFIG = {"n_consecutive": 3, "cap_s": 600.0}
+OTHER_PERSONAS = ("p-ceo", "p-finana", "p-finlead", "p-hr", "p-intern", "p-nest")
 
 
 def obs(
@@ -62,7 +63,7 @@ def baseline_reads() -> list[dict[str, Any]]:
     for k, ts in enumerate(range(900, 1000, 10)):
         for canary in (D1, D2, PLAT):
             rows.append(obs("p-plateng", canary, float(ts), True, k))
-        for persona in ("p-ceo", "p-finana", "p-finlead", "p-hr", "p-intern"):
+        for persona in OTHER_PERSONAS:
             rows.append(obs(persona, D1, float(ts), False, k))
     return rows
 
@@ -77,7 +78,7 @@ def post_reads() -> list[dict[str, Any]]:
         rows.append(obs("p-plateng", D1, float(ts), d1[ts], k))
         rows.append(obs("p-plateng", D2, float(ts), d2[ts], k))
         rows.append(obs("p-plateng", PLAT, float(ts), ts != 1020, k))  # one lockout on the control
-        for persona in ("p-ceo", "p-finana", "p-finlead", "p-hr", "p-intern"):
+        for persona in OTHER_PERSONAS:
             rows.append(obs(persona, D1, float(ts), False, k))
     return rows
 

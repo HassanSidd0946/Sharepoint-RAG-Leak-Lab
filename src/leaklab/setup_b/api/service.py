@@ -24,6 +24,7 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from leaklab.setup_a.client import IndexerRun
 from leaklab.setup_b.api.decisionlog import DecisionLog, Entry
 from leaklab.setup_b.api.search import MAX_TOP, IndexPort
 from leaklab.setup_b.api.tokens import Principal, TokenValidator
@@ -305,6 +306,10 @@ class QueryService:
 
     def count(self, key: str) -> None:
         self._count(key)
+
+    def indexer_runs(self) -> list[IndexerRun]:
+        """Runs of the indexer behind the index (for the benchmark journal; no HTTP endpoint)."""
+        return self._index.indexer_runs()
 
     def close(self) -> None:
         """Release the index client and the decision log connection."""

@@ -22,7 +22,7 @@ site:
       role: full_control
 
 # ---------------------------------------------------------------------------
-# Users: 12 total. 6 are personas (we acquire tokens for them and query as them).
+# Users: 13 total. 7 are personas (we acquire tokens for them and query as them).
 # The rest exist only to make group membership realistic.
 # licensed: whether to assign an M365 license (keep to 2-3 to control cost).
 # ---------------------------------------------------------------------------
@@ -34,6 +34,9 @@ users:
   - { id: p-finlead, display: "Felix FinanceLead",    persona: true,  licensed: false }
   - { id: p-hr,      display: "Hana HR",              persona: true,  licensed: false }
   - { id: p-ceo,     display: "Cora CEO",             persona: true,  licensed: false }
+  # S2 benchmark persona: reads ONLY S2-Nested/, through two nested Entra groups, so the S2 scenario
+  # shares no user, group, folder or document with the S1 arms and can run beside S1-entra.
+  - { id: p-nest,    display: "Nina Nested",          persona: true,  licensed: false }
   - { id: u-eng1,    display: "Eli Engineer",         persona: false, licensed: false }
   - { id: u-eng2,    display: "Erin Engineer",        persona: false, licensed: false }
   - { id: u-fin1,    display: "Frank Finance",        persona: false, licensed: false }
@@ -69,6 +72,13 @@ groups:
   # S1 control arms (see folders S1-Entra / S1-SPGroup / S1-Direct): the same user, three ways in.
   - id: grp-s1-entra
     members: [p-plateng]
+    member_groups: []
+  # S2 (nested removal): p-nest is in grp-s2-inner, which is inside grp-s2-outer (granted on S2-Nested/).
+  - id: grp-s2-outer
+    members: []
+    member_groups: [grp-s2-inner]
+  - id: grp-s2-inner
+    members: [p-nest]
     member_groups: []
 
 # ---------------------------------------------------------------------------
@@ -136,6 +146,12 @@ folders:
     grants:
       - { principal: { kind: user, ref: p-plateng }, role: read }
     doc_count: 2
+  # S2 benchmark folder: only p-nest reads it (through grp-s2-outer > grp-s2-inner).
+  - path: "S2-Nested"
+    inherits: false
+    grants:
+      - { principal: { kind: entra_group, ref: grp-s2-outer }, role: read }
+    doc_count: 2
 
 # ---------------------------------------------------------------------------
 # Individually-permissioned files (edge cases). These sit inside a folder but
@@ -173,6 +189,7 @@ documents:
     "S1-Entra": S1E
     "S1-SPGroup": S1S
     "S1-Direct": S1D
+    "S2-Nested": S2N
   body_template: |
     {title}
     This is a synthetic test document for the LeakLab benchmark.
@@ -201,7 +218,15 @@ scenarios:
     mutations:
       - type: grant_removed
         params: { target: "Engineering", principal_kind: entra_group, principal_ref: grp-engineering }
+  # S2 as benchmarked: its own persona, groups and folder (nothing shared with the S1 arms).
   - id: S2-nested-group-removal
+    description: "Remove grp-s2-inner from grp-s2-outer (p-nest loses S2-Nested/ through the nesting)."
+    mutations:
+      - type: group_member_removed
+        params: { group: grp-s2-outer, member_kind: entra_group, member_ref: grp-s2-inner }
+    control: "General"
+  # The first S2 scenario, kept for its coverage: nesting inside the company hierarchy.
+  - id: S2-engineering-nested-removal
     description: "Remove grp-eng-platform from grp-engineering."
     mutations:
       - type: group_member_removed
