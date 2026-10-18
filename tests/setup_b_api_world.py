@@ -6,6 +6,7 @@ wrong) stored ACL, to prove no decision reads it.
 """
 
 import time
+from collections.abc import Callable
 from typing import Any
 
 import jwt
@@ -77,15 +78,15 @@ class FakeIndex:
         self.canary_of = {h.doc_id: c for h, c in zip(self.docs, ALL, strict=True)}
         self.fail: Exception | None = None
         self.stored: dict[str, IndexAcl] = {}
-        self.queries: list[tuple[str, int]] = []
+        self.queries: list[tuple[str, int, int]] = []  # (text, top, skip) of every page asked
 
-    def query(self, text: str, top: int) -> Fetched:
-        self.queries.append((text, top))
+    def query(self, text: str, top: int, skip: int = 0) -> Fetched:
+        self.queries.append((text, top, skip))
         if self.fail:
             raise self.fail
         needle = text.strip('"')
         hits = [d for d in self.docs if needle == "*" or needle in d.content or needle == "CANARY"]
-        return Fetched(hits[:top], 0, len(hits))
+        return Fetched(hits[skip : skip + top], 0, len(hits))
 
     def stored_acl(self, doc_id: str) -> IndexAcl | None:
         return self.stored.get(doc_id)
@@ -105,7 +106,8 @@ class Api:
         world: World,
         *,
         log: DecisionLog | None = None,
-        over_fetch: int = 5,
+        max_pages: int = 10,
+        page_size: Callable[[int], int] | None = None,
         allow_debug: bool = True,
         operator_key: str = OPERATOR_KEY,
     ) -> None:
@@ -120,7 +122,8 @@ class Api:
             log=self.log,
             validator=TokenValidator(tenant_id=TENANT, audience=AUDIENCE, keys=self.keys),
             clock=world.clock.time,
-            over_fetch=over_fetch,
+            max_pages=max_pages,
+            page_size=page_size,
             readiness=world.readiness,
         )
         self.client = TestClient(

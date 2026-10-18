@@ -12,6 +12,7 @@ The server binds to 127.0.0.1 only: there is no TLS and the operator key travels
 import socket
 import threading
 import time
+from collections.abc import Callable
 from contextlib import closing
 
 import uvicorn
@@ -19,7 +20,7 @@ import uvicorn
 from leaklab.config import get_settings
 from leaklab.setup_b.api.decisionlog import PgDecisionLog
 from leaklab.setup_b.api.search import HttpIndexPort
-from leaklab.setup_b.api.service import QueryService
+from leaklab.setup_b.api.service import MAX_PAGES, QueryService
 from leaklab.setup_b.api.tokens import JwksKeys, TokenValidator
 from leaklab.setup_b.state.run import Stores
 
@@ -36,7 +37,11 @@ def search_endpoint() -> str:
 
 
 def build_service(
-    stores: Stores, *, log_schema: str = LOG_SCHEMA, over_fetch: int = 5
+    stores: Stores,
+    *,
+    log_schema: str = LOG_SCHEMA,
+    max_pages: int = MAX_PAGES,
+    page_size: Callable[[int], int] | None = None,
 ) -> QueryService:
     settings = get_settings()
     return QueryService(
@@ -50,7 +55,8 @@ def build_service(
             keys=JwksKeys(settings.tenant_id.strip()),
         ),
         clock=time.time,
-        over_fetch=over_fetch,
+        max_pages=max_pages,
+        page_size=page_size,
         readiness=stores.readiness,
     )
 

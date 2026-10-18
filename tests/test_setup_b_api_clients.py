@@ -77,6 +77,11 @@ def test_query_uses_the_service_token_only_and_maps_hits() -> None:
     assert "x-ms-query-source-authorization" not in request.headers  # no user identity here
     body = json.loads(request.content)
     assert body["search"] == '"CANARY-X"' and body["top"] == 25
+    assert body["skip"] == 0
+    port.query("again", 10, 30)
+    assert (
+        json.loads(seen[-1].content)["skip"] == 30
+    )  # the next page starts after the first 30 hits
     assert "filter" not in body  # the user's text goes into `search` only
 
 

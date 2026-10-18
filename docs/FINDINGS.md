@@ -1762,3 +1762,85 @@ distributions. Times in seconds after the change was confirmed.
 - Poller lag in the run: membership and ACL state ages at most 5.1 s and 5.3 s; 0 degraded readings.
 - Overnight: 6 more runs of S1-entra and S2 are planned in this set (runs 2-7) and scheduled on 2026-10-19, 21 and 23 at 22:00 (docs/OVERNIGHT.md).
 
+## Setup B recall: adaptive paging (Prompt 22, Part 0; 2026-10-18)
+- The fixed k*5 over-fetch is replaced by paging: pages of max(k, 10) hits (`MIN_PAGE`) are fetched with `skip` and decided one after another until
+  k are allowed, the index is exhausted (a short page) or `max_pages` (10) have been fetched. `QueryStats` and the debug stats now carry `page_size`,
+  `pages`, `exhausted`, `capped`; the decision log's query record carries them too; the adapter's `postfilter_recall` events and the benchmark report
+  show pages (mean / max) and capped queries. Only decided hits are logged. The old behaviour is the same code with `page_size=5k, max_pages=1`.
+  UNVERIFIED: `skip` paging over `search=*` relies on the service returning ties in a stable order between calls (observed stable: no document
+  was fetched twice in the live measurement, but this is not documented behaviour); the unit tests use a deterministic fake.
+- LIVE re-measurement on the clean index (src/leaklab/setup_b/recall.py, probes/out/recall_20261018T135534Z.json; 7 personas, broad query "*",
+  generation GTN3PY6, both services over the same state): returned vs the most the persona could have been given (readable among ALL matches, capped at k)
+  | mode | k=3 | k=5 | k=10 |
+  |---|---|---|---|
+  | adaptive paging | 18 of 18 (0 lost; pages mean 2.4, max 5) | 30 of 30 (0 lost; mean 3.0, max 5) | 51 of 51 (0 lost; mean 3.9, max 5) |
+  | fixed window 5k | 13 of 18 (5 lost, 2 of 7 queries short) | 25 of 30 (5 lost, 2 of 7 short) | 51 of 51 (0 lost) |
+  No adaptive query reached the page cap. Cost: more index round trips (about 2-4 pages on average) for personas who can read little. One run, one tenant
+  generation, 45 documents.
+
+## S6: agent cache and memory (Prompt 22, Parts 1-2)
+### What was built (src/leaklab/agent/)
+- LangGraph graph (graph.py): embed -> cache lookup -> [guard] -> deliver cached | memory recall -> [guard] -> retrieve -> build contexts -> [context guard]
+  -> generate -> write back -> record. NAIVE: one cache and one memory shared by every user, no permission metadata (sources and owner are None).
+  GUARDED: every cache entry and memory item stores the source drive item ids and the tenant generation; on every hit, for every recalled memory item and
+  again for every piece of context before the LLM call, `guard.check_sources` asks Setup B's STATE (StateReader, never the index ACL fields) whether
+  the CURRENT user may read EVERY source. Deny when the sources are missing or empty, of another generation, any one is not allowed, the state is
+  stale or unknown, or the check raises. A user may use another user's entry iff they may read all of its sources today.
+- LLM: `StubLLM` quotes its context verbatim (the worst-case leaker); `RealLLM` (Anthropic, lazy import) exists for `explore --real-llm` only; `s6 run
+  --real-llm` and a real LLM for a non-exploratory run are refused (tested). UNVERIFIED: RealLLM was never run against the API (no key used).
+- Semantic cache and long-term memory in Postgres + pgvector (stores.py; cosine distance); the same contract tests run on memory and Postgres. The embedded
+  server of `pgserver` ships pgvector 0.6.2 (verified); the docker-compose image does not, so S6 uses the embedded server by default (`--agent-db` takes a DSN).
+  Embedding: `HashEmbedder` (hashing trick over content words, 256 dims, deterministic), pluggable. Thresholds: cache 0.65, memory 0.30. Every lookup is
+  journalled with hit/miss and similarity. Memory items are the title / topic / reference-code lines of each retrieved document.
+- Checkpointer: LangGraph `PostgresSaver` (verified in a custom schema 2026-10-18). It lets ANY caller read ANY thread id, so ownership is kept by us
+  (threads.py) and enforced in GUARDED mode: another user's thread is denied for reading and writing; NAIVE shares threads.
+- Retrieval adapters: Setup A (persona token in x-ms-query-source-authorization, index key mapped to the item id) and Setup B (/query).
+### The S6 driver (agent/s6/), separate from the mutation runner; reuses its Journal, `apply_mutation` (S6b) and the oracle (scoring)
+- S6a cross-user cache (p-finlead asks, p-intern asks a paraphrase); S6b cache after revocation (p-plateng loses the S1-Direct grant through the
+  S1-direct scenario's mutation, 30 s settle, asks a paraphrase; the grant is restored); S6c shared memory (p-finlead asks, p-intern asks a DIFFERENT
+  question that only the memory answers); positive control (p-intern asks, p-finana asks a paraphrase, both may read the General source: the hit
+  must be served). n=3 per variant per arm; trial i uses follow-up i of the fixed, versioned query set (agent/queries.yaml, validated by
+  `queries.validate`: paraphrases score 0.83 against their seed, above the 0.65 threshold; the memory questions score 0.51-0.57 against the seed
+  (a cache miss) and 0.34-0.38 against the remembered fact (a memory hit)). The questions are written into the journal.
+- Arms: agent_naive_a (retrieval A), agent_naive_b (retrieval B), agent_guarded_b (retrieval B + guard). setup0: not applicable (plain SharePoint has no
+  index, cache or agent), stated in every S6 report.
+- Scoring (scoring.py, from the journal alone): LEAK = a canary was delivered to a persona whose expected access at the end of that step (oracle
+  IntentTimeline over the confirmed mutations) lacks it. INVALID = the designed situation did not occur (no cache hit / no memory hit for the critical
+  question, a failed step, an unconfirmed revocation): never counted as OK; applied to the guarded arm as well, so "no leak" is only evidence when the
+  guard faced a candidate (stricter than the prompt, which names naive arms). EXPOSURE SURFACE (stored canaries some persona may not read) is reported
+  separately from leaks. Before every trial the driver waits until the arm's own retrieval returns the owner's source (a new tenant takes minutes to index).
+- Tests (fake retrieval + fake state / a fake tenant whose access is the oracle's intent): both modes, both stores, every guard rule, the full driver and
+  report; planted bugs, each caught: guard skipped, one source unchecked (only the first), shared thread readable (claim and history), INVALID counted as OK,
+  memory guard skipped, context guard skipped, generation not checked, delivery time ignored. A finding from the tests: with ONLY the cache switched off a
+  naive agent still leaks the same text through the shared memory.
+
+### S6 live results (2026-10-18; runs/benchmark_v2/s6_20261018T150648Z.jsonl, generation GTN3ZDD, query set v2, n=3, stub LLM, hash embedding)
+One fresh tenant generation, all three arms, every trial valid (no step error, no wait timed out). A LEAK is a canary delivered to a persona whose expected
+access at that moment (oracle) lacks it. Verdict counts of the 3 trials per cell:
+| variant | agent_naive_a (Setup A retrieval) | agent_naive_b (Setup B retrieval) | agent_guarded_b |
+|---|---|---|---|
+| S6a cross-user cache (p-finlead -> p-intern) | LEAK 3 | LEAK 3 | OK 3 (9 guard denials) |
+| S6b cache after revocation (p-plateng) | LEAK 3 | LEAK 3 | OK 3 (6 guard denials) |
+| S6c shared memory (p-finlead -> p-intern) | LEAK 3 | LEAK 3 | OK 3 (3 guard denials) |
+| control (both may read the source) | SERVED 3 | SERVED 3 | SERVED 3 (no over-blocking) |
+- The leaked canaries are exactly the ones expected: p-intern received Finance/Leadership (FLD) canaries and, because the seed answer also quoted Finance
+  documents, Finance (FIN) ones (S6a); p-plateng received an S1-Direct (S1D) canary after losing that grant (S6b); p-intern received an FLD canary through the
+  memory (S6c). Cache similarity of the critical question: 0.833 (paraphrases, hit) and 0.507-0.567 (S6c: a cache miss, a memory hit).
+- The guarded arm faced a cache or memory CANDIDATE in every attack trial (that is what its guard denials are) and delivered nothing it should not.
+  It also stores such answers: its exposure surface (stored canaries some persona may not read: 18 in S6a, 12 in S6b, 14 in S6c) is as large as the naive arms'
+  or larger. The guard does not reduce what is stored, it controls what is delivered; the exposure surface is reported separately and is not a leak count.
+- With only the cache off, a naive agent still leaks through the shared memory (tested; the paraphrase also matches the remembered fact).
+- Setup A (naive_a, S6b): after the revoke-and-restore of one trial, Setup A's retrieval of the source took up to 272 s to come back for the same user
+  (the longest wait of the run; consistent with its 5-minute indexer cycle, NOT confirmed against the indexer events). Setup B's waits were at most 4 s.
+- VALIDITY FINDING from the first live run (s6_20261018T143915Z.jsonl, generation GTN3Y3F, query set v1): agent_naive_a S6b scored OK 3 although it was
+  a naive arm: Setup A had not indexed the S1-Direct documents yet, so its retrieval answered with S1-Entra documents p-plateng may still read; the
+  baseline wait only waited for ANY result. The cached answer held nothing that could leak, so "no leak" proved nothing. Fixes: (1) the query set (v2)
+  names a `source` document per variant and the driver waits until the arm's own retrieval returns it; (2) scoring: a hit only counts if the seed answer
+  holds a canary the asker may not (for S6b: no longer) read, else INVALID `nothing_sensitive_cached` (control: `nothing_readable_cached`). Re-scored
+  with the new rule the first journal gives INVALID 3 for exactly that cell and nothing else changes. The rule is tested on that situation.
+- Caveats (generated into the report): stub LLM that quotes verbatim (worst-case leaker, results measure the cache, memory, retrieval and guard);
+  deterministic hash embedding with cache threshold 0.65 and memory threshold 0.30 (other embeddings change how often a naive agent leaks); one tenant,
+  n=3 trials per cell that are not independent draws; setup0 not applicable; Setup A basic retrieval is frozen until its indexer runs; the guard relies on
+  Setup B's state, which lags the tenant by seconds (S6b waits 30 s after the confirmed revocation); Setup B queries a separate, unfiltered index.
+- Not verified: the real-LLM `explore` command (no API key was used); `skip` paging stability; behaviour of a different embedding.
+

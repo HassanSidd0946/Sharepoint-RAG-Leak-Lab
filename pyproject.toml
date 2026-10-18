@@ -12,11 +12,14 @@ dependencies = [
     "typer",
     "rich",
     "cryptography",
-    "psycopg[binary]>=3.3.6",
+    "psycopg[binary,pool]>=3.3.6",
     "fastapi>=0.143.3",
     "uvicorn[standard]>=0.54.0",
     "pyjwt[crypto]>=2.15.1",
     "jinja2>=3.1.6",
+    "langgraph>=1.2.16",
+    "langgraph-checkpoint-postgres>=3.2.0",
+    "pgserver>=0.1.4",
 ]
 
 [dependency-groups]
@@ -26,7 +29,6 @@ dev = [
     "mypy",
     "types-PyYAML",
     "hypothesis>=6.170.0",
-    "pgserver>=0.1.4",
 ]
 
 [build-system]
@@ -51,6 +53,10 @@ select = ["E", "F", "W", "I", "UP", "B"]
 "probes/*" = ["B008"]  # typer.Option(...) in argument defaults is typer's normal usage
 "src/leaklab/runner/cli.py" = ["B008"]
 "src/leaklab/benchmark/cli.py" = ["B008"]  # same: typer.Option(...) defaults
+"src/leaklab/setup_b/recall.py" = ["B008"]
+"src/leaklab/agent/**" = ["E501", "B008"]  # long SQL strings and docstrings in the agent package
+"tests/*agent*.py" = ["E501"]
+"tests/*s6*.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -62,6 +68,10 @@ plugins = ["pydantic.mypy"]
 [[tool.mypy.overrides]]
 module = ["msal", "msal.*"]
 ignore_missing_imports = true  # msal ships no type information
+
+[[tool.mypy.overrides]]
+module = ["anthropic", "anthropic.*"]
+ignore_missing_imports = true  # optional: only for the exploratory --real-llm
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

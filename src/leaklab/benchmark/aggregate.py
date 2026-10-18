@@ -21,40 +21,23 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from statistics import median
 from typing import Any
 
 from pydantic import BaseModel
 
+from leaklab.agent.s6.report import S6Report
 from leaklab.benchmark.execute import Manifest
 from leaklab.benchmark.matrix import BenchmarkPlan
 from leaklab.runner import build_report, load_events
 from leaklab.runner.metrics import SETUP_B_LABEL, RunReport, ScenarioResult
 from leaklab.setup_a.provision import MIN_SCHEDULE
 from leaklab.spec import TenantSpec
+from leaklab.stats import Stat, stat
 
 COMPLETE_REASONS = frozenset({"converged", "cap", "steady_window_elapsed"})
 NOT_EVIDENCE = "NOTHING_TO_REVOKE"
 DID_NOT_CONVERGE = "DID_NOT_CONVERGE"
 SMALL_N = 3  # a cell with fewer complete replicates than this is flagged in the caveats
-
-
-class Stat(BaseModel):
-    n: int
-    min: float | None = None
-    median: float | None = None
-    max: float | None = None
-
-
-def stat(values: Sequence[float]) -> Stat:
-    if not values:
-        return Stat(n=0)
-    return Stat(
-        n=len(values),
-        min=round(min(values), 3),
-        median=round(float(median(values)), 3),
-        max=round(max(values), 3),
-    )
 
 
 class Replicate(BaseModel):
@@ -187,6 +170,7 @@ class BenchmarkSummary(BaseModel):
     runs: list[RunInfo]
     indexer_runs: list[IndexerSummary]
     poller_lag: list[LagSummary]
+    s6: S6Report | None = None  # Scenario S6 (agent cache and memory), if a run exists
     startup: list[StartupSummary] = []
     index_cleanups: list[CleanupSummary] = []
     stale_copies: list[StaleSummary] = []
@@ -468,12 +452,25 @@ def _recall(loaded: Sequence[LoadedRun]) -> dict[str, Any]:
     for e in samples:
         total = e.get("allowed_total")
         agg = by_k.setdefault(
-            int(e["k"]), {"samples": 0, "returned": 0, "possible": 0, "short_of_k": 0, "lost": 0}
+            int(e["k"]),
+            {
+                "samples": 0,
+                "returned": 0,
+                "possible": 0,
+                "short_of_k": 0,
+                "lost": 0,
+                "pages": 0,
+                "max_pages": 0,
+                "capped": 0,
+            },
         )
         agg["samples"] += 1
         agg["returned"] += int(e["returned"])
         agg["possible"] += min(int(e["k"]), int(total)) if total is not None else int(e["returned"])
         agg["short_of_k"] += 1 if int(e["shortfall"]) > 0 else 0
+        agg["pages"] += int(e.get("pages") or 1)
+        agg["max_pages"] = max(agg["max_pages"], int(e.get("pages") or 1))
+        agg["capped"] += 1 if e.get("capped") else 0
         agg["lost"] += int(e.get("lost_vs_unlimited") or 0)
     return {"samples": len(samples), "by_k": {str(k): v for k, v in sorted(by_k.items())}}
 
@@ -485,6 +482,7 @@ def summarize(
     loaded: Sequence[LoadedRun],
     *,
     now: datetime | None = None,
+    s6: S6Report | None = None,
 ) -> BenchmarkSummary:
     grouped: dict[tuple[str, str], list[Replicate]] = {}
     for run in loaded:
@@ -526,6 +524,7 @@ def summarize(
         runs=infos,
         indexer_runs=indexer,
         poller_lag=lag,
+        s6=s6,
         startup=_startup(loaded),
         index_cleanups=_cleanups(loaded),
         stale_copies=_stale(loaded),

@@ -190,37 +190,81 @@ def test_the_answer_follows_a_revocation_after_the_next_poll(make_repo: Factory)
     assert not served()
 
 
-def test_overfetch_limits_what_k_can_return_and_the_shortfall_is_reported(
+def test_paging_goes_on_until_k_results_are_allowed(make_repo: Factory) -> None:
+    api = Api(World(make_repo()), page_size=lambda k: 4)
+    api.world.sync()
+    stats = api.query("p-ceo", k=3, debug=True, measure_recall=True)["stats"]
+    assert stats["returned"] == 3 and stats["shortfall"] == 0 and stats["pages"] > 1
+    assert stats["allowed"] >= 3 and stats["capped"] is False and stats["exhausted"] is False
+    # every page asks for the next hits: no hit is fetched twice
+    assert [q[2] for q in api.index.queries[: stats["pages"]]] == [
+        4 * i for i in range(stats["pages"])
+    ]
+    assert len(set(stats["doc_ids"])) == len(stats["doc_ids"]) == stats["fetched"]
+
+
+def test_paging_stops_at_the_first_page_when_it_already_holds_k_allowed_results(
     make_repo: Factory,
 ) -> None:
-    api = Api(World(make_repo()), over_fetch=2)
+    api = Api(World(make_repo()))
     api.world.sync()
-    body = api.query("p-intern", k=10, debug=True, measure_recall=True)
-    stats = body["stats"]
-    assert stats["fetch_limit"] == 20 and stats["fetched"] == 20
-    assert stats["returned"] == stats["allowed"] <= 10
-    assert stats["allowed_total"] >= stats["allowed"]  # what an unlimited window would have found
-    assert stats["shortfall"] == 10 - stats["returned"]
-    assert api.index.queries[0] == ("CANARY", 20)
+    stats = api.query("p-plateng", k=3, debug=True)["stats"]  # reads most of the corpus
+    assert stats["pages"] == 1 and stats["returned"] == 3 and len(api.index.queries) == 1
+
+
+def test_paging_stops_when_the_index_is_exhausted(make_repo: Factory) -> None:
+    api = Api(World(make_repo()))
+    api.world.sync()
+    stats = api.query("p-intern", k=50, debug=True, measure_recall=True)["stats"]
+    assert stats["exhausted"] is True and stats["capped"] is False
+    assert stats["returned"] == stats["allowed_total"] < 50  # everything readable was found
+    assert stats["fetched"] == len(ALL)
+
+
+def test_a_page_cap_limits_the_work_and_the_shortfall_is_reported(make_repo: Factory) -> None:
+    api = Api(World(make_repo()), max_pages=1, page_size=lambda k: k)
+    api.world.sync()
+    stats = api.query("p-ceo", k=3, debug=True, measure_recall=True)["stats"]
+    assert stats["pages"] == 1 and stats["capped"] is True and stats["exhausted"] is False
+    assert stats["returned"] < 3 <= stats["allowed_total"]  # readable documents exist, not reached
+    assert stats["shortfall"] == 3 - stats["returned"] > 0
+
+
+def test_the_old_fixed_window_is_the_same_paging_with_one_page_of_5k(make_repo: Factory) -> None:
+    """page_size = 5k and one page IS the old over-fetch: the baseline the recall is compared with."""
+    api = Api(World(make_repo()), page_size=lambda k: 5 * k, max_pages=1)
+    api.world.sync()
+    stats = api.query("p-ceo", k=3, debug=True, measure_recall=True)["stats"]
+    assert stats["page_size"] == 15 and stats["fetched"] == 15 and stats["pages"] == 1
+    assert stats["returned"] < 3 <= stats["allowed_total"]  # the cost the adaptive paging removes
+    assert api.index.queries[0] == ("CANARY", 15, 0)
+
+
+def test_the_default_paging_returns_k_where_the_fixed_window_could_not(make_repo: Factory) -> None:
+    fixed = Api(World(make_repo()), page_size=lambda k: 5 * k, max_pages=1)
+    adaptive = Api(World(make_repo()))
+    for api in (fixed, adaptive):
+        api.world.sync()
+    assert len(fixed.query("p-ceo", k=3)["results"]) < 3
+    assert len(adaptive.query("p-ceo", k=3)["results"]) == 3
+
+
+def test_the_pages_are_in_the_decision_log_and_only_decided_hits_are_logged(
+    make_repo: Factory,
+) -> None:
+    api = Api(World(make_repo()), page_size=lambda k: 4)
+    api.world.sync()
+    stats = api.query("p-ceo", k=3, debug=True)["stats"]
+    summary = next(r for r in api.log.records() if r.entry.kind == "query").entry
+    assert summary.detail["pages"] == stats["pages"] > 1
+    decided = [r for r in api.log.records() if r.entry.kind == "decision"]
+    assert len(decided) == stats["fetched"] < len(ALL)
 
 
 def test_never_more_than_k_results(make_repo: Factory) -> None:
-    api = Api(World(make_repo()), over_fetch=100)  # a window as big as the index
+    api = Api(World(make_repo()), page_size=lambda k: 100)  # one page as big as the index
     api.world.sync()
     assert len(api.query("p-ceo", k=3)["results"]) == 3
-
-
-def test_post_filtering_loses_recall_when_the_top_of_the_ranking_is_forbidden(
-    make_repo: Factory,
-) -> None:
-    """The cost of over-fetching a fixed window: the user may read documents that rank beyond it."""
-    api = Api(World(make_repo()))  # k=3 -> a window of 15
-    api.world.sync()
-    stats = api.query("p-ceo", k=3, debug=True, measure_recall=True)["stats"]
-    assert stats["fetched"] == 15
-    assert stats["returned"] < 3 <= stats["allowed_total"]  # readable documents exist, not found
-    assert stats["shortfall"] == 3 - stats["returned"] > 0
-    assert api.service.metrics()["recent_queries"]["short_of_k"] == 1
 
 
 def test_debug_stats_need_the_server_to_allow_them(make_repo: Factory) -> None:
@@ -415,3 +459,29 @@ def test_unknown_paths_do_not_create_unbounded_counters(make_repo: Factory) -> N
         api.client.get(f"/nope/{i}")
     m = api.client.get("/metrics", headers=operator()).json()
     assert [k for k in m["counters"] if k.startswith("http:")].count("http:other:404") == 1
+
+
+def test_the_recall_tool_totals_returned_possible_and_pages() -> None:
+    from leaklab.setup_b.recall import Sample, summarize
+
+    def sample(mode: str, k: int, returned: int, possible: int, pages: int, capped: bool = False):  # type: ignore[no-untyped-def]
+        return Sample(
+            mode=mode, persona="p", k=k, returned=returned, possible=possible, pages=pages,
+            fetched=pages * 10, capped=capped, exhausted=False,
+        )  # fmt: skip
+
+    summary = summarize(
+        [
+            sample("adaptive", 3, 3, 3, 2),
+            sample("adaptive", 3, 3, 3, 1),
+            sample("fixed_5k", 3, 1, 3, 1),
+            sample("fixed_5k", 3, 3, 3, 1),
+            sample("adaptive", 10, 4, 6, 10, capped=True),
+        ]
+    )
+    assert summary["adaptive"]["3"] == {
+        "samples": 2, "returned": 6, "possible": 6, "lost": 0, "short": 0,
+        "pages_sum": 3, "pages_max": 2, "capped": 0,
+    }  # fmt: skip
+    assert summary["fixed_5k"]["3"]["lost"] == 2 and summary["fixed_5k"]["3"]["short"] == 1
+    assert summary["adaptive"]["10"]["lost"] == 2 and summary["adaptive"]["10"]["capped"] == 1

@@ -93,7 +93,10 @@ def create_app(
             s = outcome.stats
             body["stats"] = {
                 "k": s.k,
-                "fetch_limit": s.fetch_limit,
+                "page_size": s.page_size,
+                "pages": s.pages,
+                "exhausted": s.exhausted,
+                "capped": s.capped,
                 "fetched": s.fetched,
                 "unmapped": s.unmapped,
                 "allowed": s.allowed,

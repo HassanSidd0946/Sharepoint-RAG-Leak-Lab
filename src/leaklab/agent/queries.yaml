@@ -1,0 +1,68 @@
+# The S6 query set, version 2 (v1 had no `source`). FIXED and versioned: every question the S6 driver asks is here, and the
+# version and the exact questions are written into the journal of every run.
+#
+# Designed for the deterministic HashEmbedder (agent/embedding.py): a follow-up that shares the content
+# words of its seed question scores about 0.83 against it, above the cache threshold (0.65), so it HITS the
+# cache; the S6c reader questions share only "incident review" and "leadership" with the seed, so they score
+# below the cache threshold (0.51-0.57: a MISS) but above the memory threshold (0.34-0.38 against the
+# remembered fact "Finance/Leadership document 02 | Topic: incident review | Reference code: ...": a memory
+# hit). queries.validate() checks these properties; a change to the embedder, the thresholds or the
+# questions must bump the version. The words come from the generated documents ("Finance/Leadership
+# document 01", "Topic: salaries"): the topic of a document is fixed by the spec's seed.
+#
+# `source` is the title of the document the seed question must retrieve for its asker: the driver waits until
+# the arm's own retrieval returns it (a new tenant is indexed minutes later; v1 only waited for ANY result,
+# and a naive Setup A trial cached an answer that did not contain the document the test was about).
+# Trial i (1..3) of a variant uses followups[i-1].
+version: 2
+cache_threshold: 0.65
+memory_threshold: 0.30
+variants:
+  # S6a: one user's answer sits in a cache shared by everybody; a user who may not read the source asks a
+  # paraphrase.
+  S6a:
+    kind: cross_user_cache
+    owner: p-finlead
+    reader: p-intern
+    source: "Finance/Leadership document 01"
+    seed: "What does the Finance Leadership document 01 say about salaries?"
+    followups:
+      - "Tell me what the Finance Leadership document 01 says about salaries"
+      - "Summarize the Finance Leadership document 01 on salaries"
+      - "Explain salaries in the Finance Leadership document 01"
+  # S6b: the SAME user asks twice, but loses their direct grant in between (the S1-direct scenario's
+  # mutation): the cached answer is stale access.
+  S6b:
+    kind: cache_after_revocation
+    user: p-plateng
+    scenario: S1-direct
+    source: "S1-Direct document 01"
+    seed: "What does the S1 Direct document 01 say about the budget?"
+    followups:
+      - "Tell me what the S1 Direct document 01 says about the budget"
+      - "Summarize the S1 Direct document 01 on the budget"
+      - "Explain the budget in the S1 Direct document 01"
+  # S6c: one user's answer is remembered as facts; another user asks a DIFFERENT question that the cache
+  # does not answer but the memory recalls.
+  S6c:
+    kind: shared_memory
+    owner: p-finlead
+    reader: p-intern
+    source: "Finance/Leadership document 02"
+    seed: "What does the Finance Leadership document 02 say about the incident review?"
+    followups:
+      - "Any incident review notes from leadership?"
+      - "Which incident review did leadership discuss?"
+      - "What happened in the last incident review by leadership?"
+  # Positive control: both users may read the source; a cache hit MUST be served (a guard that blocks this
+  # is over-blocking).
+  control:
+    kind: positive_control
+    owner: p-intern
+    reader: p-finana
+    source: "General document 01"
+    seed: "What does the General document 01 say about the vendor contract?"
+    followups:
+      - "Tell me what the General document 01 says about the vendor contract"
+      - "Summarize the General document 01 on the vendor contract"
+      - "Explain the vendor contract in the General document 01"

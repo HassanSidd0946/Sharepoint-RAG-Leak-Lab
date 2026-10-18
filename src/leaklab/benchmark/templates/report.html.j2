@@ -149,12 +149,49 @@
 
 {% if s.postfilter_recall.samples %}
 <h2>Recall cost of post-filtering (Setup B)</h2>
-<p class="small muted">Broad query at several k with a k&times;5 window: results returned versus the most the persona could have been given (readable documents among all matches, capped at k).</p>
+<p class="small muted">Broad query at several k, fetched page by page until k results are allowed or the page cap is reached: results returned versus the most the persona could have been given (readable documents among all matches, capped at k).</p>
 <div class="scroll"><table>
-<thead><tr><th>k</th><th>Samples</th><th>Returned</th><th>Possible</th><th>Lost</th><th>Samples short of k</th></tr></thead>
+<thead><tr><th>k</th><th>Samples</th><th>Returned</th><th>Possible</th><th>Lost</th><th>Samples short of k</th><th>Pages (mean / max)</th><th>Capped</th></tr></thead>
 <tbody>{% for k, v in s.postfilter_recall.by_k.items() %}
-<tr><td class="num">{{ k }}</td><td class="num">{{ v.samples }}</td><td class="num">{{ v.returned }}</td><td class="num">{{ v.possible }}</td><td class="num {% if v.lost %}bad{% endif %}">{{ v.lost }}</td><td class="num">{{ v.short_of_k }}</td></tr>
+<tr><td class="num">{{ k }}</td><td class="num">{{ v.samples }}</td><td class="num">{{ v.returned }}</td><td class="num">{{ v.possible }}</td><td class="num {% if v.lost %}bad{% endif %}">{{ v.lost }}</td><td class="num">{{ v.short_of_k }}</td><td class="num">{{ '%.1f'|format(v.pages / v.samples) }} / {{ v.max_pages }}</td><td class="num {% if v.capped %}bad{% endif %}">{{ v.capped }}</td></tr>
 {% endfor %}</tbody></table></div>
+{% endif %}
+
+{% if s.s6 %}
+<h2>Scenario S6: agent cache and memory</h2>
+<p class="small muted">An agent (LangGraph, stub LLM that quotes verbatim) in front of the systems. NAIVE shares one cache and one memory between all users without permission metadata; GUARDED stores the sources of every entry and re-checks, for the current user, every source against Setup B's state before a hit is served or text reaches the LLM. A leak is a canary delivered to a persona whose expected access at that moment (the oracle) lacks it. INVALID: the designed situation did not occur; it is never counted as OK. Journal: <a href="{{ s.s6.journal }}"><code>{{ s.s6.journal }}</code></a>, query set version {{ s.s6.query_version }}, {{ s.s6.n }} trials per variant per arm{% if s.s6.generation %}, generation <code>{{ s.s6.generation }}</code>{% endif %}.</p>
+<div class="scroll"><table>
+<thead><tr><th>Variant</th><th>Arm</th><th>Trials</th><th>Verdicts</th><th>Valid</th><th>Cache similarity (min / med / max)</th><th>Guard denials</th><th>Exposure surface (stored / unsafe / pairs)</th></tr></thead>
+<tbody>
+{% for c in s.s6.cells %}
+<tr>
+  <td>{{ c.variant }}<br><span class="muted small">{{ c.kind }}</span></td><td>{{ c.arm }}</td><td class="num">{{ c.trials }}</td>
+  <td class="{% if c.leak_trials or c.verdicts.get('OVERBLOCK') %}bad{% elif c.invalid_trials %}warnc{% else %}okc{% endif %}">{{ counts(c.verdicts) }}</td>
+  <td class="num">{{ c.valid_trials }}</td>
+  <td class="num">{% if c.similarity.n %}{{ '%.2f'|format(c.similarity.min) }} / {{ '%.2f'|format(c.similarity.median) }} / {{ '%.2f'|format(c.similarity.max) }}{% else %}&ndash;{% endif %}</td>
+  <td class="num">{{ c.guard_denials }}</td>
+  <td class="num">{{ c.exposure_stored }} / {{ c.exposure_unsafe }} / {{ c.exposure_pairs }}</td>
+</tr>
+{% endfor %}
+</tbody></table></div>
+<p class="small muted">Exposure surface = canaries stored in the cache or memory at the end of a trial, those some persona may not read, and the (canary, persona) pairs without access. It is what a leak could draw on and is NOT a leak count.</p>
+<details><summary>Every S6 trial</summary>
+<div class="scroll"><table>
+<thead><tr><th>Variant</th><th>Arm</th><th>Trial</th><th>Asked by</th><th>Question</th><th>Cache</th><th>Similarity</th><th>Verdict</th><th>Reason</th><th>Leaked canaries</th></tr></thead>
+<tbody>{% for c in s.s6.cells %}{% for r in c.rows %}
+<tr><td>{{ c.variant }}</td><td>{{ c.arm }}</td><td class="num">{{ r.trial }}</td><td>{{ r.persona }}</td><td>{{ r.question }}</td><td>{{ r.cache_status }}</td>
+<td class="num">{% if r.similarity is none %}&ndash;{% else %}{{ '%.2f'|format(r.similarity) }}{% endif %}</td>
+<td class="{% if r.verdict in ('LEAK', 'OVERBLOCK') %}bad{% elif r.verdict == 'INVALID' %}warnc{% endif %}">{{ r.verdict }}</td><td>{{ r.reason }}</td>
+<td>{% for l in r.leaks %}<code>{{ l.canary }}</code> to {{ l.persona }}{{ ", " if not loop.last }}{% else %}&ndash;{% endfor %}</td></tr>
+{% endfor %}{% endfor %}</tbody></table></div></details>
+<details><summary>The fixed query set</summary>
+<div class="scroll"><table>
+<thead><tr><th>Variant</th><th>Kind</th><th>Seed question</th><th>Follow-ups (trial order)</th></tr></thead>
+<tbody>{% for name, q in s.s6.questions.items() %}
+<tr><td>{{ name }}</td><td>{{ q.kind }}</td><td>{{ q.seed }}</td><td>{{ q.followups | join(" | ") }}</td></tr>
+{% endfor %}</tbody></table></div></details>
+<h3>S6 caveats</h3>
+<ul class="caveats">{% for text in s.s6.caveats %}<li>{{ text }}</li>{% endfor %}</ul>
 {% endif %}
 
 <h2>Raw journals</h2>

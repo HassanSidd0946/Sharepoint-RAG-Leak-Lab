@@ -60,7 +60,7 @@ class IndexAcl:
 
 
 class IndexPort(Protocol):
-    def query(self, text: str, top: int) -> Fetched: ...
+    def query(self, text: str, top: int, skip: int = 0) -> Fetched: ...
 
     def stored_acl(self, doc_id: str) -> IndexAcl | None: ...
 
@@ -122,12 +122,13 @@ class HttpIndexPort:
             raise IndexUnavailable("unexpected-shape")
         return data
 
-    def query(self, text: str, top: int) -> Fetched:
+    def query(self, text: str, top: int, skip: int = 0) -> Fetched:
         data = self._search(
             {
                 "search": text,
                 "select": "id,metadata_spo_item_name,content",
                 "top": max(1, min(top, MAX_TOP)),
+                "skip": max(0, skip),
                 "count": True,
             }
         )

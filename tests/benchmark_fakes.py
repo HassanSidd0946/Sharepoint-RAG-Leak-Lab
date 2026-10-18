@@ -48,7 +48,8 @@ class BFakeSystem(FakeSystem):
                 out.append(
                     {
                         "kind": "postfilter_recall", "persona": "p-ceo", "query": "*", "k": k,
-                        "fetch_limit": 5 * k, "fetched": 5 * k, "allowed_in_window": k - 1,
+                        "page_size": 5 * k, "pages": 1, "capped": True, "fetched": 5 * k,
+                        "allowed_in_window": k - 1,
                         "returned": k - 1, "allowed_total": k, "shortfall": 1,
                         "lost_vs_unlimited": 1,
                     }

@@ -26,7 +26,7 @@ from typing import Any
 
 from leaklab.setup_a.client import IndexerRun
 from leaklab.setup_b.api.decisionlog import DecisionLog, Entry
-from leaklab.setup_b.api.search import MAX_TOP, IndexPort
+from leaklab.setup_b.api.search import MAX_TOP, Hit, IndexPort
 from leaklab.setup_b.api.tokens import Principal, TokenValidator
 from leaklab.setup_b.state import acl, membership
 from leaklab.setup_b.state.access import Decision, Freshness, StateReader
@@ -34,7 +34,8 @@ from leaklab.setup_b.state.model import Edge
 from leaklab.setup_b.state.readiness import Readiness
 from leaklab.setup_b.state.repository import StateRepository
 
-OVER_FETCH = 5
+MIN_PAGE = 10  # the smallest page asked of the index
+MAX_PAGES = 10  # pages fetched at most for one query
 MAX_K = 50
 MAX_QUERY_CHARS = 1000
 
@@ -53,8 +54,11 @@ class ResultDoc:
 @dataclass(frozen=True)
 class QueryStats:
     k: int
-    fetch_limit: int
-    fetched: int  # hits the index returned for the over-fetched window
+    page_size: int
+    pages: int  # pages fetched from the index for this query
+    exhausted: bool  # the index had no more hits (the last page was short)
+    capped: bool  # stopped at max_pages with fewer than k allowed and more hits available
+    fetched: int  # hits the index returned over all pages
     unmapped: int  # dropped: key not mappable to a drive item id
     allowed: int  # of the fetched hits, how many the state allows
     returned: int  # min(k, allowed)
@@ -87,18 +91,23 @@ class QueryService:
         log: DecisionLog,
         validator: TokenValidator,
         clock: Callable[[], float],
-        over_fetch: int = OVER_FETCH,
+        max_pages: int = MAX_PAGES,
+        page_size: Callable[[int], int] | None = None,
         readiness: Readiness | None = None,
     ) -> None:
-        if over_fetch < 1:
-            raise ValueError("over_fetch must be at least 1")
+        """Adaptive paging: pages of `page_size(k)` hits (default max(k, MIN_PAGE)) are fetched and
+        decided one after the other until k are allowed, the index is exhausted or `max_pages` have
+        been fetched. The old fixed window is page_size=lambda k: 5 * k with max_pages=1."""
+        if max_pages < 1:
+            raise ValueError("max_pages must be at least 1")
         self._reader = reader
         self._repo = repo
         self._index = index
         self._log = log
         self._validator = validator
         self._clock = clock
-        self._over_fetch = over_fetch
+        self._max_pages = max_pages
+        self._page_size = page_size or (lambda k: max(k, MIN_PAGE))
         self._readiness = readiness
         self._lock = threading.Lock()
         self._counters: Counter[str] = Counter()
@@ -112,11 +121,22 @@ class QueryService:
         request_id = uuid.uuid4().hex
         principal = self._validator.validate(token)  # InvalidToken propagates
         fresh = self._reader.freshness()
-        limit = min(k * self._over_fetch, MAX_TOP)
-        fetched = self._index.query(text, limit)  # IndexUnavailable propagates
-        decisions = [
-            (h, self._reader.decide_with(principal.oid, h.doc_id, fresh)) for h in fetched.hits
-        ]
+        size = max(1, min(self._page_size(k), MAX_TOP))
+        decisions: list[tuple[Hit, Decision]] = []
+        skip = pages = unmapped = 0
+        exhausted = False
+        while pages < self._max_pages and sum(1 for _, d in decisions if d.allowed) < k:
+            page = self._index.query(text, size, skip)  # IndexUnavailable propagates
+            pages += 1
+            unmapped += page.unmapped
+            decisions += [
+                (h, self._reader.decide_with(principal.oid, h.doc_id, fresh)) for h in page.hits
+            ]
+            raw = len(page.hits) + page.unmapped
+            skip += raw
+            if raw < size:
+                exhausted = True
+                break
         allowed = [h for h, d in decisions if d.allowed]
         allowed_total: int | None = None
         if measure_recall:
@@ -130,15 +150,18 @@ class QueryService:
         shown = allowed[:k]
         stats = QueryStats(
             k=k,
-            fetch_limit=limit,
-            fetched=len(fetched.hits),
-            unmapped=fetched.unmapped,
+            page_size=size,
+            pages=pages,
+            exhausted=exhausted,
+            capped=not exhausted and len(allowed) < k,
+            fetched=len(decisions),
+            unmapped=unmapped,
             allowed=len(allowed),
             returned=len(shown),
             degraded=not fresh.membership_fresh or not fresh.acl_fresh,
             denied=dict(denied),
             allowed_total=allowed_total,
-            fetched_doc_ids=tuple(h.doc_id for h in fetched.hits),
+            fetched_doc_ids=tuple(h.doc_id for h, _ in decisions),
         )
         shown_ids = {h.doc_id for h in shown}
         now = self._clock()

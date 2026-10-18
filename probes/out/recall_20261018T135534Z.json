@@ -1,0 +1,544 @@
+{
+  "generation": "GTN3PY6",
+  "query": "*",
+  "personas": [
+    "p-intern",
+    "p-plateng",
+    "p-finana",
+    "p-finlead",
+    "p-hr",
+    "p-ceo",
+    "p-nest"
+  ],
+  "summary": {
+    "adaptive": {
+      "3": {
+        "samples": 7,
+        "returned": 18,
+        "possible": 18,
+        "lost": 0,
+        "short": 0,
+        "pages_sum": 17,
+        "pages_max": 5,
+        "capped": 0
+      },
+      "5": {
+        "samples": 7,
+        "returned": 30,
+        "possible": 30,
+        "lost": 0,
+        "short": 0,
+        "pages_sum": 21,
+        "pages_max": 5,
+        "capped": 0
+      },
+      "10": {
+        "samples": 7,
+        "returned": 51,
+        "possible": 51,
+        "lost": 0,
+        "short": 0,
+        "pages_sum": 27,
+        "pages_max": 5,
+        "capped": 0
+      }
+    },
+    "fixed_5k": {
+      "3": {
+        "samples": 7,
+        "returned": 13,
+        "possible": 18,
+        "lost": 5,
+        "short": 2,
+        "pages_sum": 7,
+        "pages_max": 1,
+        "capped": 3
+      },
+      "5": {
+        "samples": 7,
+        "returned": 25,
+        "possible": 30,
+        "lost": 5,
+        "short": 2,
+        "pages_sum": 7,
+        "pages_max": 1,
+        "capped": 3
+      },
+      "10": {
+        "samples": 7,
+        "returned": 51,
+        "possible": 51,
+        "lost": 0,
+        "short": 0,
+        "pages_sum": 7,
+        "pages_max": 1,
+        "capped": 0
+      }
+    }
+  },
+  "samples": [
+    {
+      "mode": "adaptive",
+      "persona": "p-intern",
+      "k": 3,
+      "returned": 3,
+      "possible": 3,
+      "pages": 3,
+      "fetched": 30,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-intern",
+      "k": 5,
+      "returned": 5,
+      "possible": 5,
+      "pages": 5,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-intern",
+      "k": 10,
+      "returned": 6,
+      "possible": 6,
+      "pages": 5,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-plateng",
+      "k": 3,
+      "returned": 3,
+      "possible": 3,
+      "pages": 1,
+      "fetched": 10,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-plateng",
+      "k": 5,
+      "returned": 5,
+      "possible": 5,
+      "pages": 1,
+      "fetched": 10,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-plateng",
+      "k": 10,
+      "returned": 10,
+      "possible": 10,
+      "pages": 2,
+      "fetched": 20,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-finana",
+      "k": 3,
+      "returned": 3,
+      "possible": 3,
+      "pages": 1,
+      "fetched": 10,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-finana",
+      "k": 5,
+      "returned": 5,
+      "possible": 5,
+      "pages": 2,
+      "fetched": 20,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-finana",
+      "k": 10,
+      "returned": 10,
+      "possible": 10,
+      "pages": 4,
+      "fetched": 40,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-finlead",
+      "k": 3,
+      "returned": 3,
+      "possible": 3,
+      "pages": 1,
+      "fetched": 10,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-finlead",
+      "k": 5,
+      "returned": 5,
+      "possible": 5,
+      "pages": 1,
+      "fetched": 10,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-finlead",
+      "k": 10,
+      "returned": 10,
+      "possible": 10,
+      "pages": 3,
+      "fetched": 30,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-hr",
+      "k": 3,
+      "returned": 3,
+      "possible": 3,
+      "pages": 2,
+      "fetched": 20,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-hr",
+      "k": 5,
+      "returned": 5,
+      "possible": 5,
+      "pages": 2,
+      "fetched": 20,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-hr",
+      "k": 10,
+      "returned": 10,
+      "possible": 10,
+      "pages": 3,
+      "fetched": 30,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-ceo",
+      "k": 3,
+      "returned": 3,
+      "possible": 3,
+      "pages": 4,
+      "fetched": 40,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-ceo",
+      "k": 5,
+      "returned": 5,
+      "possible": 5,
+      "pages": 5,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-ceo",
+      "k": 10,
+      "returned": 5,
+      "possible": 5,
+      "pages": 5,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-nest",
+      "k": 3,
+      "returned": 0,
+      "possible": 0,
+      "pages": 5,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-nest",
+      "k": 5,
+      "returned": 0,
+      "possible": 0,
+      "pages": 5,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "adaptive",
+      "persona": "p-nest",
+      "k": 10,
+      "returned": 0,
+      "possible": 0,
+      "pages": 5,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-intern",
+      "k": 3,
+      "returned": 1,
+      "possible": 3,
+      "pages": 1,
+      "fetched": 15,
+      "capped": true,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-intern",
+      "k": 5,
+      "returned": 4,
+      "possible": 5,
+      "pages": 1,
+      "fetched": 25,
+      "capped": true,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-intern",
+      "k": 10,
+      "returned": 6,
+      "possible": 6,
+      "pages": 1,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-plateng",
+      "k": 3,
+      "returned": 3,
+      "possible": 3,
+      "pages": 1,
+      "fetched": 15,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-plateng",
+      "k": 5,
+      "returned": 5,
+      "possible": 5,
+      "pages": 1,
+      "fetched": 25,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-plateng",
+      "k": 10,
+      "returned": 10,
+      "possible": 10,
+      "pages": 1,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-finana",
+      "k": 3,
+      "returned": 3,
+      "possible": 3,
+      "pages": 1,
+      "fetched": 15,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-finana",
+      "k": 5,
+      "returned": 5,
+      "possible": 5,
+      "pages": 1,
+      "fetched": 25,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-finana",
+      "k": 10,
+      "returned": 10,
+      "possible": 10,
+      "pages": 1,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-finlead",
+      "k": 3,
+      "returned": 3,
+      "possible": 3,
+      "pages": 1,
+      "fetched": 15,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-finlead",
+      "k": 5,
+      "returned": 5,
+      "possible": 5,
+      "pages": 1,
+      "fetched": 25,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-finlead",
+      "k": 10,
+      "returned": 10,
+      "possible": 10,
+      "pages": 1,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-hr",
+      "k": 3,
+      "returned": 3,
+      "possible": 3,
+      "pages": 1,
+      "fetched": 15,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-hr",
+      "k": 5,
+      "returned": 5,
+      "possible": 5,
+      "pages": 1,
+      "fetched": 25,
+      "capped": false,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-hr",
+      "k": 10,
+      "returned": 10,
+      "possible": 10,
+      "pages": 1,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-ceo",
+      "k": 3,
+      "returned": 0,
+      "possible": 3,
+      "pages": 1,
+      "fetched": 15,
+      "capped": true,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-ceo",
+      "k": 5,
+      "returned": 1,
+      "possible": 5,
+      "pages": 1,
+      "fetched": 25,
+      "capped": true,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-ceo",
+      "k": 10,
+      "returned": 5,
+      "possible": 5,
+      "pages": 1,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-nest",
+      "k": 3,
+      "returned": 0,
+      "possible": 0,
+      "pages": 1,
+      "fetched": 15,
+      "capped": true,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-nest",
+      "k": 5,
+      "returned": 0,
+      "possible": 0,
+      "pages": 1,
+      "fetched": 25,
+      "capped": true,
+      "exhausted": false
+    },
+    {
+      "mode": "fixed_5k",
+      "persona": "p-nest",
+      "k": 10,
+      "returned": 0,
+      "possible": 0,
+      "pages": 1,
+      "fetched": 45,
+      "capped": false,
+      "exhausted": true
+    }
+  ],
+  "when_utc": "2026-10-18T13:55:34Z"
+}

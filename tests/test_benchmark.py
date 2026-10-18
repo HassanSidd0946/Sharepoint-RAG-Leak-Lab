@@ -254,6 +254,7 @@ def test_indexer_runs_poller_lag_and_recall_are_recorded(finished) -> None:  # t
     assert s.postfilter_recall["samples"] == 6  # two per run
     assert s.postfilter_recall["by_k"]["3"] == {
         "samples": 3, "returned": 6, "possible": 9, "short_of_k": 3, "lost": 3,
+        "pages": 3, "max_pages": 1, "capped": 3,
     }  # fmt: skip
 
 
@@ -334,14 +335,14 @@ def test_html_escapes_text_from_the_data(finished) -> None:  # type: ignore[no-u
 
 
 def test_the_template_contains_no_numbers_of_its_own() -> None:
-    """Outside CSS, tags and template code the template has no digits, except the k*5 window."""
+    """Outside CSS, tags and template code the template has no digits (but the scenario name S6)."""
     text = (Path(__file__).parents[1] / "src/leaklab/benchmark/templates/report.html.j2").read_text(
         encoding="utf-8"
     )
     text = re.sub(r"<style>.*?</style>", "", text, flags=re.S)
     text = re.sub(r"\{%.*?%\}|\{\{.*?\}\}", "", text, flags=re.S)
     text = re.sub(r"<[^>]+>", "", text)
-    assert re.findall(r"\d+", text.replace("&times;5", "")) == []
+    assert re.findall(r"\d+", text.replace("&times;5", "").replace("S6", "")) == []
 
 
 def test_report_command_builds_from_a_folder_without_a_tenant(finished) -> None:  # type: ignore[no-untyped-def]

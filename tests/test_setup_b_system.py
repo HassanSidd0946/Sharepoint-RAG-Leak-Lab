@@ -124,7 +124,8 @@ def test_prepare_waits_for_a_healthy_api_and_takes_the_first_recall_sample() -> 
     assert len(recall) == len(PERSONAS) * 3
     sample = next(e for e in recall if e["persona"] == "p-ceo" and e["k"] == 3)
     assert {
-        "fetch_limit",
+        "page_size",
+        "pages",
         "fetched",
         "allowed_in_window",
         "returned",

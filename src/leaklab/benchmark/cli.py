@@ -19,6 +19,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from leaklab.agent.s6.report import load_s6_report
 from leaklab.benchmark.aggregate import load_runs, summarize
 from leaklab.benchmark.execute import (
     PLAN,
@@ -196,7 +197,7 @@ def cmd_report(folder: Path = DIR_OPT, spec_path: Path = SPEC_OPT) -> None:
             )
         manifest = init_manifest(folder, plan)
         loaded = load_runs(folder, plan, manifest, spec)
-        summary = summarize(spec, plan, manifest, loaded)
+        summary = summarize(spec, plan, manifest, loaded, s6=load_s6_report(folder, spec))
         json_path, html_path = write_report(summary, folder)
     except RunnerError as exc:
         console.print(f"[bold red]{exc}[/bold red]")
