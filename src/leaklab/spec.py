@@ -10,6 +10,7 @@ This module must stay free of engine code (it is shared with the independent ora
 """
 
 import hashlib
+import re
 from pathlib import Path
 from typing import Any, Literal
 
@@ -23,10 +24,43 @@ class _Model(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
+GENERATION_RE = re.compile(r"^G[0-9A-Z]{6}$")
+_B36 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
+def generation_from_epoch(seconds: float) -> str:
+    """The generation id of a tenant generation created at `seconds` (epoch): "G" + 6 base-36
+    digits of the whole seconds ("G000000" for epoch 0). Ids sort by creation time and are
+    unique per generation as long as two generations are not created in the same second."""
+    n = int(seconds)
+    if not 0 <= n < 36**6:
+        raise ValueError(f"cannot make a generation id from {seconds!r}")
+    digits = ""
+    for _ in range(6):
+        n, r = divmod(n, 36)
+        digits = _B36[r] + digits
+    return "G" + digits
+
+
 class Naming(_Model):
     prefix: str
     domain: str
     seed: int
+    # Which tenant GENERATION the canaries belong to. Every teardown + generate makes a new tenant
+    # whose documents get new item ids; without this in the canary, documents left behind in a
+    # search index by an earlier generation would carry the same canary string as the live ones.
+    # The value in the file is only the TEMPLATE (offline use, tests); a run replaces it with the id
+    # of the live tenant (TenantSpec.with_generation, generation_from_epoch of the container's
+    # creation time).
+    generation: str = "G000000"
+
+    @model_validator(mode="after")
+    def _check_generation(self) -> "Naming":
+        if not GENERATION_RE.match(self.generation):
+            raise ValueError(
+                f"naming.generation must look like G + 6 of 0-9A-Z: {self.generation!r}"
+            )
+        return self
 
 
 class Principal(_Model):
@@ -129,6 +163,11 @@ class TenantSpec(_Model):
     documents: Documents
     policy: Policy
     scenarios: list[Scenario] = []
+
+    def with_generation(self, generation: str) -> "TenantSpec":
+        """The same spec for another tenant generation: only the canaries change."""
+        naming = Naming.model_validate({**self.naming.model_dump(), "generation": generation})
+        return self.model_copy(update={"naming": naming})
 
     @model_validator(mode="after")
     def _check_cross_references(self) -> "TenantSpec":
@@ -302,18 +341,32 @@ class TenantSpec(_Model):
         for code in sorted({c for c in codes.values() if list(codes.values()).count(c) > 1}):
             errors.append(f"documents.folder_codes: code {code!r} is used by more than one folder")
         try:
-            self.documents.canary_pattern.format(folder_code="X", index=1, hex6="abcdef")
+            self.documents.canary_pattern.format(
+                generation="G000000", folder_code="X", index=1, hex6="abcdef"
+            )
         except (KeyError, IndexError, ValueError) as exc:
             errors.append(
-                "documents.canary_pattern may only use {folder_code}, {index} and {hex6}: "
-                f"{exc!r}"
+                "documents.canary_pattern may only use {generation}, {folder_code}, {index} and "
+                f"{{hex6}}: {exc!r}"
             )
         try:
-            self.documents.special_canary_pattern.format(file_id="x", hex6="abcdef")
+            self.documents.special_canary_pattern.format(
+                generation="G000000", file_id="x", hex6="abcdef"
+            )
         except (KeyError, IndexError, ValueError) as exc:
             errors.append(
-                f"documents.special_canary_pattern may only use {{file_id}} and {{hex6}}: {exc!r}"
+                "documents.special_canary_pattern may only use {generation}, {file_id} and "
+                f"{{hex6}}: {exc!r}"
             )
+        for name, pattern in (
+            ("canary_pattern", self.documents.canary_pattern),
+            ("special_canary_pattern", self.documents.special_canary_pattern),
+        ):
+            if "{generation}" not in pattern:
+                errors.append(
+                    f"documents.{name} must contain {{generation}}: canaries of different tenant "
+                    "generations must never collide"
+                )
         return errors
 
 
@@ -336,25 +389,28 @@ def generate_canaries(spec: TenantSpec) -> dict[str, list[str]]:
     """Return key -> canary strings, deterministically.
 
     Folder documents: key is the folder path, with doc_count canaries. The hex part is the
-    first 6 hex chars of sha256("<seed>|<folder>|<index>"), index starting at 1.
+    first 6 hex chars of sha256("<seed>|<generation>|<folder>|<index>"), index starting at 1.
     Special files: key is "special:<file id>" (see special_key()), with exactly one canary,
-    hex from sha256("<seed>|special|<file id>"). Special files are extra documents; they do
-    not count toward their folder's doc_count.
+    hex from sha256("<seed>|<generation>|special|<file id>"). Special files are extra documents;
+    they do not count toward their folder's doc_count.
 
-    The same spec always yields the same canaries. Raises ValueError if two canaries collide
-    (e.g. a pattern that drops the folder code or index).
+    The generation (spec.naming.generation) is part of every canary AND of its hash, so canaries
+    of different tenant generations never collide. The same spec always yields the same canaries.
+    Raises ValueError if two canaries collide (e.g. a pattern that drops the folder code or
+    index).
     """
     result: dict[str, list[str]] = {}
     seen: dict[str, str] = {}
+    generation = spec.naming.generation
     for folder in spec.folders:
         code = spec.documents.folder_codes[folder.path]
         canaries: list[str] = []
         for index in range(1, folder.doc_count + 1):
             digest = hashlib.sha256(
-                f"{spec.naming.seed}|{folder.path}|{index}".encode()
+                f"{spec.naming.seed}|{generation}|{folder.path}|{index}".encode()
             ).hexdigest()
             canary = spec.documents.canary_pattern.format(
-                folder_code=code, index=index, hex6=digest[:6]
+                generation=generation, folder_code=code, index=index, hex6=digest[:6]
             )
             if canary in seen:
                 raise ValueError(
@@ -365,8 +421,12 @@ def generate_canaries(spec: TenantSpec) -> dict[str, list[str]]:
             canaries.append(canary)
         result[folder.path] = canaries
     for sf in spec.special_files:
-        digest = hashlib.sha256(f"{spec.naming.seed}|special|{sf.id}".encode()).hexdigest()
-        canary = spec.documents.special_canary_pattern.format(file_id=sf.id, hex6=digest[:6])
+        digest = hashlib.sha256(
+            f"{spec.naming.seed}|{generation}|special|{sf.id}".encode()
+        ).hexdigest()
+        canary = spec.documents.special_canary_pattern.format(
+            generation=generation, file_id=sf.id, hex6=digest[:6]
+        )
         key = special_key(sf.id)
         if canary in seen:
             raise ValueError(

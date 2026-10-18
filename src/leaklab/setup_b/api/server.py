@@ -51,6 +51,7 @@ def build_service(
         ),
         clock=time.time,
         over_fetch=over_fetch,
+        readiness=stores.readiness,
     )
 
 

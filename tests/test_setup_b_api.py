@@ -23,7 +23,7 @@ from leaklab.setup_b.api.search import IndexAcl, IndexUnavailable
 from leaklab.setup_b.api.tokens import InvalidToken, Principal, TokenValidator
 from leaklab.setup_b.state.repository import StateRepository
 from runner_fakes import SPEC
-from setup_b_api_world import ALL, AUDIENCE, TENANT, Api, Keys, operator
+from setup_b_api_world import ALL, AUDIENCE, TENANT, Api, Keys, P, operator
 from setup_b_world import World
 
 Factory = Callable[[], StateRepository]
@@ -179,7 +179,7 @@ def test_every_persona_is_served_exactly_what_the_oracle_expects(make_repo: Fact
 def test_the_answer_follows_a_revocation_after_the_next_poll(make_repo: Factory) -> None:
     api = Api(World(make_repo()))
     api.world.sync()
-    canary = "CANARY-S1D-01"
+    canary = P + "S1D-01"
     served = lambda: {c for c in api.served_canaries("p-plateng") if c.startswith(canary)}  # noqa: E731
     assert served(), "p-plateng starts with the direct grant"
     api.world.apply(
@@ -236,15 +236,15 @@ def test_a_stale_membership_state_denies_group_grants_and_reports_degraded(
     api = Api(w)
     w.sync()
     before = api.served_canaries("p-plateng")
-    assert any(c.startswith("CANARY-GEN") for c in before)  # General: via grp-all-staff
+    assert any(c.startswith(P + "GEN") for c in before)  # General: via grp-all-staff
     for _ in range(3):
         w.group_src.fail_next = ConnectionError("down")
         w.clock.sleep(5.0)
         w.membership.poll_once()
         w.acl.poll_once()
     after = api.served_canaries("p-plateng")
-    assert not any(c.startswith("CANARY-GEN") for c in after)  # every group-based grant is denied
-    assert any(c.startswith("CANARY-S1D") for c in after)  # a grant naming the user still stands
+    assert not any(c.startswith(P + "GEN") for c in after)  # every group-based grant is denied
+    assert any(c.startswith(P + "S1D") for c in after)  # a grant naming the user still stands
     assert api.query("p-plateng")["degraded"] is True
     health = api.client.get("/health")
     assert health.status_code == 200 and health.json()["status"] == "degraded"
@@ -360,7 +360,7 @@ def test_explain_shows_the_path_and_the_index_acl_only_for_comparison(make_repo:
     api = Api(w)
     w.sync()
     doc = next(
-        h.doc_id for h in api.index.docs if api.index.canary_of[h.doc_id].startswith("CANARY-GEN")
+        h.doc_id for h in api.index.docs if api.index.canary_of[h.doc_id].startswith(P + "GEN")
     )
     # the index claims p-intern may NOT read it; the state says they may: the state wins
     api.index.stored[doc] = IndexAcl(user_ids=[], group_ids=["nobody"])
@@ -373,7 +373,7 @@ def test_explain_shows_the_path_and_the_index_acl_only_for_comparison(make_repo:
     assert "never used for decisions" in out["index_acl_snapshot"]["note"]
     # and the other way round: the index lists the user, the state denies
     board = next(
-        h.doc_id for h in api.index.docs if api.index.canary_of[h.doc_id].startswith("CANARY-BRD")
+        h.doc_id for h in api.index.docs if api.index.canary_of[h.doc_id].startswith(P + "BRD")
     )
     api.index.stored[board] = IndexAcl(user_ids=[uid], group_ids=[])
     denied = api.client.get(

@@ -59,7 +59,9 @@ API = "2026-08-01-preview"
 # and do not name its audience here. The stage "trim" records what the service answers to this one.
 SEARCH_SCOPE = "https://search.azure.com/.default"
 DATASOURCE, INDEX, INDEXER = "ll-sp-datasource", "ll-sp-index", "ll-sp-indexer"
-CANARY_RE = re.compile(r"CANARY-[A-Z0-9]+-\d{2}-[0-9a-f]{6}|CANARY-SPC-[0-9a-f]{6}")
+# canaries of a tenant generation: CANARY-G<6>-<code>-<nn>-<hex6> and CANARY-G<6>-SPC-<hex6>; the older
+# form without the generation (runs before 2026-10-18) is still recognized
+CANARY_RE = re.compile(r"CANARY-(?:G[0-9A-Z]{6}-)?(?:[A-Z0-9]+-\d{2}|SPC)-[0-9a-f]{6}")
 console = Console()
 app = typer.Typer(add_completion=False, no_args_is_help=True)
 

@@ -25,6 +25,24 @@ class BFakeSystem(FakeSystem):
         self._lag_n += 1
         out: list[dict[str, object]] = list(super().drain_events())
         if self._lag_n == 1:
+            out.append(
+                {
+                    "kind": "setup_b_ready",
+                    "ready": True,
+                    "time_to_ready_s": 41.5,
+                    "waited_in_prepare_s": 12.0,
+                    "cap_s": 300.0,
+                }
+            )
+            out.append(
+                {
+                    "kind": "setup_b_startup",
+                    "first_sync": {"grants": 40, "membership_edges": 30},
+                    "difference": {"grants": 2},
+                    "complete_at_first_sync": False,
+                    "found_by_verify": 2,
+                }
+            )
             out.append({"kind": "system_health", "status": "ok", "reasons": []})
             for k in (3, 5):
                 out.append(
@@ -108,6 +126,35 @@ class FakeRuns:
                     "config": config.as_dict(), "spec_sha256": "x", "tenant": {},
                 }
             )  # fmt: skip
+            if {"setup_a_basic", "setup_b"} & set(system_names):
+                journal.append(
+                    {
+                        "type": "index_cleanup",
+                        "t": clock.time(),
+                        "generation": "GFAKE00",
+                        "indexes": [
+                            {
+                                "index": "ll-sp-index-b",
+                                "listed": 90,
+                                "count_search_before": 90,
+                                "count_search_after": 45,
+                                "stale_found": 45,
+                                "deleted": 45,
+                                "failed": 0,
+                            },
+                            {
+                                "index": "ll-sp-index",
+                                "count_search_before": 0,
+                                "count_stats_before": 90,
+                                "count_search_after": 0,
+                                "count_stats_after": 45,
+                                "stale_found": 45,
+                                "deleted": 45,
+                                "failed": 0,
+                            },
+                        ],
+                    }
+                )
             if suffix.lstrip("_") in self.crash_runs:
                 raise KeyboardInterrupt("simulated crash")
             engine.run(scenario_ids)

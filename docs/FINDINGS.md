@@ -1654,3 +1654,111 @@ Times in seconds after the change was confirmed; "leak" = how long after it the 
 - Tests (fake tenant, fake clock, real engine journals): plan, resumable executor (crash -> resume from the journal, --redo), per-cell
   statistics, caveats generated from the data, HTML/JSON report, and a guard that the HTML template contains no numbers of its own.
 
+## Benchmark, first full run (2026-10-18; runs/benchmark/report.html, report.json; 5 runs, journals run_20261018T*_r1..r5.jsonl)
+Medians over the replicates (min-max in report.json); times in seconds after the change was confirmed; read interval 5 s; ONE tenant.
+| scenario | setup0 first deny | setup_a_basic first deny | setup_b first deny |
+|---|---|---|---|
+| S1-direct (n=3) | 5 | 227 | 17 |
+| S1-spgroup (n=3) | 6 | never served (3 of 3 had nothing to revoke) | 11 |
+| S1-entra (n=5) | 2565 (1 did not converge in 60 min) | 164 | 10 |
+| S2 nested removal (n=5) | 2663 | 234 | 9 |
+| S4 move (n=2) | no change expected, none seen | no change, none seen | no change in access (but see lockouts below) |
+Setup B's largest leak exposure after a change was 13 s (S2); none of its replicates failed to converge.
+- PROBLEM 1 (Setup B start-up lockouts): setup_b withheld pairs it should serve at the START of runs 1-3: pairs were first served 6-12 s
+  (run 1), about 90-98 s (run 2) and 25-31 s (run 3) after the run began; runs 4 and 5 had none. Direct user grants (p-ceo and p-hr on the
+  special file, p-plateng on S1-Direct) were affected as well as group grants, and `/health` never reported degraded, so the state was
+  fresh but incomplete. These reads count as `lockout` in the table (also S4 shows setup_b LOCKOUT 2 of 2: only these start-up reads).
+  They happen BEFORE the change, so they are not revocation numbers, but they are real: a freshly generated tenant is not served
+  correctly for up to ~100 s. Cause UNVERIFIED: the first sync right after `generate` may see SharePoint/Graph before the new
+  permissions and memberships are visible, and a later poll or the 60 s verification completes it (run 2's ~90 s fits a verification
+  cycle). To check: log the first sync's grant count against a later one, or wait a settle time after generate before building Setup B.
+- PROBLEM 2 (stale copies in the index): `ll-sp-index-b` holds 268 documents for 45 live ones; every canary exists in up to 6 copies (one
+  per tenant generation). Neither indexer removes documents of a deleted tenant. Setup B denies the stale copies (unknown item id) so
+  nothing leaks, but they fill the k*5 window: the recall figures in this report (e.g. k=10: 1340 returned of 2436 possible) are
+  CONTAMINATED and must not be quoted. `ll-sp-index` (Setup A) very probably has the same stale copies (not counted yet); their stored
+  ACLs name principals of deleted generations, which is why they were not served, but that is not verified. Fix proposed, not done:
+  delete the documents of earlier generations from both indexes (or reset them) after each teardown, then re-measure recall.
+- Read errors (served=None, mostly right after each regeneration while the indexers catch up) are excluded from every number; setup_a_basic
+  had the most (37-127 per cell).
+
+## Fixes after the first benchmark (2026-10-18; docs/BENCHMARK_HANDOFF.md)
+
+### 1. Per-generation canaries
+- Every canary now carries the id of the tenant generation: `CANARY-G<6>-<folder code>-<nn>-<hex6>` and `CANARY-G<6>-SPC-<hex6>`.
+  The generation is also part of the hash, so two generations never share a canary (tested: 5 generations, 45 canaries each, pairwise disjoint;
+  a pattern without `{generation}` is refused by the spec validator).
+- The id is derived from the TENANT: "G" + the creation time (epoch seconds, base 36, 6 digits) of the `ll-lab` container folder. VERIFIED
+  2026-10-18: Graph returns `createdDateTime` for the folder (`2026-10-18T08:38:29Z` for the run-5 generation, `GTN3HC5`). Teardown deletes the
+  container, so the next generate gets a new id. Any process finds the live generation by looking the container up (`Env.discover_generation`,
+  called by `open_env`); `generate()` adopts it when it creates the container. The spec file only holds a template generation (`G000000`,
+  offline use and tests). Limit: two generations created in the same second would collide (not possible with a 60 s settle after teardown).
+- The oracle needed no change: it takes the spec, and `spec.with_generation(g)` carries the generation. The runner uses `env.spec` (the live
+  tenant's), the journal's `run_started` names the generation, `build_report` scores with it, and `--resume` refuses a journal of another generation.
+- Consequence: journals written before this change (runs/benchmark/, the first full benchmark) have canaries without a generation and cannot
+  be re-scored with the new code; their `report.json` / `report.html` stay as they were. New sets use new folders (runs/benchmark_v2/).
+
+### 2. Presence checks match the current item id
+- Setup A: the query now also returns each hit's index key (`id`), which encodes the Graph item id (setup_a/keys.py). With the current item id
+  of every canary (from the generator's tenant) a hit counts only if its item id IS that id. A stale copy with the same text is never served,
+  never counts as evidence that the document is indexed, and is reported once as a `stale_copy_seen` event. Setup B's adapter does the same with
+  the item ids the API lists in its debug stats (`doc_ids`) and the `doc_id` of each result. Tests: a stale copy with the same text (not served,
+  not "indexed", reported once, a stale copy visible to a persona who may not read the current document is a denial), a hit without a usable key.
+
+### 3. Index cleanup
+- PROBE (probes/index_cleanup_probe.py, probes/out/index_cleanup_*_20261018T11*.json), before: `ll-sp-index-b` listed 268 documents with the
+  service token: 45 of the current generation, 223 stale, 0 foreign keys. `ll-sp-index` (ACL-filtered): search count 0 for the service token,
+  `documentCount` statistic 268 (so about 223 stale; the statistic lags, the stored documents themselves cannot be listed without an elevated
+  read by an admin user).
+- Delete by key works while permission filtering is ON: `POST /indexes/{index}/docs/index` with `@search.action: delete` and the key is accepted
+  by both indexes (HTTP 200, status true per key, driver app with Search Index Data Contributor). One stale key: ll-sp-index-b 268 -> 267 within
+  3 s (and gone from the listing); ll-sp-index `documentCount` 268 -> 267 within 15 s.
+- Full cleanup: 222 stale keys deleted from each index, 0 failed. After about 20 s: `ll-sp-index-b` lists exactly the 45 current
+  documents (its `documentCount` statistic still said 267: it lags much longer than the search count), `ll-sp-index` `documentCount` 45. The
+  report right after the delete call still showed the old counts (the service applies deletes a moment later), so the cleanup now polls the
+  counts for up to 45 s.
+- How it runs now (setup_a/cleanup.py, `run_once`): after the tenant is ready, the generation's item ids go into `runs/generations.json` and every
+  document whose key is not of the current generation is deleted from both indexes before the systems are built. ll-sp-index-b is enumerated;
+  ll-sp-index cannot be (the service token sees nothing), so its stale keys come from the registry of earlier generations plus the stale keys found
+  in ll-sp-index-b. Documents of generations from before the registry that are in ll-sp-index only (none found: the two statistics matched) would need
+  an admin's elevated listing (`elevated_keys`). The before/after counts are journalled (`index_cleanup`) and shown in the report. A failure is
+  recorded and does not stop the run.
+
+### 4. Setup B readiness (`GET /ready`)
+- `/ready` is 200 only when BOTH pollers have completed two polls in a row without changes and one full ACL verification has completed
+  (a verification that found drift restarts the ACL streak; a failed poll resets its poller's streak). It is advisory: it does not change what
+  /query answers (the fail-closed rules still decide). The runner waits for it in `prepare()` (cap 5 minutes), before any baseline read, and
+  journals `setup_b_ready` (ready, `time_to_ready_s` from the start of the build, the readiness state) and `setup_b_startup`. Reads, and so lockouts,
+  start after that point; if the cap passes, the run goes on and the report says the run was not ready.
+- Start-up hypothesis test: the builder records the first sync's numbers (membership edges, directory users, ACL items/files/unique scopes/grants)
+  and `setup_b_startup` compares them with the state at readiness, with the events the pollers found in between and how many the verification
+  found. RESULT: see the next section (the verification run).
+
+### 5. Verification run on clean indexes (2026-10-18; runs/benchmark_v2/, run 1 of the set, n=1 per scenario, generation GTN3PY6)
+One replicate of every scenario on a freshly generated tenant, all three systems, 5 s reads. A single run: these are observations, not
+distributions. Times in seconds after the change was confirmed.
+| scenario | setup0 first deny | setup_a_basic first deny | setup_b first deny (leak) |
+|---|---|---|---|
+| S1-direct | 18 | 298 | 18 (0) |
+| S1-spgroup | 6 | never served (baseline unstable, as before) | 10 (6) |
+| S1-entra | 2743 | 93 | 10 (0) |
+| S2 nested removal | 2954 | 207 | 16 (9) |
+| S4 move | no change | no change | no change |
+- NO Setup B LOCKOUT in any scenario (the first benchmark had them in every cell). Setup B had 0 read errors; Setup A and Setup 0 had 0 too. The 13
+  readable pairs were first served by Setup B within 10 s of the first read, like Setup 0 (the first benchmark: up to 98 s).
+- Readiness: ready 76.6 s after the build started (first sync about 43 s, then two quiet polls per poller and the first verification); `prepare()` found
+  it already ready (waited 0.007 s). The first sync was COMPLETE: the state at readiness had exactly the same numbers (26 membership edges, 15 directory
+  users, 57 items / 45 files / 11 unique scopes / 15 read grants), no event was found after the first sync, and the verification found 0 drift.
+  So the hypothesis "the first sync after generate is incomplete and a later poll or the verification completes it" is NOT supported by this run. What
+  is known: with the readiness gate (and about 45 s more between generate and the first sync, because the index cleanup now runs first) there was no
+  start-up lockout. Whether the earlier lockouts came from reading before convergence, from the shorter gap after generate (Graph/SharePoint
+  eventual consistency), or from something else is still OPEN; it needs a run with the gate on and the cleanup delay removed to separate the two.
+- Index cleanup before the run (journalled): 45 stale documents (the previous generation) found and deleted from each index, 0 failed; ll-sp-index-b
+  listed 45 before and 0 after (the new generation not indexed yet); ll-sp-index's statistic still showed 45 right after (it lags). No stale copy was
+  returned by Setup A's index (`stale_copy_seen` events: none), and Setup A's presence checks used the current item ids with 0 errors.
+- Recall from a clean index (broad query "*", window k*5, 91 samples per k): k=3: 169 returned of 236 possible (67 lost, 39 samples short of k);
+  k=5: 325 of 392 (67 lost); k=10: 665 of 665 (0 lost; the 50-document window covers the 45-document corpus). The lost results are the genuine
+  cost of post-filtering with a fixed window when forbidden documents rank first (the first benchmark's numbers were inflated by stale copies).
+  "Short of k" also counts personas with fewer than k readable documents.
+- Poller lag in the run: membership and ACL state ages at most 5.1 s and 5.3 s; 0 degraded readings.
+- Overnight: 6 more runs of S1-entra and S2 are planned in this set (runs 2-7) and scheduled on 2026-10-19, 21 and 23 at 22:00 (docs/OVERNIGHT.md).
+

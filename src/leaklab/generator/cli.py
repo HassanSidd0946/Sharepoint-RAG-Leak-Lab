@@ -70,13 +70,15 @@ def open_env(spec_path: Path, sku_part_number: str = "") -> Iterator[Env]:
     )
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     with GraphClient() as gc, SharePointRest(site_url) as sp:
-        yield Env(
+        env = Env(
             spec=spec,
             graph=GraphGateway(gc),
             sp=SharePointGateway(sp),
             settings=gen_settings,
             log=MutationLog(run_id=stamp, created_at=time.time()),
         )
+        env.discover_generation()  # the live tenant's canaries, if a tenant exists
+        yield env
 
 
 def write_report(out_dir: Path, command: str, payload: dict[str, Any]) -> Path:

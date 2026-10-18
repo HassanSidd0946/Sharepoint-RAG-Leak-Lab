@@ -31,6 +31,7 @@ from leaklab.setup_b.api.tokens import Principal, TokenValidator
 from leaklab.setup_b.state import acl, membership
 from leaklab.setup_b.state.access import Decision, Freshness, StateReader
 from leaklab.setup_b.state.model import Edge
+from leaklab.setup_b.state.readiness import Readiness
 from leaklab.setup_b.state.repository import StateRepository
 
 OVER_FETCH = 5
@@ -60,6 +61,7 @@ class QueryStats:
     degraded: bool  # the membership state was stale: group grants were not honored
     denied: dict[str, int] = field(default_factory=dict)  # reason -> count
     allowed_total: int | None = None  # only with measure_recall: allowed among ALL matches (<=1000)
+    fetched_doc_ids: tuple[str, ...] = ()  # item ids of the fetched hits (debug stats only)
 
     @property
     def shortfall(self) -> int:
@@ -86,6 +88,7 @@ class QueryService:
         validator: TokenValidator,
         clock: Callable[[], float],
         over_fetch: int = OVER_FETCH,
+        readiness: Readiness | None = None,
     ) -> None:
         if over_fetch < 1:
             raise ValueError("over_fetch must be at least 1")
@@ -96,6 +99,7 @@ class QueryService:
         self._validator = validator
         self._clock = clock
         self._over_fetch = over_fetch
+        self._readiness = readiness
         self._lock = threading.Lock()
         self._counters: Counter[str] = Counter()
         self._recent: deque[tuple[int, int, int]] = deque(maxlen=200)  # (k, fetched, returned)
@@ -134,6 +138,7 @@ class QueryService:
             degraded=not fresh.membership_fresh or not fresh.acl_fresh,
             denied=dict(denied),
             allowed_total=allowed_total,
+            fetched_doc_ids=tuple(h.doc_id for h in fetched.hits),
         )
         shown_ids = {h.doc_id for h in shown}
         now = self._clock()
@@ -161,7 +166,11 @@ class QueryService:
                 request_id,
                 {
                     "query_sha256": hashlib.sha256(text.encode()).hexdigest(),
-                    **{k_: v for k_, v in asdict(stats).items() if k_ != "denied"},
+                    **{
+                        k_: v
+                        for k_, v in asdict(stats).items()
+                        if k_ not in ("denied", "fetched_doc_ids")
+                    },
                     "denied": stats.denied,
                     "membership_age_s": fresh.membership_age_s,
                     "acl_age_s": fresh.acl_age_s,
@@ -283,6 +292,14 @@ class QueryService:
                 for name in (membership.NAME, acl.NAME)
             },
         }
+
+    def ready(self) -> dict[str, Any]:
+        """True only after both pollers had two quiet polls in a row and one verification completed
+        (state/readiness.py). Without a tracker (tests) the service reports ready."""
+        if self._readiness is None:
+            return {"ready": True, "tracked": False}
+        state = self._readiness.state()
+        return {"ready": state.ready, "tracked": True, **state.as_dict()}
 
     def metrics(self) -> dict[str, Any]:
         fresh: Freshness = self._reader.freshness()

@@ -9,6 +9,7 @@ item keeps its permissions. Failure injection and call counters let tests check 
 
 import re
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import unquote
 
@@ -49,11 +50,19 @@ class Item:
     is_folder: bool
     unique: bool = False
     grants: dict[str, set[str]] = field(default_factory=dict)  # login -> role names
+    created: float = 0.0  # epoch seconds
+
+
+def _item_dict(item: Item) -> dict[str, Any]:
+    stamp = datetime.fromtimestamp(item.created, UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return {"id": item.id, "name": item.name, "createdDateTime": stamp}
 
 
 class FakeTenant:
     def __init__(self) -> None:
         self._n = 0
+        # creation time given to new items (epoch 0 = generation G000000, the spec's template)
+        self.now = 0.0
         self.users: dict[str, dict[str, Any]] = {}  # upn lower -> user
         self.groups: dict[str, dict[str, Any]] = {}  # name -> group
         self.items: dict[str, Item] = {}
@@ -205,22 +214,22 @@ class FakeGraph:
     def find_item(self, drive_id: str, parent_id: str | None, name: str) -> dict[str, Any] | None:
         for item in self.t.items.values():
             if item.parent == parent_id and item.name == name:
-                return {"id": item.id, "name": item.name}
+                return _item_dict(item)
         return None
 
     def create_folder(self, drive_id: str, parent_id: str | None, name: str) -> dict[str, Any]:
         assert self.find_item(drive_id, parent_id, name) is None, "conflictBehavior=fail"
-        item = Item(self.t.new_id("item"), name, parent_id, True)
+        item = Item(self.t.new_id("item"), name, parent_id, True, created=self.t.now)
         self.t.items[item.id] = item
-        return {"id": item.id, "name": name}
+        return _item_dict(item)
 
     def upload_text(self, drive_id: str, parent_id: str, name: str, text: str) -> dict[str, Any]:
         existing = self.find_item(drive_id, parent_id, name)
         if existing:
             return existing
-        item = Item(self.t.new_id("item"), name, parent_id, False)
+        item = Item(self.t.new_id("item"), name, parent_id, False, created=self.t.now)
         self.t.items[item.id] = item
-        return {"id": item.id, "name": name}
+        return _item_dict(item)
 
     def delete_item(self, drive_id: str, item_id: str) -> None:
         if item_id not in self.t.items:

@@ -1,0 +1,34 @@
+{
+  "generation": "GTN3HC5",
+  "deleted_key_is_current": false,
+  "delete_in_index_b": {
+    "requested": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "errors": []
+  },
+  "delete_in_index_a": {
+    "requested": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "errors": []
+  },
+  "index_b": {
+    "count_before": 268,
+    "count_after": 267,
+    "key_still_listed": false
+  },
+  "index_a_documentCount_stat": {
+    "before": 268,
+    "series_s_count": [
+      [
+        0,
+        268
+      ],
+      [
+        15,
+        267
+      ]
+    ]
+  }
+}

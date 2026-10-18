@@ -74,3 +74,12 @@ def test_the_recorder_never_keeps_the_secret_of_a_logged_connection_string(
     text = open(PROBE, encoding="utf-8").read()
     assert '"connectionString": "<redacted>"' in text  # the recorded data source body is redacted
     assert "get_secret_value()" in text and text.count("ApplicationSecret=") == 1
+
+
+def test_canaries_with_a_generation_are_recognized_too(probe: ModuleType) -> None:
+    text = "x CANARY-GTN3HC5-S1D-01-b67fb8 y CANARY-GTN3HC5-SPC-0a1b2c z CANARY-S1D-02-7600e0"
+    assert probe.canaries_in(text) == [
+        "CANARY-GTN3HC5-S1D-01-b67fb8",
+        "CANARY-GTN3HC5-SPC-0a1b2c",
+        "CANARY-S1D-02-7600e0",
+    ]

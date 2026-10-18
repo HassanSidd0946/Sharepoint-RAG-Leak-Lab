@@ -27,6 +27,7 @@ TENANT = "11111111-2222-3333-4444-555555555555"
 AUDIENCE = "https://search.azure.com"
 OPERATOR_KEY = "operator-key-for-tests"
 CANARIES = generate_canaries(SPEC)
+P = f"CANARY-{SPEC.naming.generation}-"  # prefix of every canary of the test generation
 ALL = [c for cs in CANARIES.values() for c in cs]
 
 
@@ -120,6 +121,7 @@ class Api:
             validator=TokenValidator(tenant_id=TENANT, audience=AUDIENCE, keys=self.keys),
             clock=world.clock.time,
             over_fetch=over_fetch,
+            readiness=world.readiness,
         )
         self.client = TestClient(
             create_app(self.service, operator_key=operator_key, allow_debug=allow_debug),

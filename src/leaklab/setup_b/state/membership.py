@@ -30,6 +30,7 @@ from leaklab.setup_b.state.model import (
     PollerState,
     ResyncRequired,
 )
+from leaklab.setup_b.state.readiness import Readiness
 from leaklab.setup_b.state.repository import StateRepository
 
 NAME = "membership"
@@ -56,14 +57,22 @@ class MembershipStore:
         source: GroupDeltaSource,
         directory: DirectoryStore,
         clock: Callable[[], float],
+        readiness: Readiness | None = None,
     ) -> None:
         self._repo = repo
         self._source = source
         self._directory = directory
         self._clock = clock
+        self._readiness = readiness
 
     def poll_once(self) -> PollResult:
         """One poll. Never raises for a source problem: it is recorded and reported."""
+        result = self._poll_once()
+        if self._readiness is not None:
+            self._readiness.record_poll("membership", ok=result.ok, changed=result.changes > 0)
+        return result
+
+    def _poll_once(self) -> PollResult:
         attempt = self._clock()
         state = self._repo.get_state(NAME)
         link = state.link if state else None

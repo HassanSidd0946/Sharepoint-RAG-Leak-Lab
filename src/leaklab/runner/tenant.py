@@ -137,6 +137,7 @@ def build_setup_a_basic(ctx: SystemContext) -> SystemUnderTest:
         upns=persona_upns(env),
         tokens=tokens,
         created_at=created,
+        item_ids={c: str(i["id"]) for c, i in items.items()},
         clock=ctx.clock,
     )
 
@@ -154,10 +155,12 @@ def build_setup_b(ctx: SystemContext) -> SystemUnderTest:
 
     from leaklab.setup_b.api.app import create_app
     from leaklab.setup_b.api.server import LocalServer, build_service
+    from leaklab.setup_b.state.readiness import StartupLog
     from leaklab.setup_b.state.run import open_stores, start_pollers
     from leaklab.setup_b.system import SetupB
 
     stack = ExitStack()
+    started = ctx.clock()
     try:
         stores = stack.enter_context(open_stores(schema=f"leaklab_run_{int(ctx.clock())}"))
         stack.callback(stores.repo.drop_schema)
@@ -168,6 +171,8 @@ def build_setup_b(ctx: SystemContext) -> SystemUnderTest:
             result = poll()
             if not result.ok:
                 raise RunnerError(f"Setup B first {label} sync failed: {result.error}")
+        startup = StartupLog(stores.repo, ctx.clock)
+        startup.first_sync_done()  # what the first sync saw, to compare with the state at readiness
         stop = threading.Event()
         threads = start_pollers(stores, stop, 5.0, 60.0)
 
@@ -188,12 +193,67 @@ def build_setup_b(ctx: SystemContext) -> SystemUnderTest:
             tokens=tokens,
             clock=ctx.clock,
             sleep=ctx.env.sleep,
+            item_ids=resolve_item_ids(ctx.env, ctx.canaries),
+            ready_started_at=started,
+            startup_report=startup.report,
             indexer_runs=service.indexer_runs,
             closers=[stack.close],
         )
     except BaseException:
         stack.close()
         raise
+
+
+def site_and_drive_ids(env: Env) -> tuple[str, str]:
+    """(site id, drive id) as they appear in index keys ("<site id>::<drive id>::<item id>")."""
+    from urllib.parse import urlsplit
+
+    from leaklab.config import get_settings
+    from leaklab.graph_client import GraphClient
+
+    s = get_settings()
+    path = urlsplit(s.site_url.strip()).path.rstrip("/")
+    with GraphClient() as gc:
+        site = gc.get(f"/sites/{s.sp_host.strip()}:{path}")
+    return str(site["id"]), env.drive_id
+
+
+def clean_indexes_for_run(env: Env, canaries: Sequence[str]) -> dict[str, Any]:
+    """Register this generation's item ids, then delete the documents of every other generation from
+    ll-sp-index and ll-sp-index-b (setup_a/cleanup.py). Returns the report as plain data for the
+    journal; a problem is returned as {"error": ...} and never stops the run: stale documents are
+    harmless to the measurement now that presence is judged on the current item id, they only
+    make the recall figures worse, and the journal says that the cleanup did not happen."""
+    from leaklab.config import get_settings
+    from leaklab.setup_a.cleanup import (
+        GenerationRegistry,
+        HttpIndexAdmin,
+        cleanup_indexes,
+        default_registry_path,
+    )
+    from leaklab.setup_a.client import INDEX
+    from leaklab.setup_b.api.search import INDEX_B
+
+    endpoint = get_settings().search_endpoint.strip() or saved_endpoint()
+    if not endpoint:
+        return {"skipped": "no search endpoint"}
+    try:
+        ids = set(resolve_item_ids(env, canaries).values())
+        site_id, drive_id = site_and_drive_ids(env)
+        registry = GenerationRegistry(default_registry_path())
+        registry.register(env.generation, ids)
+        report = cleanup_indexes(
+            unfiltered=HttpIndexAdmin(endpoint, INDEX_B),
+            filtered=HttpIndexAdmin(endpoint, INDEX),
+            generation=env.generation,
+            current_item_ids=ids,
+            site_id=site_id,
+            drive_id=drive_id,
+            registry=registry,
+        )
+    except Exception as exc:
+        return {"error": f"{type(exc).__name__}: {str(exc)[:200]}"}
+    return report.model_dump()
 
 
 def saved_endpoint() -> str:

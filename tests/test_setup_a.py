@@ -75,17 +75,34 @@ class FakeSearch:
         self.queries: list[tuple[str, str]] = []
         self.run_polls = 0
         self.indexed: set[str] = set(self.docs)  # what the index holds
+        self.items = {C_GEN: "ITEM-GEN", C_BRD: "ITEM-BRD"}  # the current item id of each canary
+        # stale copies: canary -> (item id of an earlier generation, personas who may read it)
+        self.stale: dict[str, tuple[str, set[str]]] = {}
 
     def query(self, user_token: str, phrase: str) -> tuple[int, list[dict[str, Any]] | str]:
         self.queries.append((user_token, phrase))
         if self.status != 200:
             return self.status, self.answer or "error"
         wanted = phrase.strip('"')
-        return 200, [
-            {"metadata_spo_item_name": "x.txt", "content": f"Reference code: {c}\n"}
+        hits = [
+            {
+                "id": doc_key("site", "drive", self.items[c]),
+                "metadata_spo_item_name": "x.txt",
+                "content": f"Reference code: {c}\n",
+            }
             for c, who in self.docs.items()
             if c in self.indexed and user_token in who and wanted in c
         ]
+        hits += [
+            {
+                "id": doc_key("site", "drive", item),
+                "metadata_spo_item_name": "x.txt",
+                "content": f"Reference code: {c}\n",
+            }
+            for c, (item, who) in self.stale.items()
+            if user_token in who and wanted in c
+        ]
+        return 200, hits
 
     def indexer_runs(self) -> list[IndexerRun]:
         self.run_polls += 1
@@ -97,6 +114,7 @@ def make(
     clock: Clock | None = None,
     source: Callable[[str], str] | None = None,
     created: dict[str, float] | None = None,
+    item_ids: dict[str, str] | None = None,
 ) -> tuple[SetupABasic, Clock, list[str]]:
     clock = clock or Clock()
     fetched: list[str] = []
@@ -111,6 +129,7 @@ def make(
         upns=UPNS,
         tokens=tokens,
         created_at={C_GEN: CREATED, C_BRD: CREATED} if created is None else created,
+        item_ids=item_ids,
         clock=clock.time,
         runs_poll_s=15.0,
     )
@@ -504,3 +523,72 @@ def test_a_missing_data_source_without_a_secret_is_an_error_not_an_empty_object(
     with pytest.raises(RuntimeError, match="no ingestion app secret"):
         provision(FakeService(), body={})
     assert DATASOURCE and INDEX  # names are shared constants
+
+
+# -- stale copies: only the CURRENT document counts ------------------------------------------------
+
+CURRENT = {C_GEN: "ITEM-GEN", C_BRD: "ITEM-BRD"}
+
+
+def test_a_stale_copy_with_the_same_text_is_not_a_served_document() -> None:
+    search = FakeSearch()
+    search.indexed = set()  # the current document is NOT in the index yet
+    search.stale = {C_GEN: ("ITEM-OLD", {"p-intern"})}  # an earlier generation left a copy
+    unchecked, _, _ = make(search)  # no item ids: the old behavior
+    assert unchecked.read("p-intern", C_GEN).served is True  # the stale copy fooled it
+    system, _, _ = make(search, item_ids=CURRENT)
+    obs = system.read("p-intern", C_GEN)
+    assert obs.served is None and obs.error == "not_indexed"  # not a "served", not a denial
+
+
+def test_a_stale_copy_does_not_count_as_evidence_that_the_document_is_indexed() -> None:
+    search = FakeSearch()
+    search.indexed = set()
+    search.stale = {C_GEN: ("ITEM-OLD", {"p-intern"})}
+    system, clock, _ = make(search, item_ids=CURRENT)
+    system.read("p-intern", C_GEN)
+    clock.now = CREATED + 10
+    search.runs = [run(CREATED - 5, CREATED + 1)]  # a run that started BEFORE the document existed
+    assert system.read("p-intern", C_GEN).error == "not_indexed"  # presence is not inferred
+
+
+def test_the_current_document_is_served_and_the_stale_copy_is_reported_once() -> None:
+    search = FakeSearch()
+    search.stale = {C_GEN: ("ITEM-OLD", {"p-intern"})}
+    system, _, _ = make(search, item_ids=CURRENT)
+    assert system.read("p-intern", C_GEN).served is True
+    assert system.read("p-intern", C_GEN).served is True
+    stale = [e for e in system.drain_events() if e["kind"] == "stale_copy_seen"]
+    assert stale == [{"kind": "stale_copy_seen", "canary": C_GEN, "item_id": "ITEM-OLD"}]
+    assert [e for e in system.drain_events() if e["kind"] == "stale_copy_seen"] == []
+
+
+def test_a_stale_copy_visible_to_a_persona_who_may_not_read_the_current_one_is_a_denial() -> None:
+    search = FakeSearch()
+    search.stale = {C_BRD: ("ITEM-OLD", {"p-intern"})}  # the old copy still names p-intern
+    system, _, _ = make(search, item_ids=CURRENT)
+    assert system.read("p-ceo", C_BRD).served is True  # the document is there (evidence)
+    assert system.read("p-intern", C_BRD).served is False  # NOT served by the stale copy
+
+
+def test_a_hit_without_a_usable_key_is_not_current_when_item_ids_are_known() -> None:
+    search = FakeSearch()
+    search.indexed = set()
+    system, _, _ = make(search, item_ids=CURRENT)
+    search.query = lambda token, phrase: (200, [{"content": f"Reference code: {C_GEN}"}])  # type: ignore[method-assign]
+    assert system.read("p-intern", C_GEN).served is None
+    search.query = lambda token, phrase: (200, [{"id": "###", "content": C_GEN}])  # type: ignore[method-assign]
+    assert system.read("p-intern", C_GEN).served is None
+
+
+def test_the_search_asks_for_the_key_of_every_hit() -> None:
+    seen: list[dict[str, Any]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        import json
+
+        seen.append(json.loads(request.content))
+        return httpx.Response(200, json={"value": []})
+
+    mock_port(handler).query("user-token", '"CANARY"')
+    assert "id" in seen[0]["select"].split(",")

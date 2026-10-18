@@ -27,6 +27,7 @@ from leaklab.setup_b.state.acl import AclStore
 from leaklab.setup_b.state.directory import DirectoryStore
 from leaklab.setup_b.state.membership import MembershipStore
 from leaklab.setup_b.state.pg import PgRepository
+from leaklab.setup_b.state.readiness import Readiness
 from leaklab.setup_b.state.sources import (
     GraphDirectory,
     GraphDriveDelta,
@@ -46,6 +47,7 @@ class Stores:
     acl: AclStore
     reader: StateReader
     repo: PgRepository
+    readiness: Readiness
 
 
 @contextmanager
@@ -62,8 +64,9 @@ def open_stores(schema: str = "leaklab_state", dsn: str | None = None) -> Iterat
         site = gc.get(f"/sites/{settings.sp_host.strip()}:{urlsplit(site_url).path.rstrip('/')}")
         drive_id = str(gc.get(f"/sites/{site['id']}/drive")["id"])
         directory = DirectoryStore(GraphDirectory(gc))
+        readiness = Readiness()
         yield Stores(
-            membership=MembershipStore(repo, GraphGroupDelta(gc), directory, time.time),
+            membership=MembershipStore(repo, GraphGroupDelta(gc), directory, time.time, readiness),
             acl=AclStore(
                 repo,
                 GraphDriveDelta(gc, drive_id),
@@ -71,9 +74,11 @@ def open_stores(schema: str = "leaklab_state", dsn: str | None = None) -> Iterat
                 time.time,
                 container=CONTAINER,
                 directory=directory,
+                readiness=readiness,
             ),
             reader=StateReader(repo, time.time),
             repo=repo,
+            readiness=readiness,
         )
     repo.close()
 

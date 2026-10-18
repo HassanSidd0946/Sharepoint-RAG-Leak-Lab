@@ -1,0 +1,39 @@
+{
+  "generation": "GTN3HC5",
+  "current_item_ids": 45,
+  "registry_generations": 1,
+  "indexes": [
+    {
+      "index": "ll-sp-index-b",
+      "strategy": "list the keys with the service token",
+      "count_search_before": 267,
+      "count_stats_before": 267,
+      "listed": 267,
+      "current_found": 45,
+      "foreign_left": 0,
+      "stale_found": 222,
+      "stale_requested": 222,
+      "deleted": 222,
+      "failed": 0,
+      "count_search_after": 267,
+      "count_stats_after": 267,
+      "errors": []
+    },
+    {
+      "index": "ll-sp-index",
+      "strategy": "registry + stale keys of the unfiltered index",
+      "count_search_before": 0,
+      "count_stats_before": 267,
+      "listed": null,
+      "current_found": null,
+      "foreign_left": 0,
+      "stale_found": 222,
+      "stale_requested": 222,
+      "deleted": 222,
+      "failed": 0,
+      "count_search_after": 0,
+      "count_stats_after": 267,
+      "errors": []
+    }
+  ]
+}

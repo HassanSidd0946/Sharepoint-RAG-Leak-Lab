@@ -8,13 +8,25 @@ Setup A uses the ACL-filtered index. This adapter only talks HTTP to the API: it
 token, no admin key and no access to the state; the API decides.
 
 Not-indexed is not denied. The adapter asks for the service's debug stats (the server of a benchmark
-run enables them), which include `fetched`, the hits the index returned BEFORE the filter. An exact
-phrase that matches nothing at all (fetched == 0) means the document is not in the index yet, so the
-read is served=None with error "not_indexed", never a denial. A document that IS in the index and
-was removed by the filter is a real denial (served=False).
+run enables them), which include the item ids of the hits the index returned BEFORE the filter. If
+the canary's CURRENT document (its item id, from the generator's tenant) is not among them, the
+document is not in the index yet (a stale copy of the same text from an earlier tenant generation
+does not count), so the read is served=None with error "not_indexed", never a denial. A document
+that IS in the index and was removed by the filter is a real denial (served=False). Without item
+ids the adapter falls back to "the phrase matched nothing at all" (fetched == 0).
+
+Readiness: prepare() waits for GET /ready (two quiet polls per poller and one completed
+verification, setup_b/state/readiness.py), at most `ready_cap_s` (5 minutes), BEFORE the
+baseline, and reports `setup_b_ready` with the time it took (from the start of the build,
+`ready_started_at`) and `setup_b_startup`: the first sync's numbers against what the state held
+at readiness, which shows
+whether the first sync was incomplete. Reads start only after prepare, so a lockout that is just
+start-up is not counted; if the cap passes the run goes on and the event says ready=false.
 
 Journal events (drain_events):
   system_health      the API's /health reading whenever its status changes (ok/degraded, ages)
+  setup_b_ready      ready (bool), time_to_ready_s, the readiness state, the cap
+  setup_b_startup    first sync vs state at readiness (counts, difference, who found the rest)
   poller_lag         the membership and ACL pollers' age (seconds since their last success), every
                      `lag_every_s`: the lag of Setup B's own state, for the benchmark report
   indexer_run(_started)  runs of the indexer that feeds ll-sp-index-b (same fields as Setup A's)
@@ -54,7 +66,11 @@ class SetupB:
         k: int = 5,
         recall_ks: Sequence[int] = RECALL_KS,
         recall_every_s: float = 300.0,
+        item_ids: Mapping[str, str] | None = None,
         lag_every_s: float = 30.0,
+        ready_cap_s: float = 300.0,
+        ready_started_at: float | None = None,
+        startup_report: Callable[[float | None], dict[str, Any]] | None = None,
         indexer_runs: Callable[[], list[IndexerRun]] | None = None,
         http: httpx.Client | None = None,
         closers: Sequence[Callable[[], object]] = (),
@@ -67,7 +83,11 @@ class SetupB:
         self._k = k
         self._recall_ks = tuple(recall_ks)
         self._recall_every_s = recall_every_s
+        self._item_ids = None if item_ids is None else dict(item_ids)  # canary -> current item id
         self._lag_every_s = lag_every_s
+        self._ready_cap_s = ready_cap_s
+        self._ready_started_at = ready_started_at
+        self._startup_report = startup_report
         self._indexer_runs = indexer_runs
         self._lag_at = float("-inf")
         self._runs_at = float("-inf")
@@ -98,6 +118,7 @@ class SetupB:
                     f"the Setup B API is not healthy after {READY_WAIT_S:.0f} s: {health!r}"
                 )
             self._sleep(2.0)
+        self._wait_until_ready()
         self._sample_recall()
 
     def read(self, persona: str, canary: str) -> Observation:
@@ -126,14 +147,23 @@ class SetupB:
             return obs(
                 None, status=status or None, error=f"http:{status}" if status else "transport"
             )
-        if any(canary in str(r.get("content") or "") for r in body.get("results", [])):
+        current = self._item_ids.get(canary) if self._item_ids else None
+        if any(
+            canary in str(r.get("content") or "")
+            and (current is None or r.get("doc_id") == current)
+            for r in body.get("results", [])
+        ):
             return obs(True, status=200)
         stats = body.get("stats")
         if not isinstance(stats, dict) or "fetched" not in stats:
             # without the pre-filter count "denied" and "not indexed" cannot be told apart
             return obs(None, status=200, error="no_debug_stats")
-        if int(stats["fetched"]) == 0:
-            return obs(None, status=200, error="not_indexed")  # nothing at all matched the phrase
+        if current is not None and "doc_ids" in stats:
+            present = current in stats["doc_ids"]
+        else:
+            present = int(stats["fetched"]) > 0  # fallback: the phrase matched something
+        if not present:
+            return obs(None, status=200, error="not_indexed")  # the current document is missing
         return obs(False, status=200)
 
     def drain_events(self) -> list[dict[str, Any]]:
@@ -200,6 +230,43 @@ class SetupB:
         except ValueError:
             return 200, None
         return 200, data if isinstance(data, dict) else None
+
+    def _ready(self) -> dict[str, Any] | None:
+        """GET /ready: the body whether the answer is 200 or 503; None if unreachable."""
+        try:
+            data = self._http.get(f"{self._base}/ready").json()
+        except (httpx.HTTPError, ValueError):
+            return None
+        return data if isinstance(data, dict) else None
+
+    def _wait_until_ready(self) -> None:
+        """Wait for /ready (at most the cap) and journal how long it took (see the module doc)."""
+        waited_from = self._clock()
+        deadline = waited_from + self._ready_cap_s
+        state = self._ready()
+        while not (state and state.get("ready")) and self._clock() < deadline:
+            self._sleep(2.0)
+            state = self._ready()
+        ready = bool(state and state.get("ready"))
+        now = self._clock()
+        began = self._ready_started_at if self._ready_started_at is not None else waited_from
+        self._push(
+            {
+                "kind": "setup_b_ready",
+                "t": now,
+                "ready": ready,
+                "time_to_ready_s": round(now - began, 3) if ready else None,
+                "waited_in_prepare_s": round(now - waited_from, 3),
+                "cap_s": self._ready_cap_s,
+                "state": state,
+            }
+        )
+        if self._startup_report is not None:
+            try:
+                report = self._startup_report(now if ready else None)
+            except Exception:  # diagnostics must never stop a run
+                report = {"error": "startup report failed"}
+            self._push({"kind": "setup_b_startup", "t": now, **report})
 
     def _health(self) -> dict[str, Any] | None:
         try:

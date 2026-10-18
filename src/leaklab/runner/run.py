@@ -22,7 +22,12 @@ from leaklab.runner.engine import Engine, restore_env
 from leaklab.runner.journal import Journal, load_events, new_journal_path
 from leaklab.runner.metrics import RunReport, build_report
 from leaklab.runner.model import RunConfig, RunnerError
-from leaklab.runner.tenant import SystemContext, build_systems, canary_locations
+from leaklab.runner.tenant import (
+    SystemContext,
+    build_systems,
+    canary_locations,
+    clean_indexes_for_run,
+)
 from leaklab.spec import load_spec
 
 SETTLE_AFTER_TEARDOWN_S = 60.0  # deletes lag behind lookups (docs/FINDINGS.md)
@@ -60,7 +65,11 @@ def write_report(report: RunReport, journal_path: Path) -> Path:
 
 
 def _check_resume(
-    events: list[dict[str, Any]], scenarios: list[str], systems: list[str], sha: str
+    events: list[dict[str, Any]],
+    scenarios: list[str],
+    systems: list[str],
+    sha: str,
+    generation: str,
 ) -> None:
     header = next((e for e in events if e["type"] == "run_started"), None)
     if header is None:
@@ -72,6 +81,11 @@ def _check_resume(
         )
     if header.get("spec_sha256") != sha:
         raise RunnerError("tenant_spec.yaml changed since this run started; it cannot be resumed")
+    if header.get("generation") != generation:
+        raise RunnerError(
+            f"the tenant is generation {generation} but the journal belongs to "
+            f"{header.get('generation')}: the tenant was regenerated, so the run cannot be resumed"
+        )
     if any(e["type"] == "run_finished" for e in events):
         raise RunnerError("this run already finished; there is nothing to resume")
 
@@ -88,6 +102,7 @@ def run_once(
     sku_part_number: str = "",
     teardown_after: bool = False,
     suffix: str = "",
+    clean_indexes: bool = True,
 ) -> tuple[Path, RunReport]:
     spec = load_spec(spec_path)
     sha = spec_sha256(spec_path)
@@ -99,7 +114,7 @@ def run_once(
         events = load_events(resume) if resume else []
         tenant: dict[str, Any]
         if resume:
-            _check_resume(events, scenario_ids, system_names, sha)
+            _check_resume(events, scenario_ids, system_names, sha, env.generation)
             applied = restore_env(env, events)
             journal_path = resume
             tenant = {"resumed": True}
@@ -107,6 +122,7 @@ def run_once(
             applied = []
             journal_path = new_journal_path(out_dir, suffix)
             tenant = ensure_ready(env)
+        spec = env.spec  # the live tenant's generation: its canaries, not the template's
         journal = Journal(journal_path)
         systems = []
         try:
@@ -118,6 +134,7 @@ def run_once(
                         "t": env.clock(),
                         "spec_path": str(spec_path),
                         "spec_sha256": sha,
+                        "generation": env.generation,
                         "scenarios": scenario_ids,
                         "systems": system_names,
                         "config": config.as_dict(),
@@ -125,6 +142,16 @@ def run_once(
                     }
                 )
             ctx = SystemContext(env, list(canary_locations(env)), env.clock)
+            if clean_indexes and not resume and {"setup_a_basic", "setup_b"} & set(system_names):
+                # the documents of earlier tenant generations are deleted from both indexes, and the
+                # journal keeps the before/after counts (see setup_a/cleanup.py)
+                journal.append(
+                    {
+                        "type": "index_cleanup",
+                        "t": env.clock(),
+                        **clean_indexes_for_run(env, ctx.canaries),
+                    }
+                )
             systems = build_systems(system_names, ctx)
             engine = Engine(
                 env=env, spec=spec, systems=systems, config=config, journal=journal, applied=applied

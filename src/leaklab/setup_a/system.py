@@ -4,6 +4,13 @@ read(persona, canary) asks the service what that persona's token can see: an exa
 the canary, the driver app's bearer for the service and the persona's own token in
 x-ms-query-source-authorization. served = the canary string is in a returned document's content.
 
+Only the CURRENT document counts. The query returns each hit's index key, which encodes the Graph
+item id (setup_a/keys.py); when the system is given the current item id of every canary (from the
+generator's tenant) a hit counts only if its item id IS that id. A copy of the canary text left
+behind in the index by an earlier tenant generation is "stale": it is never served, never counts as
+evidence that the document is indexed, and is reported once through drain_events
+("stale_copy_seen"). Without item ids (older callers, unit tests) the check is off.
+
 Not-indexed is not denied. A trimmed answer is empty for BOTH "the persona may not read it" and "the
 document is not in the index", and probes/search_acl_probe.py (stage lookup, 2026-10-17) showed that
 a lookup by key is trimmed the same way, even with the admin key. So presence is decided from
@@ -29,6 +36,7 @@ from typing import Any
 from leaklab.runner.model import Observation, RunnerError
 from leaklab.runner.setup0 import TokenCache
 from leaklab.setup_a.client import SearchPort
+from leaklab.setup_a.keys import item_id_of_key
 
 SYSTEM_NAME = "setup_a_basic"
 TOKEN_MAX_AGE_S = 120.0  # Entra throttles repeated password sign-ins (AADSTS50196, verified)
@@ -46,6 +54,7 @@ class SetupABasic:
         tokens: TokenCache,
         created_at: Mapping[str, float] | None = None,
         keys: Mapping[str, str] | None = None,
+        item_ids: Mapping[str, str] | None = None,
         clock: Callable[[], float] = time.time,
         runs_poll_s: float = RUNS_POLL_S,
     ) -> None:
@@ -54,6 +63,10 @@ class SetupABasic:
         self._tokens = tokens
         self._created = dict(created_at or {})  # canary -> epoch time the document was created
         self._keys = dict(keys or {})  # canary -> index key (to match errors in a run)
+        # canary -> the Graph item id of its CURRENT document; None switches the check off
+        self._item_ids = None if item_ids is None else dict(item_ids)
+        self._stale_seen: set[tuple[str, str]] = set()
+        self._stale_events: list[dict[str, Any]] = []
         self._clock = clock
         self._runs_poll_s = runs_poll_s
         self._lock = threading.Lock()
@@ -103,7 +116,9 @@ class SetupABasic:
             return obs(
                 None, status=status or None, error=f"http:{status}" if status else str(answer)
             )
-        if any(canary in (doc.get("content") or "") for doc in answer):
+        hits = [doc for doc in answer if canary in (doc.get("content") or "")]
+        current = [doc for doc in hits if self._is_current(canary, doc)]
+        if current:
             with self._lock:
                 self._seen.add(canary)
             return obs(True, status=200)
@@ -114,10 +129,30 @@ class SetupABasic:
             None, status=200, error="not_indexed" if present is False else "presence_unknown"
         )
 
+    def _is_current(self, canary: str, doc: Mapping[str, Any]) -> bool:
+        """True if the hit is the canary's current document; a stale copy is noted and refused."""
+        if self._item_ids is None or canary not in self._item_ids:
+            return True
+        try:
+            item = item_id_of_key(str(doc["id"]))
+        except (KeyError, ValueError):
+            item = ""
+        if item == self._item_ids[canary]:
+            return True
+        with self._lock:
+            if (canary, item) not in self._stale_seen:
+                self._stale_seen.add((canary, item))
+                self._stale_events.append(
+                    {"kind": "stale_copy_seen", "canary": canary, "item_id": item or None}
+                )
+        return False
+
     def drain_events(self) -> list[dict[str, Any]]:
         """New indexer events since the last call (started / finished runs), as plain dicts."""
         runs = self._refresh_runs()
-        events: list[dict[str, Any]] = []
+        with self._lock:
+            events: list[dict[str, Any]] = self._stale_events
+            self._stale_events = []
         for run in sorted(runs, key=lambda r: r.start or 0.0):
             if run.start not in self._emitted_start:
                 self._emitted_start.add(run.start)

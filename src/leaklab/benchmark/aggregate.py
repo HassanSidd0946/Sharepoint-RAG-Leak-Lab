@@ -138,6 +138,44 @@ class LagSummary(BaseModel):
     degraded_events: int
 
 
+class StartupSummary(BaseModel):
+    """Setup B's start-up in one run: when it was ready and whether its first sync was complete."""
+
+    run: int
+    ready: bool | None
+    time_to_ready_s: float | None
+    waited_in_prepare_s: float | None
+    cap_s: float | None
+    first_sync: dict[str, int]
+    difference: dict[str, int]  # what the state had gained by readiness (empty: complete)
+    complete_at_first_sync: bool | None
+    found_by_verify: int | None
+
+
+class CleanupIndex(BaseModel):
+    index: str
+    count_before: int | None
+    count_after: int | None
+    stale_found: int
+    deleted: int
+    failed: int
+
+
+class CleanupSummary(BaseModel):
+    """The index cleanup before one run (setup_a/cleanup.py), from the journal."""
+
+    run: int
+    generation: str | None
+    error: str | None
+    indexes: list[CleanupIndex]
+
+
+class StaleSummary(BaseModel):
+    run: int
+    system: str
+    stale_canaries: int  # canaries for which a stale copy (an earlier generation) was returned
+
+
 class BenchmarkSummary(BaseModel):
     generated_utc: str
     spec_sha256: str
@@ -149,6 +187,9 @@ class BenchmarkSummary(BaseModel):
     runs: list[RunInfo]
     indexer_runs: list[IndexerSummary]
     poller_lag: list[LagSummary]
+    startup: list[StartupSummary] = []
+    index_cleanups: list[CleanupSummary] = []
+    stale_copies: list[StaleSummary] = []
     postfilter_recall: dict[str, Any]
     caveats: list[str]
     journals: list[str]
@@ -333,6 +374,88 @@ def _indexer_and_lag(loaded: Sequence[LoadedRun]) -> tuple[list[IndexerSummary],
     return indexer, lag
 
 
+def _startup(loaded: Sequence[LoadedRun]) -> list[StartupSummary]:
+    out: list[StartupSummary] = []
+    for run in loaded:
+        ready = [
+            e
+            for e in run.events
+            if e["type"] == "system_event" and e.get("kind") == "setup_b_ready"
+        ]
+        start = [
+            e
+            for e in run.events
+            if e["type"] == "system_event" and e.get("kind") == "setup_b_startup"
+        ]
+        if not ready:
+            continue
+        r = ready[0]
+        s = start[0] if start else {}
+        out.append(
+            StartupSummary(
+                run=run.index,
+                ready=bool(r.get("ready")),
+                time_to_ready_s=r.get("time_to_ready_s"),
+                waited_in_prepare_s=r.get("waited_in_prepare_s"),
+                cap_s=r.get("cap_s"),
+                first_sync=dict(s.get("first_sync") or {}),
+                difference=dict(s.get("difference") or {}),
+                complete_at_first_sync=s.get("complete_at_first_sync"),
+                found_by_verify=s.get("found_by_verify"),
+            )
+        )
+    return out
+
+
+def _cleanups(loaded: Sequence[LoadedRun]) -> list[CleanupSummary]:
+    out: list[CleanupSummary] = []
+    for run in loaded:
+        for e in run.events:
+            if e["type"] != "index_cleanup":
+                continue
+            error = e.get("error") or e.get("skipped")
+            out.append(
+                CleanupSummary(
+                    run=run.index,
+                    generation=e.get("generation"),
+                    error=str(error) if error else None,
+                    indexes=[_cleanup_index(i) for i in e.get("indexes", [])],
+                )
+            )
+    return out
+
+
+def _cleanup_index(i: dict[str, Any]) -> CleanupIndex:
+    """An index that could be LISTED (the unfiltered one) is counted by search, which is exact;
+    the ACL-filtered one shows nothing to the service token, so its documentCount statistic (which
+    lags) is the only number there is."""
+    if i.get("listed") is not None:
+        before, after = i.get("count_search_before"), i.get("count_search_after")
+    else:
+        before, after = i.get("count_stats_before"), i.get("count_stats_after")
+    return CleanupIndex(
+        index=str(i["index"]),
+        count_before=before,
+        count_after=after,
+        stale_found=int(i.get("stale_found") or 0),
+        deleted=int(i.get("deleted") or 0),
+        failed=int(i.get("failed") or 0),
+    )
+
+
+def _stale(loaded: Sequence[LoadedRun]) -> list[StaleSummary]:
+    out: list[StaleSummary] = []
+    for run in loaded:
+        seen: dict[str, set[str]] = {}
+        for e in run.events:
+            if e["type"] == "system_event" and e.get("kind") == "stale_copy_seen":
+                seen.setdefault(str(e["system"]), set()).add(str(e["canary"]))
+        out += [
+            StaleSummary(run=run.index, system=s, stale_canaries=len(c)) for s, c in seen.items()
+        ]
+    return out
+
+
 def _recall(loaded: Sequence[LoadedRun]) -> dict[str, Any]:
     """Post-filter recall by k, over every sample of every run: returned vs the best possible."""
     samples = [
@@ -403,6 +526,9 @@ def summarize(
         runs=infos,
         indexer_runs=indexer,
         poller_lag=lag,
+        startup=_startup(loaded),
+        index_cleanups=_cleanups(loaded),
+        stale_copies=_stale(loaded),
         postfilter_recall=_recall(loaded),
         caveats=[],
         journals=sorted({r.journal for r in loaded}),
@@ -478,6 +604,7 @@ def build_caveats(
             "The 'by baseline' rows separate the numbers."
         )
     out.extend(_data_quality(cells))
+    out.extend(_startup_caveats(summary))
     errors = sum(c.errors for c in cells)
     if errors:
         out.append(
@@ -494,6 +621,57 @@ def build_caveats(
     failed = [r for r in summary.runs if r.status == "failed"]
     if failed:
         out.append("Failed runs: " + "; ".join(f"run {r.index}: {r.error}" for r in failed) + ".")
+    return out
+
+
+def _startup_caveats(summary: BenchmarkSummary) -> list[str]:
+    """What the journals say about Setup B's start-up, the index cleanup and stale copies."""
+    out: list[str] = []
+    if summary.startup:
+        times = [s.time_to_ready_s for s in summary.startup if s.time_to_ready_s is not None]
+        late = [s.run for s in summary.startup if not s.ready]
+        incomplete = [s for s in summary.startup if s.complete_at_first_sync is False]
+        text = (
+            f"Setup B start-up: the runner waited for /ready before the baseline in "
+            f"{len(summary.startup)} run(s); time to ready "
+            + (
+                f"{min(times):g}-{max(times):g} s (median {sorted(times)[len(times) // 2]:g} s)"
+                if times
+                else "unknown"
+            )
+            + ". Lockouts are counted only from reads after that point"
+        )
+        if late:
+            text += f"; run(s) {late} were not ready within the cap and are counted anyway"
+        text += f". The first sync was already complete in {len(summary.startup) - len(incomplete)}"
+        text += f" of {len(summary.startup)} run(s)"
+        if incomplete:
+            gained = sorted({k for s in incomplete for k in s.difference})
+            text += (
+                f"; in {len(incomplete)} the state gained {', '.join(gained)} between the first "
+                "sync and readiness (the first sync was incomplete)"
+            )
+        out.append(text + ".")
+    if summary.index_cleanups:
+        found = sum(i.stale_found for c in summary.index_cleanups for i in c.indexes)
+        deleted = sum(i.deleted for c in summary.index_cleanups for i in c.indexes)
+        failed = [c.run for c in summary.index_cleanups if c.error]
+        text = (
+            f"Index cleanup: before {len(summary.index_cleanups)} run(s) the documents of earlier "
+            f"tenant generations were deleted from both indexes ({found} stale found, {deleted} "
+            "deleted in total)"
+        )
+        if failed:
+            text += f"; the cleanup did NOT complete in run(s) {failed}"
+        out.append(text + ".")
+    stale = sum(s.stale_canaries for s in summary.stale_copies)
+    if stale:
+        out.append(
+            f"Stale copies: Setup A's index still returned a copy of {stale} canary text(s) from "
+            "an "
+            "earlier tenant generation; they were not counted as served or as evidence of "
+            "indexing (matched on the current item id)."
+        )
     return out
 
 

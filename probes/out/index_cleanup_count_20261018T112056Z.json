@@ -1,0 +1,19 @@
+{
+  "generation": "GTN3HC5",
+  "current_item_ids": 45,
+  "ll-sp-index-b": {
+    "search_count": 45,
+    "documentCount_stat": 267,
+    "listed": 45,
+    "current": 45,
+    "stale": 0,
+    "foreign": 0,
+    "distinct_item_ids": 45
+  },
+  "ll-sp-index": {
+    "search_count_with_service_token": 0,
+    "documentCount_stat": 45,
+    "stale_estimate_from_stat": 0,
+    "note": "documentCount is a lagging statistic; the ACL-filtered index cannot be listed with the service token"
+  }
+}

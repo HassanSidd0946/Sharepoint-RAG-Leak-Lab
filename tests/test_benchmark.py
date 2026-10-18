@@ -373,3 +373,202 @@ def test_plan_command_writes_plan_json_and_refuses_a_foreign_folder(tmp_path: Pa
     )
     clash = runner.invoke(app, ["plan", "--dir", str(tmp_path / "c"), "--spec", str(SPEC_PATH)])
     assert clash.exit_code == 2 and "different plan" in clash.output
+
+
+# -- start-up, readiness, index cleanup and stale copies in the report -----------------------------
+
+
+def test_startup_cleanup_and_readiness_reach_the_summary_caveats_and_html(finished) -> None:  # type: ignore[no-untyped-def]
+    folder, p = finished
+    s = summary_of(folder, p)
+    assert [u.run for u in s.startup] == [1, 2, 3]
+    first = s.startup[0]
+    assert first.ready is True and first.time_to_ready_s == 41.5 and first.cap_s == 300.0
+    assert first.complete_at_first_sync is False and first.difference == {"grants": 2}
+    assert [c.run for c in s.index_cleanups] == [1, 2, 3]
+    b, a = s.index_cleanups[0].indexes
+    assert (b.index, b.count_before, b.count_after, b.stale_found, b.deleted) == (
+        "ll-sp-index-b", 90, 45, 45, 45,
+    )  # fmt: skip
+    assert (a.count_before, a.count_after) == (90, 45)  # the filtered index's own statistic
+    text = "\n".join(s.caveats)
+    assert "Setup B start-up: the runner waited for /ready before the baseline in 3 run(s)" in text
+    assert "time to ready 41.5-41.5 s" in text and "Lockouts are counted only from reads" in text
+    assert "in 3 the state gained grants between the first sync and readiness" in text
+    assert "Index cleanup: before 3 run(s)" in text and "270 deleted in total" in text
+    html = render_html(s)
+    assert "Setup B start-up" in html and "Index cleanup" in html and "ll-sp-index-b" in html
+
+
+def test_a_run_that_was_not_ready_within_the_cap_is_flagged() -> None:
+    from leaklab.benchmark.aggregate import BenchmarkSummary as BS
+    from leaklab.benchmark.aggregate import StartupSummary, _startup_caveats
+
+    summary = BS.model_construct(
+        startup=[
+            StartupSummary(
+                run=2, ready=False, time_to_ready_s=None, waited_in_prepare_s=300.0, cap_s=300.0,
+                first_sync={}, difference={}, complete_at_first_sync=None, found_by_verify=None,
+            )
+        ],
+        index_cleanups=[],
+        stale_copies=[],
+    )  # fmt: skip
+    [text] = _startup_caveats(summary)
+    assert "run(s) [2] were not ready within the cap" in text and "time to ready unknown" in text
+
+
+def test_stale_copies_are_counted_per_run_and_system() -> None:
+    from leaklab.benchmark.aggregate import LoadedRun, _stale
+    from leaklab.runner import build_report
+
+    header = {
+        "type": "run_started", "run_id": "r", "scenarios": [], "systems": ["setup_a_basic"],
+        "config": {"n_consecutive": 3, "cap_s": 60.0},
+    }  # fmt: skip
+    events = [
+        header,
+        {"type": "system_event", "system": "setup_a_basic", "kind": "stale_copy_seen",
+         "canary": "C1"},
+        {"type": "system_event", "system": "setup_a_basic", "kind": "stale_copy_seen",
+         "canary": "C2"},
+        {"type": "system_event", "system": "setup_a_basic", "kind": "stale_copy_seen",
+         "canary": "C1"},
+    ]  # fmt: skip
+    run = LoadedRun(1, "r1", "x.jsonl", 1, events, build_report(SPEC, events))
+    [row] = _stale([run])
+    assert (row.run, row.system, row.stale_canaries) == (1, "setup_a_basic", 2)
+
+
+# -- --arm / --quick, and extending a finished benchmark set --------------------------------
+
+
+def test_arms_are_parsed_from_scenario_equals_n() -> None:
+    from leaklab.benchmark.matrix import parse_arms, quick_arms
+
+    arms = parse_arms(["S1-direct=2", "S1-entra=4", "S4-move-into-restricted=1"])
+    assert [(a.scenario, a.replicates, a.baseline_alternates) for a in arms] == [
+        ("S1-direct", 2, False),
+        ("S1-entra", 4, True),  # a default arm keeps its alternating baseline
+        ("S4-move-into-restricted", 1, False),
+    ]
+    for bad in (["S1-direct"], ["S1-direct=0"], ["S1-direct=x"], ["S1-direct=1", "S1-direct=2"]):
+        with pytest.raises(RunnerError):
+            parse_arms(bad)
+    assert [(a.scenario, a.replicates) for a in quick_arms()] == [
+        (a.scenario, 1) for a in DEFAULT_ARMS
+    ]
+
+
+def test_a_quick_plan_is_one_run_with_every_scenario_in_one_loop() -> None:
+    from leaklab.benchmark.matrix import quick_arms
+
+    p = plan(arms=quick_arms())
+    assert len(p.runs) == 1 and p.runs[0].baseline_minutes == 1
+    assert len(p.runs[0].loops) == 1 and len(p.runs[0].scenarios) == len(DEFAULT_ARMS)
+
+
+def test_extending_adds_runs_that_continue_the_baseline_alternation() -> None:
+    from leaklab.benchmark.matrix import extend_plan, quick_arms
+
+    p = plan(arms=quick_arms())
+    longer = extend_plan(SPEC, p, ["S1-entra", "S2-nested-group-removal"], 3)
+    assert [r.index for r in longer.runs] == [1, 2, 3, 4]
+    assert longer.runs[0] == p.runs[0]  # the first run is untouched
+    assert [r.baseline_minutes for r in longer.runs] == [1, 10, 1, 10]
+    assert all(r.scenarios == ["S1-entra", "S2-nested-group-removal"] for r in longer.runs[1:])
+    assert all(r.config["cap_s"] == 3600.0 and r.config["interval_s"] == 5.0 for r in longer.runs)
+    assert {a.scenario: a.replicates for a in longer.arms}["S1-entra"] == 4
+    assert {a.scenario: a.replicates for a in longer.arms}["S1-direct"] == 1
+    assert longer.sha256() != p.sha256()
+    with pytest.raises(RunnerError, match="unknown"):
+        extend_plan(SPEC, p, ["nope"], 1)
+    with pytest.raises(RunnerError):
+        extend_plan(SPEC, p, ["S1-entra"], 0)
+
+
+def test_extending_a_finished_set_appends_runs_and_their_journals_to_the_same_folder(
+    tmp_path: Path,
+) -> None:
+    from leaklab.benchmark.execute import extend_folder
+    from leaklab.benchmark.matrix import extend_plan
+
+    p = plan(arms=(Arm("S1-direct", 1), Arm("S1-entra", 1, baseline_alternates=True)), cap_s=900.0)
+    run_benchmark(p, tmp_path, spec_path=SPEC_PATH, run_fn=FakeRuns(LAGS))
+    first_journal = load_manifest(tmp_path).runs[0].journal  # type: ignore[union-attr]
+    longer = extend_plan(SPEC, p, ["S1-entra"], 2)
+    manifest = extend_folder(tmp_path, longer)
+    assert [(r.index, r.status) for r in manifest.runs] == [
+        (1, "done"),
+        (2, "pending"),
+        (3, "pending"),
+    ]
+    assert (
+        manifest.plan_sha256 == longer.sha256() and load_plan(tmp_path).sha256() == longer.sha256()
+    )
+    runs = FakeRuns(LAGS)
+    run_benchmark(load_plan(tmp_path), tmp_path, spec_path=SPEC_PATH, run_fn=runs)
+    assert [c["suffix"] for c in runs.calls] == ["_r2", "_r3"]  # run 1 was done and is not repeated
+    assert [c["scenarios"] for c in runs.calls] == [["S1-entra"], ["S1-entra"]]
+    assert [c["config"].baseline_k for c in runs.calls] == [120, 12]
+    s = summary_of(tmp_path, load_plan(tmp_path))
+    entra = cell(s, "S1-entra", "setup0")
+    assert entra.replicates == 3 and [r.run for r in entra.rows] == [1, 2, 3]
+    assert load_manifest(tmp_path).runs[0].journal == first_journal  # type: ignore[union-attr]
+    assert len(s.journals) == 3
+
+
+def test_an_extension_that_rewrites_earlier_runs_is_refused(tmp_path: Path) -> None:
+    from leaklab.benchmark.execute import extend_folder
+    from leaklab.benchmark.matrix import extend_plan
+
+    p = plan(arms=(Arm("S1-direct", 1),))
+    run_benchmark(p, tmp_path, spec_path=SPEC_PATH, run_fn=FakeRuns(), only=[1])
+    other = extend_plan(SPEC, plan(arms=(Arm("S1-direct", 1),), cap_s=1800.0), ["S1-direct"], 1)
+    with pytest.raises(RunnerError, match="changes runs that already exist"):
+        extend_folder(tmp_path, other)
+
+
+def test_the_extend_and_quick_commands_and_run_uses_the_stored_plan(tmp_path: Path) -> None:
+    from typer.testing import CliRunner
+
+    from leaklab.benchmark.cli import app
+
+    runner = CliRunner()
+    folder = str(tmp_path / "set")
+    out = runner.invoke(app, ["plan", "--dir", folder, "--spec", str(SPEC_PATH), "--quick"])
+    assert out.exit_code == 0, out.output
+    assert len(load_plan(Path(folder)).runs) == 1
+    out = runner.invoke(app, ["extend", "--dir", folder, "--spec", str(SPEC_PATH), "--runs", "2"])
+    assert out.exit_code == 0, out.output
+    stored = load_plan(Path(folder))
+    assert [r.index for r in stored.runs] == [1, 2, 3]
+    assert stored.runs[2].scenarios == ["S1-entra", "S2-nested-group-removal"]
+    assert "pending runs: [1, 2, 3]" in out.output
+    both = runner.invoke(
+        app, ["plan", "--dir", str(tmp_path / "x"), "--arm", "S1-direct=1", "--quick"]
+    )
+    assert both.exit_code == 2 and "either --arm or --quick" in both.output
+
+
+def test_a_listable_index_is_counted_by_search_even_when_the_count_is_zero() -> None:
+    from leaklab.benchmark.aggregate import _cleanup_index
+
+    row = _cleanup_index(
+        {
+            "index": "ll-sp-index-b",
+            "listed": 45,
+            "count_search_before": 45,
+            "count_search_after": 0,  # all stale documents gone, the new generation not indexed yet
+            "count_stats_before": 45,
+            "count_stats_after": 45,  # the statistic lags and must not be shown instead
+            "stale_found": 45,
+            "deleted": 45,
+        }
+    )
+    assert (row.count_before, row.count_after, row.deleted) == (45, 0, 45)
+    filtered = _cleanup_index(
+        {"index": "ll-sp-index", "listed": None, "count_search_before": 0, "count_stats_before": 45,
+         "count_search_after": 0, "count_stats_after": 20, "stale_found": 25, "deleted": 25}
+    )  # fmt: skip
+    assert (filtered.count_before, filtered.count_after) == (45, 20)

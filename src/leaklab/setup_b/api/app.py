@@ -2,6 +2,7 @@
 
   POST /query    {persona_token, query, k?}  -> results the user may read, never more than k
   GET  /health   ok | degraded (a poller's last success is older than the limit) | down
+  GET  /ready    200 once the state converged after start-up (two quiet polls each + a verification)
   GET  /explain  ?user=&doc=   why the state allows or denies (operator key required)
   GET  /metrics  poller lag, decisions, recall numbers (operator key required)
 
@@ -26,7 +27,7 @@ from leaklab.setup_b.api.service import MAX_K, MAX_QUERY_CHARS, LogUnavailable, 
 from leaklab.setup_b.api.tokens import InvalidToken
 
 log = logging.getLogger(__name__)
-KNOWN_PATHS = frozenset({"/query", "/health", "/explain", "/metrics"})
+KNOWN_PATHS = frozenset({"/query", "/health", "/ready", "/explain", "/metrics"})
 
 
 class QueryRequest(BaseModel):
@@ -100,6 +101,7 @@ def create_app(
                 "shortfall": s.shortfall,
                 "denied": s.denied,
                 "allowed_total": s.allowed_total,
+                "doc_ids": list(s.fetched_doc_ids),
             }
         return JSONResponse(body)
 
@@ -110,6 +112,16 @@ def create_app(
         except Exception as exc:  # the state store itself is unreachable
             log.error("health check failed: %s", type(exc).__name__)
             return JSONResponse({"status": "down"}, status_code=503)
+
+    @app.get("/ready")
+    def ready() -> JSONResponse:
+        """200 {"ready": true} once the state has converged after start-up, else 503."""
+        try:
+            body = service.ready()
+        except Exception as exc:
+            log.error("ready check failed: %s", type(exc).__name__)
+            return JSONResponse({"ready": False}, status_code=503)
+        return JSONResponse(body, status_code=200 if body["ready"] else 503)
 
     @app.get("/explain")
     def explain(

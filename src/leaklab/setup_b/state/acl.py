@@ -46,6 +46,7 @@ from leaklab.setup_b.state.model import (
     RawAssignment,
     ResyncRequired,
 )
+from leaklab.setup_b.state.readiness import Readiness
 from leaklab.setup_b.state.repository import StateRepository
 
 NAME = "acl"
@@ -88,7 +89,9 @@ class AclStore:
         *,
         container: str | None = None,
         directory: DirectoryStore | None = None,
+        readiness: Readiness | None = None,
     ) -> None:
+        self._readiness = readiness
         self._repo = repo
         self._drive = drive
         self._sp = sharepoint
@@ -102,6 +105,12 @@ class AclStore:
     # -- the 5 s poll: drive delta ----------------------------------------------------------------
 
     def poll_once(self) -> AclPollResult:
+        result = self._poll_once()
+        if self._readiness is not None:
+            self._readiness.record_poll("acl", ok=result.ok, changed=result.events > 0)
+        return result
+
+    def _poll_once(self) -> AclPollResult:
         with self._lock:
             attempt = self._clock()
             state = self._repo.get_state(NAME)
@@ -124,6 +133,12 @@ class AclStore:
     # -- the safety net / the polling fallback --------------------------------------------------
 
     def verify_all(self, *, recheck_unique: bool = True) -> AclPollResult:
+        result = self._verify_all(recheck_unique=recheck_unique)
+        if self._readiness is not None:
+            self._readiness.record_verification(ok=result.ok, changed=result.events > 0)
+        return result
+
+    def _verify_all(self, *, recheck_unique: bool = True) -> AclPollResult:
         """Re-read every scope (and, by default, every item's unique flag); log what had drifted.
 
         Slow (tens of REST calls), so it runs in two phases: the reads happen WITHOUT the lock,

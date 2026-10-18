@@ -276,6 +276,8 @@ def build_report(spec: TenantSpec, events: Sequence[Event]) -> RunReport:
     header = next((e for e in events if e["type"] == "run_started"), None)
     if header is None:
         raise ValueError("the journal has no run_started event")
+    if header.get("generation"):  # the canaries of THAT tenant generation
+        spec = spec.with_generation(str(header["generation"]))
     config = dict(header["config"])
     n = int(config["n_consecutive"])
     cap = float(config["cap_s"])

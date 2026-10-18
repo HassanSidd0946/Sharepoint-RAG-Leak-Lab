@@ -1,6 +1,7 @@
 """Tests for spec.py: loading, each validation rule, and canary generation."""
 
 import copy
+import re
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,7 @@ from pydantic import ValidationError
 from leaklab.spec import (
     TenantSpec,
     generate_canaries,
+    generation_from_epoch,
     group_display_name,
     load_spec,
     special_key,
@@ -195,14 +197,15 @@ def test_canaries_deterministic_and_unique() -> None:
     flat = [c for canaries in first.values() for c in canaries]
     assert len(flat) == 45  # 44 folder documents (36 + 3 S1 arms x 2 + S2 x 2) + 1 special file
     assert len(set(flat)) == len(flat)
-    assert flat[0].startswith("CANARY-GEN-01-")
+    assert flat[0].startswith("CANARY-G000000-GEN-01-")  # the template generation
     assert len(flat[0].rsplit("-", 1)[1]) == 6
 
 
 def test_special_file_canary_is_spc_and_stable() -> None:
     spec = load_spec(REPO_SPEC)
     [canary] = generate_canaries(spec)[special_key("f-direct-share")]
-    assert canary.startswith("CANARY-SPC-") and len(canary) == len("CANARY-SPC-") + 6
+    prefix = "CANARY-G000000-SPC-"
+    assert canary.startswith(prefix) and len(canary) == len(prefix) + 6
     assert canary == generate_canaries(load_spec(REPO_SPEC))[special_key("f-direct-share")][0]
 
 
@@ -219,7 +222,7 @@ def test_special_file_canaries_distinct_per_file() -> None:
 
 def test_special_canary_collision_detected() -> None:
     data = base()
-    data["documents"]["special_canary_pattern"] = "CANARY-SPC-CONSTANT"
+    data["documents"]["special_canary_pattern"] = "CANARY-{generation}-SPC-CONSTANT"
     second = copy.deepcopy(data["special_files"][0])
     second["id"] = "f-second"
     data["special_files"].append(second)
@@ -243,10 +246,10 @@ def test_canaries_change_with_seed() -> None:
 
 def test_canary_collision_detected() -> None:
     data = base()
-    data["documents"]["canary_pattern"] = "CANARY-{hex6}-X"
+    data["documents"]["canary_pattern"] = "CANARY-{generation}-{hex6}-X"
     spec = TenantSpec.model_validate(data)
     # Collisions are only possible if two 6-hex values match; force one via a constant pattern.
-    data["documents"]["canary_pattern"] = "CANARY-CONSTANT"
+    data["documents"]["canary_pattern"] = "CANARY-{generation}-CONSTANT"
     with pytest.raises(ValueError, match="canary collision"):
         generate_canaries(TenantSpec.model_validate(data))
     assert generate_canaries(spec)
@@ -294,3 +297,56 @@ def test_a_grant_to_an_unknown_sharepoint_group_is_rejected() -> None:
     ]
     data["folders"][0]["inherits"] = False
     assert_invalid(data, "unknown sp_group 'ghost'")
+
+
+# -- tenant generations: canaries of different generations never collide -----------------------
+
+
+def test_canaries_of_different_generations_never_collide() -> None:
+    spec = load_spec(REPO_SPEC)
+    gens = [generation_from_epoch(t) for t in (0, 1, 2, 1_792_312_709, 1_792_312_710)]
+    sets = [
+        {c for cs in generate_canaries(spec.with_generation(g)).values() for c in cs} for g in gens
+    ]
+    for i, a in enumerate(sets):
+        assert len(a) == 45
+        for b in sets[i + 1 :]:
+            assert a.isdisjoint(b)
+    # the generation is in the text AND in the hash: the hex parts differ as well
+    hexes = [generate_canaries(spec.with_generation(g))["General"][0][-6:] for g in gens]
+    assert len(set(hexes)) == len(hexes)
+    for g, canaries in zip(gens, sets, strict=True):
+        assert all(c.startswith(f"CANARY-{g}-") for c in canaries)
+
+
+def test_a_canary_pattern_without_the_generation_is_refused() -> None:
+    for key, pattern in (
+        ("canary_pattern", "CANARY-{folder_code}-{index:02d}-{hex6}"),
+        ("special_canary_pattern", "CANARY-SPC-{hex6}"),
+    ):
+        data = base()
+        data["documents"][key] = pattern
+        assert_invalid(data, "must contain {generation}")
+
+
+def test_generation_ids_have_a_fixed_shape_and_follow_time() -> None:
+    assert generation_from_epoch(0) == "G000000"
+    assert generation_from_epoch(36) == "G000010"
+    ids = [generation_from_epoch(t) for t in range(1_792_000_000, 1_792_000_000 + 3000, 7)]
+    assert ids == sorted(ids) and len(set(ids)) == len(ids)
+    assert all(re.fullmatch(r"G[0-9A-Z]{6}", i) for i in ids)
+    with pytest.raises(ValueError):
+        generation_from_epoch(-1)
+    with pytest.raises(ValueError):
+        generation_from_epoch(36**6)
+
+
+def test_with_generation_changes_only_the_canaries_and_validates_the_id() -> None:
+    spec = load_spec(REPO_SPEC)
+    other = spec.with_generation("GABC123")
+    assert other.naming.generation == "GABC123" and spec.naming.generation == "G000000"
+    assert other.folders == spec.folders and other.users == spec.users
+    assert generate_canaries(other) != generate_canaries(spec)
+    for bad in ("", "G12", "g000000", "G00000O!", "X000000"):
+        with pytest.raises(ValidationError):
+            spec.with_generation(bad)

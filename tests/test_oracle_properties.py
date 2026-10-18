@@ -114,8 +114,8 @@ def spec_dicts(draw: st.DrawFn) -> dict[str, Any]:
         "special_files": special,
         "documents": {
             "format": "txt",
-            "canary_pattern": "CANARY-{folder_code}-{index:02d}-{hex6}",
-            "special_canary_pattern": "CANARY-SPC-{hex6}",
+            "canary_pattern": "CANARY-{generation}-{folder_code}-{index:02d}-{hex6}",
+            "special_canary_pattern": "CANARY-{generation}-SPC-{hex6}",
             "folder_codes": {f["path"]: f"C{i}" for i, f in enumerate(folders)},
             "body_template": "{title}",
             "topics": ["t"],

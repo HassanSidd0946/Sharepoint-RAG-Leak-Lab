@@ -101,7 +101,7 @@ class HttpSearchPort:
             return self._bearer[0]
 
     def query(self, user_token: str, phrase: str) -> tuple[int, list[dict[str, Any]] | str]:
-        body = {"search": phrase, "select": "metadata_spo_item_name,content", "top": 5}
+        body = {"search": phrase, "select": "id,metadata_spo_item_name,content", "top": 5}
         try:
             resp = self._http.post(
                 f"{self._endpoint}/indexes/{INDEX}/docs/search",

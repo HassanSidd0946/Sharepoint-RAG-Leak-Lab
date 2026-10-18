@@ -22,13 +22,22 @@ from rich.table import Table
 from leaklab.benchmark.aggregate import load_runs, summarize
 from leaklab.benchmark.execute import (
     PLAN,
+    extend_folder,
     init_manifest,
     load_manifest,
     load_plan,
     run_benchmark,
     write_plan,
 )
-from leaklab.benchmark.matrix import SYSTEMS, BenchmarkPlan, build_plan
+from leaklab.benchmark.matrix import (
+    DEFAULT_ARMS,
+    SYSTEMS,
+    BenchmarkPlan,
+    build_plan,
+    extend_plan,
+    parse_arms,
+    quick_arms,
+)
 from leaklab.benchmark.render import write_report
 from leaklab.runner import RunnerError
 from leaklab.runner.run import run_once, spec_sha256
@@ -41,12 +50,23 @@ SPEC_OPT = typer.Option(Path("tenant_spec.yaml"), "--spec", help="tenant_spec.ya
 
 
 def _plan_from_options(
-    spec_path: Path, systems: str, interval_s: float, n: int, cap_s: float, workers: int
+    spec_path: Path,
+    systems: str,
+    interval_s: float,
+    n: int,
+    cap_s: float,
+    workers: int,
+    arm: list[str] | None = None,
+    quick: bool = False,
 ) -> BenchmarkPlan:
     names = tuple(s.strip() for s in systems.split(",") if s.strip())
+    if arm and quick:
+        raise RunnerError("use either --arm or --quick, not both")
+    arms = parse_arms(arm) if arm else quick_arms() if quick else DEFAULT_ARMS
     return build_plan(
         load_spec(spec_path),
         spec_sha256(spec_path),
+        arms=arms,
         systems=names,
         interval_s=interval_s,
         n_consecutive=n,
@@ -87,10 +107,12 @@ def cmd_plan(
     n: int = typer.Option(10, help="Conforming reads in a row that count as converged."),
     cap_s: float = typer.Option(3600.0, help="Stop polling this long after the change."),
     workers: int = typer.Option(4, min=1, help="Parallel reads inside a cycle."),
+    arm: list[str] = typer.Option([], "--arm", help="SCENARIO=N replicates (repeatable)."),
+    quick: bool = typer.Option(False, help="Every default scenario once: a verification set."),
 ) -> None:
     """Work out the matrix and write plan.json (nothing is run)."""
     try:
-        plan = _plan_from_options(spec_path, systems, interval_s, n, cap_s, workers)
+        plan = _plan_from_options(spec_path, systems, interval_s, n, cap_s, workers, arm, quick)
         existing = load_manifest(folder)
         if existing is not None and existing.plan_sha256 != plan.sha256():
             raise RunnerError(f"{folder} already has runs for a different plan; use another --dir")
@@ -117,7 +139,11 @@ def cmd_run(
 ) -> None:
     """Execute the runs that are not done yet on the real tenant (resumes where it stopped)."""
     try:
-        plan = _plan_from_options(spec_path, systems, interval_s, n, cap_s, workers)
+        if (folder / PLAN).exists():  # the stored plan is the contract (it may have been extended)
+            plan = load_plan(folder)
+            console.print(f"using the plan stored in {folder / PLAN}")
+        else:
+            plan = _plan_from_options(spec_path, systems, interval_s, n, cap_s, workers)
         _show_plan(plan)
         manifest = run_benchmark(
             plan,
@@ -134,6 +160,27 @@ def cmd_run(
         raise typer.Exit(code=2) from exc
     done = sum(1 for r in manifest.runs if r.status == "done")
     console.print(f"{done} of {len(manifest.runs)} runs done. Next: `benchmark report`.")
+
+
+@app.command("extend")
+def cmd_extend(
+    folder: Path = DIR_OPT,
+    spec_path: Path = SPEC_OPT,
+    runs: int = typer.Option(1, min=1, help="How many runs to append."),
+    scenario: list[str] = typer.Option(
+        ["S1-entra", "S2-nested-group-removal"], "--scenario", help="Scenarios of each new run."
+    ),
+) -> None:
+    """Append more runs to the benchmark set in the folder (nothing is run; see `run`)."""
+    try:
+        extended = extend_plan(load_spec(spec_path), load_plan(folder), scenario, runs)
+        manifest = extend_folder(folder, extended)
+    except RunnerError as exc:
+        console.print(f"[bold red]{exc}[/bold red]")
+        raise typer.Exit(code=2) from exc
+    _show_plan(extended)
+    pending = [r.index for r in manifest.runs if r.status != "done"]
+    console.print(f"pending runs: {pending}. Run them with `benchmark run --only N`.")
 
 
 @app.command("report")

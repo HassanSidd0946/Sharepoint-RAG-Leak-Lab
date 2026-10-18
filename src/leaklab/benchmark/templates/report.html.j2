@@ -123,6 +123,30 @@
 {% endfor %}</tbody></table></div>
 {% endif %}
 
+{% if s.startup %}
+<h2>Setup B start-up</h2>
+<p class="small muted">The runner waits for <code>/ready</code> (two quiet polls of each poller and one completed verification) before the baseline; reads, and so lockouts, start after that. "Gained" is what the state held at readiness beyond what the first sync saw.</p>
+<div class="scroll"><table>
+<thead><tr><th>Run</th><th>Ready</th><th>Time to ready</th><th>Waited in prepare</th><th>First sync complete</th><th>Gained after the first sync</th><th>Found by verification</th></tr></thead>
+<tbody>{% for u in s.startup %}
+<tr><td class="num">{{ u.run }}</td><td class="{% if not u.ready %}bad{% endif %}">{{ "yes" if u.ready else "NO (cap " ~ secs(u.cap_s) ~ ")" }}</td><td class="num">{{ secs(u.time_to_ready_s) }}</td><td class="num">{{ secs(u.waited_in_prepare_s) }}</td>
+<td class="{% if u.complete_at_first_sync == false %}warnc{% endif %}">{% if u.complete_at_first_sync is none %}&ndash;{% else %}{{ "yes" if u.complete_at_first_sync else "no" }}{% endif %}</td>
+<td>{% if u.difference %}{{ counts(u.difference) }}{% else %}&ndash;{% endif %}</td><td class="num">{% if u.found_by_verify is none %}&ndash;{% else %}{{ u.found_by_verify }}{% endif %}</td></tr>
+{% endfor %}</tbody></table></div>
+{% endif %}
+
+{% if s.index_cleanups %}
+<h2>Index cleanup</h2>
+<p class="small muted">Before each run the documents of earlier tenant generations are deleted from both indexes. Counts are the service's: the ACL-filtered index shows no documents to the service token, and its statistic lags.</p>
+<div class="scroll"><table>
+<thead><tr><th>Run</th><th>Generation</th><th>Index</th><th>Documents before</th><th>Stale found</th><th>Deleted</th><th>Failed</th><th>Documents after</th></tr></thead>
+<tbody>{% for c in s.index_cleanups %}{% if c.error %}
+<tr><td class="num">{{ c.run }}</td><td>{% if c.generation %}{{ c.generation }}{% else %}&ndash;{% endif %}</td><td colspan="6" class="bad">{{ c.error }}</td></tr>
+{% endif %}{% for i in c.indexes %}
+<tr><td class="num">{{ c.run }}</td><td>{{ c.generation }}</td><td>{{ i.index }}</td><td class="num">{{ i.count_before }}</td><td class="num">{{ i.stale_found }}</td><td class="num">{{ i.deleted }}</td><td class="num {% if i.failed %}bad{% endif %}">{{ i.failed }}</td><td class="num">{{ i.count_after }}</td></tr>
+{% endfor %}{% endfor %}</tbody></table></div>
+{% endif %}
+
 {% if s.postfilter_recall.samples %}
 <h2>Recall cost of post-filtering (Setup B)</h2>
 <p class="small muted">Broad query at several k with a k&times;5 window: results returned versus the most the persona could have been given (readable documents among all matches, capped at k).</p>

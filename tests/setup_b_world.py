@@ -9,6 +9,7 @@ from leaklab.setup_b.state.access import StateReader
 from leaklab.setup_b.state.acl import AclStore
 from leaklab.setup_b.state.directory import DirectoryStore
 from leaklab.setup_b.state.membership import MembershipStore
+from leaklab.setup_b.state.readiness import Readiness
 from runner_fakes import make_world
 from setup_b_fakes import FakeDirectory, FakeDriveDelta, FakeGroupDelta, FakeSharePointSource
 
@@ -24,9 +25,18 @@ class World:
         self.drive = FakeDriveDelta(self.tenant, report_shared_changes=report_shared_changes)
         self.sp = FakeSharePointSource(self.tenant)
         store = DirectoryStore(self.directory)
-        self.membership = MembershipStore(repo, self.group_src, store, self.clock.time)
+        self.readiness = Readiness()
+        self.membership = MembershipStore(
+            repo, self.group_src, store, self.clock.time, self.readiness
+        )
         self.acl = AclStore(
-            repo, self.drive, self.sp, self.clock.time, container="ll-lab", directory=store
+            repo,
+            self.drive,
+            self.sp,
+            self.clock.time,
+            container="ll-lab",
+            directory=store,
+            readiness=self.readiness,
         )
         self.reader = StateReader(repo, self.clock.time, max_age_s=max_age_s)
 

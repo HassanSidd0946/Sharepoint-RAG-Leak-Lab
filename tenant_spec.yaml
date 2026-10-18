@@ -7,7 +7,11 @@ version: 1
 naming:
   prefix: "ll-"                 # every generated user/group/file name starts with this
   domain: "leaklabdev.onmicrosoft.com"   # verified 2026-10-15 (users created under it)
-  seed: 20261014                # fixed seed: same spec -> same canaries and content
+  seed: 20261014                # fixed seed: same spec + same generation -> same canaries and content
+  # TEMPLATE generation id. Every teardown + generate is a new generation; a run replaces this with
+  # the id of the live tenant (G + the container folder's creation time in base 36), so canaries of
+  # different generations never collide even if an index still holds documents of an old one.
+  generation: "G000000"
 
 site:
   title: "LeakLab"
@@ -174,10 +178,10 @@ special_files:
 # ---------------------------------------------------------------------------
 documents:
   format: txt                   # start with .txt; add docx only after a probe confirms indexing
-  canary_pattern: "CANARY-{folder_code}-{index:02d}-{hex6}"
+  canary_pattern: "CANARY-{generation}-{folder_code}-{index:02d}-{hex6}"
   # Special files (see special_files) get exactly one canary each, derived from seed + file id.
   # Placeholders: {hex6}, {file_id}. They are extra: they do not count toward a folder's doc_count.
-  special_canary_pattern: "CANARY-SPC-{hex6}"
+  special_canary_pattern: "CANARY-{generation}-SPC-{hex6}"
   folder_codes:
     "General": GEN
     "Engineering": ENG

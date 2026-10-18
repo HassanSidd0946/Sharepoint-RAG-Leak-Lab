@@ -6,7 +6,7 @@ import pytest
 from leaklab.runner.model import RunnerError
 from leaklab.runner.setup0 import TokenCache
 from leaklab.setup_b.system import SetupB
-from setup_b_api_world import ALL, Api
+from setup_b_api_world import ALL, Api, P
 from setup_b_world import World
 
 PERSONAS = ["p-ceo", "p-intern", "p-plateng"]
@@ -30,11 +30,19 @@ def canary(prefix: str) -> str:
     return next(c for c in ALL if c.startswith(prefix))
 
 
+def make_ready(api: Api) -> None:
+    """Two quiet polls of each poller and a verification: what /ready waits for."""
+    w = api.world
+    for _ in range(3):
+        w.sync()
+    w.acl.verify_all()
+
+
 def test_served_and_denied_follow_the_state() -> None:
     api = Api(World(_repo()))
     api.world.sync()
     sut = adapter(api)
-    board, general = canary("CANARY-BRD"), canary("CANARY-GEN")
+    board, general = canary(P + "BRD"), canary(P + "GEN")
     assert sut.read("p-ceo", board).served is True
     denied = sut.read("p-intern", board)
     assert denied.served is False and denied.error is None  # the document IS in the index
@@ -52,8 +60,8 @@ def test_without_debug_stats_the_adapter_refuses_to_call_it_a_denial() -> None:
     api = Api(World(_repo()), allow_debug=False)
     api.world.sync()
     sut = adapter(api)
-    assert sut.read("p-ceo", canary("CANARY-BRD")).served is True
-    assert sut.read("p-intern", canary("CANARY-BRD")).error == "no_debug_stats"
+    assert sut.read("p-ceo", canary(P + "BRD")).served is True
+    assert sut.read("p-intern", canary(P + "BRD")).error == "no_debug_stats"
 
 
 def test_http_errors_are_errors_not_denials() -> None:
@@ -61,7 +69,7 @@ def test_http_errors_are_errors_not_denials() -> None:
     api.world.sync()
     sut = adapter(api)
     api.index.fail = Exception("boom")  # not IndexUnavailable: the app answers 500
-    obs = sut.read("p-ceo", canary("CANARY-BRD"))
+    obs = sut.read("p-ceo", canary(P + "BRD"))
     assert obs.served is None and obs.status == 500
     api.index.fail = None
 
@@ -98,8 +106,8 @@ def test_a_401_drops_the_cached_token() -> None:
         sleep=clock.sleep,
         http=api.client,
     )
-    assert sut.read("p-ceo", canary("CANARY-BRD")).status == 401
-    sut.read("p-ceo", canary("CANARY-BRD"))
+    assert sut.read("p-ceo", canary(P + "BRD")).status == 401
+    sut.read("p-ceo", canary(P + "BRD"))
     assert len(fetched) == 2
 
 
@@ -109,6 +117,7 @@ def test_prepare_waits_for_a_healthy_api_and_takes_the_first_recall_sample() -> 
     with pytest.raises(RunnerError):  # nothing polled: degraded for ever
         sut.prepare(PERSONAS, ALL)
     api.world.sync()
+    make_ready(api)
     sut.prepare(PERSONAS, ALL)
     events = sut.drain_events()
     recall = [e for e in events if e["kind"] == "postfilter_recall"]
@@ -133,6 +142,7 @@ def test_health_changes_are_reported_once_each() -> None:
     api = Api(w)
     w.sync()
     sut = adapter(api)
+    make_ready(api)
     sut.prepare(PERSONAS, ALL)
     sut.drain_events()
     assert sut.drain_events() == []  # nothing new
@@ -171,6 +181,7 @@ def test_poller_lag_and_indexer_runs_are_reported_for_the_benchmark() -> None:
         indexer_runs=lambda: runs,
         http=api.client,
     )
+    make_ready(api)
     sut.prepare(PERSONAS, ALL)
     first = sut.drain_events()
     lag = [e for e in first if e["kind"] == "poller_lag"]
@@ -190,3 +201,35 @@ def test_poller_lag_and_indexer_runs_are_reported_for_the_benchmark() -> None:
         "poller_lag",
         "indexer_run",
     ]
+
+
+def test_a_stale_copy_does_not_make_a_missing_document_look_denied() -> None:
+    from leaklab.runner.tenant import resolve_items  # noqa: F401  (documented way to get ids)
+
+    api = Api(World(_repo()))
+    api.world.sync()
+    board = canary(P + "BRD")
+    current = next(h.doc_id for h in api.index.docs if api.index.canary_of[h.doc_id] == board)
+    clock = api.world.clock
+    sut = SetupB(
+        base_url="http://testserver",
+        upns={p: f"{p}@example.test" for p in PERSONAS},
+        tokens=TokenCache(
+            lambda upn: api.keys.token(api.world.uid(upn.split("@")[0]), upn), clock.time
+        ),
+        clock=clock.time,
+        sleep=clock.sleep,
+        item_ids={board: current},
+        http=api.client,
+    )
+    assert sut.read("p-ceo", board).served is True
+    assert sut.read("p-intern", board).served is False  # the document IS there: a real denial
+    # the current document leaves the index; a stale copy with the same text stays
+    stale = next(h for h in api.index.docs if h.doc_id == current)
+    api.index.docs = [h for h in api.index.docs if h.doc_id != current]
+    api.index.docs.append(type(stale)("STALE-ITEM", stale.name, stale.content))
+    obs = sut.read("p-ceo", board)
+    assert obs.served is None and obs.error == "not_indexed"  # not "denied", not "served"
+    # without item ids the adapter cannot tell and falls back to "the phrase matched something"
+    plain = adapter(api)
+    assert plain.read("p-intern", board).served is False

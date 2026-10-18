@@ -224,3 +224,32 @@ def _remember_journal(entry: ManifestRun, folder: Path, planned: PlannedRun) -> 
 def _config_kwargs(config: dict[str, float]) -> dict[str, Any]:
     ints = {"baseline_k", "n_consecutive", "workers"}
     return {k: (int(v) if k in ints else v) for k, v in config.items()}
+
+
+def extend_folder(folder: Path, new_plan: BenchmarkPlan) -> Manifest:
+    """Append the new runs of an extended plan to the folder's plan.json and manifest.
+
+    Only a plan that keeps every earlier run exactly as it was is accepted, and only on a folder
+    whose manifest belongs to the plan it extends: the journals of the earlier runs stay valid and
+    the new ones are appended to the same benchmark set. The manifest's fingerprint moves to the
+    extended plan (this is the one place where it may change).
+    """
+    old_plan = load_plan(folder)
+    manifest = load_manifest(folder)
+    if manifest is None:
+        manifest = init_manifest(folder, old_plan)
+    if manifest.plan_sha256 != old_plan.sha256():
+        raise RunnerError(f"{folder / MANIFEST} does not belong to {folder / PLAN}")
+    old_runs = [r.model_dump() for r in old_plan.runs]
+    if [r.model_dump() for r in new_plan.runs[: len(old_runs)]] != old_runs:
+        raise RunnerError("the extended plan changes runs that already exist")
+    if new_plan.spec_sha256 != old_plan.spec_sha256 or new_plan.systems != old_plan.systems:
+        raise RunnerError("the extended plan changes the spec or the systems")
+    known = {e.index for e in manifest.runs}
+    for run in new_plan.runs:
+        if run.index not in known:
+            manifest.runs.append(ManifestRun(index=run.index, name=run.name))
+    manifest.plan_sha256 = new_plan.sha256()
+    write_plan(folder, new_plan)
+    save_manifest(folder, manifest)
+    return manifest

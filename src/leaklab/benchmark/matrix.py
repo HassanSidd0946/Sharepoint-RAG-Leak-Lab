@@ -19,6 +19,7 @@ The plan is a pure function of the spec, the matrix and the poll settings: no ne
 import hashlib
 import json
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from pydantic import BaseModel
@@ -45,6 +46,26 @@ DEFAULT_ARMS = (
     Arm("S2-nested-group-removal", 5),
     Arm("S4-move-into-restricted", 2),
 )
+
+
+def quick_arms(replicates: int = 1) -> tuple[Arm, ...]:
+    """Every scenario of the default matrix, `replicates` times each (a verification set)."""
+    return tuple(Arm(a.scenario, replicates, a.baseline_alternates) for a in DEFAULT_ARMS)
+
+
+def parse_arms(specs: Sequence[str]) -> tuple[Arm, ...]:
+    """ "S1-direct=3" -> Arm("S1-direct", 3). A scenario of the default matrix keeps its baseline
+    alternation; any other scenario runs with the plain baseline."""
+    alternates = {a.scenario: a.baseline_alternates for a in DEFAULT_ARMS}
+    arms: list[Arm] = []
+    for spec in specs:
+        name, sep, count = spec.partition("=")
+        if not sep or not count.strip().isdigit() or int(count) < 1:
+            raise RunnerError(f"--arm needs SCENARIO=N with N >= 1, got {spec!r}")
+        if any(a.scenario == name for a in arms):
+            raise RunnerError(f"--arm {name!r} given twice")
+        arms.append(Arm(name, int(count), alternates.get(name, False)))
+    return tuple(arms)
 
 
 class PlannedRun(BaseModel):
@@ -175,6 +196,88 @@ def build_plan(
     return BenchmarkPlan(
         spec_sha256=spec_sha256,
         systems=list(systems),
+        arms=[
+            PlannedArm(
+                scenario=a.scenario,
+                replicates=a.replicates,
+                baseline_alternates=a.baseline_alternates,
+            )
+            for a in arms
+        ],
+        runs=runs,
+        notes=notes,
+    )
+
+
+def extend_plan(
+    spec: TenantSpec, plan: BenchmarkPlan, scenarios: Sequence[str], count: int
+) -> BenchmarkPlan:
+    """The plan with `count` more runs of `scenarios` appended (the earlier runs are untouched).
+
+    The new runs use the poll settings of the last planned run; the baseline keeps alternating by
+    run number for scenarios that alternate (S1-entra), so run 6 is a 10-minute baseline, run 7 a
+    1-minute one, and so on. Each scenario's replicate count in `arms` grows by `count`.
+    """
+    if count < 1 or not scenarios:
+        raise RunnerError("extend needs at least one run and one scenario")
+    known = {s.id for s in spec.scenarios}
+    unknown = [s for s in scenarios if s not in known]
+    if unknown:
+        raise RunnerError(f"unknown scenario(s) {unknown}; the spec has {sorted(known)}")
+    if not plan.runs:
+        raise RunnerError("the plan has no runs to extend")
+    cfg = plan.runs[-1].config
+    arms = [Arm(a.scenario, a.replicates, a.baseline_alternates) for a in plan.arms]
+    for scenario in scenarios:
+        existing = next((i for i, a in enumerate(arms) if a.scenario == scenario), None)
+        if existing is None:
+            alternates = next(
+                (a.baseline_alternates for a in DEFAULT_ARMS if a.scenario == scenario), False
+            )
+            arms.append(Arm(scenario, count, alternates))
+        else:
+            arms[existing] = Arm(
+                scenario, arms[existing].replicates + count, arms[existing].baseline_alternates
+            )
+    plans = [derive_plan(spec, s) for s in scenarios]
+    loops = [[p.id for p in group] for group in group_scenarios(plans)]
+    runs = list(plan.runs)
+    notes = list(plan.notes)
+    for index in range(len(runs) + 1, len(runs) + count + 1):
+        minutes = baseline_minutes(arms, list(scenarios), index)
+        config = run_config(
+            minutes,
+            interval_s=cfg["interval_s"],
+            n_consecutive=int(cfg["n_consecutive"]),
+            cap_s=cfg["cap_s"],
+            steady_window_s=cfg["steady_window_s"],
+            workers=int(cfg["workers"]),
+        )
+        per_loop = [
+            config.baseline_cap_s
+            + (
+                cfg["cap_s"]
+                if any(derive_plan(spec, s).flipped for s in loop)
+                else cfg["steady_window_s"]
+            )
+            for loop in loops
+        ]
+        runs.append(
+            PlannedRun(
+                index=index,
+                name=f"r{index}",
+                scenarios=list(scenarios),
+                loops=loops,
+                baseline_minutes=minutes,
+                config=config.as_dict(),
+                max_polling_s=sum(per_loop),
+            )
+        )
+    if len(loops) > 1:
+        notes.append(f"extension runs: scenarios cannot share one polling loop: {loops}")
+    return BenchmarkPlan(
+        spec_sha256=plan.spec_sha256,
+        systems=list(plan.systems),
         arms=[
             PlannedArm(
                 scenario=a.scenario,

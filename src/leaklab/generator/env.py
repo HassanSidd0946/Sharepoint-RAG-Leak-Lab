@@ -3,11 +3,19 @@
 An Env holds the spec, its plan, the Graph/SharePoint ports, the mutation log, an injectable
 clock/sleep, and caches of the ids it has looked up. Every lookup falls back to asking the tenant,
 so a fresh process (verify, teardown, apply_mutation) works without any state from an earlier run.
+
+GENERATION: every teardown + generate makes a new tenant, and the canaries carry the id of that
+generation (spec.naming.generation). The id is derived from the tenant itself: "G" + the creation
+time of the container folder in base 36 (verified 2026-10-18: Graph returns createdDateTime for the
+folder). Whenever the container is found or created, the Env swaps its spec and plan for the
+generation's, so `env.spec` / `env.plan` always describe the live tenant. Until a container exists
+the spec's template generation applies.
 """
 
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from leaklab.generator.log import MutationLog
@@ -22,7 +30,7 @@ from leaklab.generator.retry import (
     retry_call,
 )
 from leaklab.sp_rest import file_item_path, folder_item_path
-from leaklab.spec import TenantSpec
+from leaklab.spec import TenantSpec, generation_from_epoch
 
 LIMITED_ACCESS = "Limited Access"
 
@@ -79,10 +87,37 @@ class Env:
     _sp_groups: dict[str, Principal] = field(default_factory=dict)
     _roles: dict[str, int] | None = None
     special_folder: dict[str, str] = field(default_factory=dict)
+    base_spec: TenantSpec = field(init=False)
+    generation_found: bool = False  # the generation came from a real container, not the template
 
     def __post_init__(self) -> None:
+        self.base_spec = self.spec
         self.plan = build_plan(self.spec)
         self.special_folder = {s.id: s.folder for s in self.plan.special_files}
+
+    @property
+    def generation(self) -> str:
+        return self.spec.naming.generation
+
+    def _adopt_container(self, item: dict[str, Any]) -> None:
+        """Take the generation id from the container folder's creation time."""
+        created = item.get("createdDateTime")
+        if not created:
+            self.event("generation_unknown", reason="the container has no createdDateTime")
+            return
+        epoch = datetime.fromisoformat(str(created).replace("Z", "+00:00")).timestamp()
+        generation = generation_from_epoch(epoch)
+        self.generation_found = True
+        if generation != self.spec.naming.generation:
+            self.spec = self.base_spec.with_generation(generation)
+            self.plan = build_plan(self.spec)
+            self.special_folder = {s.id: s.folder for s in self.plan.special_files}
+            self.event("generation_adopted", generation=generation)
+
+    def discover_generation(self) -> str:
+        """Look for the container and adopt its generation (the template one if there is none)."""
+        self.container_id()
+        return self.generation
 
     # -- bookkeeping -------------------------------------------------------------------------
 
@@ -133,6 +168,7 @@ class Env:
                 self.event("folder_created", path=self.plan.container)
             if found is not None:
                 self._container_id = str(found["id"])
+                self._adopt_container(found)
         return self._container_id
 
     def folder_id(self, path: str) -> str | None:
