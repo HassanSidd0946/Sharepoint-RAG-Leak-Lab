@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation"
 import { slugOf } from "@/lib/replay/load"
-import type { Bundle, IndexFile } from "@/lib/replay/types"
+import type { Bundle, IndexFile, ScenarioEntry } from "@/lib/replay/types"
 
 /** Picks a bundle from index.json: scenario, replicate, run id. */
 export function BundlePicker({ index, current }: { index: IndexFile; current?: Bundle }) {
   const router = useRouter()
-  const selected = index.bundles.find(
+  const options = index.bundles.filter((b): b is ScenarioEntry => b.kind === "scenario_run")
+  const selected = options.find(
     (b) =>
       current &&
       b.run_id === current.run.run_id &&
@@ -24,9 +25,9 @@ export function BundlePicker({ index, current }: { index: IndexFile; current?: B
         onChange={(e) => router.push(`/replay/${slugOf(e.target.value)}`)}
       >
         {selected ? null : <option value="">choose a bundle</option>}
-        {index.bundles.map((b) => (
+        {options.map((b) => (
           <option key={b.bundle} value={b.bundle}>
-            {`${b.scenario} · replicate ${b.replicate} · ${b.run_id}`}
+            {`${b.scenario} · replicate ${b.replicate} · ${b.run_id}${b.representative ? " · closest to the median" : ""}`}
           </option>
         ))}
       </select>

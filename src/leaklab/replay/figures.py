@@ -36,10 +36,21 @@ TICK_LABELS = ["1 s", "10 s", "1 min", "10 min", "1 h"]
 
 
 def load_bundles(folder: Path) -> list[dict[str, Any]]:
+    """The scenario_run bundles of an export folder (agent_trial bundles are not drawn here)."""
     index = json.loads((folder / "index.json").read_text(encoding="utf-8"))
-    return [
+    loaded = [
         json.loads((folder / e["bundle"]).read_text(encoding="utf-8")) for e in index["bundles"]
     ]
+    return [b for b in loaded if b.get("kind", "scenario_run") == "scenario_run"]
+
+
+def representative_name(folder: Path, scenario: str) -> str | None:
+    """File stem of the replicate the export ranked closest to the per-system medians, if it ranked."""
+    index = json.loads((folder / "index.json").read_text(encoding="utf-8"))
+    for e in index["bundles"]:
+        if e.get("scenario") == scenario and e.get("representative"):
+            return str(e["bundle"]).removesuffix(".json")
+    return None
 
 
 def bundle_name(b: dict[str, Any]) -> str:

@@ -22,10 +22,12 @@ from leaklab.replay.figures import (
     bundle_name,
     first_deny_figure,
     load_bundles,
+    representative_name,
     timeline_figure,
 )
 from leaklab.replay.redact import RedactionError
 from leaklab.replay.summary import SummaryMismatch
+from leaklab.replay.writeup import WriteupError, build_context, fill, format_table
 from leaklab.runner.run import spec_sha256
 from leaklab.spec import load_spec
 
@@ -53,6 +55,10 @@ def cmd_export(
     for col in ("bundle", "systems", "summary (first deny s / status)"):
         table.add_column(col)
     for b in result.bundles:
+        if b.data["kind"] == "agent_trial":
+            parts = f"{b.data['summary']['verdict']} ({b.data['validity']})"
+            table.add_row(b.name, "agent", parts)
+            continue
         parts = ", ".join(
             f"{s['system']}: {'-' if s['first_deny_s'] is None else format(s['first_deny_s'], '.1f')} / {s['status']}"
             for s in b.data["summary"]
@@ -86,7 +92,10 @@ def cmd_figures(
     chosen = (
         next((b for b in loaded if bundle_name(b) == bundle), None)
         if bundle
-        else best_demo_bundle(loaded)
+        else next(
+            (b for b in loaded if bundle_name(b) == representative_name(bundles, "S1-entra")), None
+        )
+        or best_demo_bundle(loaded)
     )
     if chosen is None:
         console.print(
@@ -98,3 +107,47 @@ def cmd_figures(
     console.print(f"timeline of {bundle_name(chosen)}")
     for f in files:
         console.print(f"  {f}")
+
+
+@app.command("writeup")
+def cmd_writeup(
+    template: Path = typer.Option(Path("docs/writeup/WRITEUP.template.md"), "--template"),
+    report: Path = typer.Option(Path("runs/benchmark_v2/report.json"), "--report"),
+    replays: Path = typer.Option(..., "--replays", help="A folder written by `export`."),
+    meta: Path = typer.Option(Path("docs/writeup/meta.yaml"), "--meta"),
+    out: Path = typer.Option(Path("docs/writeup/WRITEUP.md"), "--out"),
+    video: Path = typer.Option(Path("docs/video/VIDEO_SCRIPT.md"), "--video"),
+    video_out: Path = typer.Option(Path("docs/video/VIDEO_SCRIPT.filled.md"), "--video-out"),
+    figures: Path = typer.Option(Path("runs/figures"), "--figures"),
+    spec_path: Path = SPEC_OPT,
+    allow_unset_meta: bool = typer.Option(
+        False,
+        "--allow-unset-meta",
+        help="Dry run: meta values still TODO are filled as [unset: key].",
+    ),
+) -> None:
+    """Fill the write-up (and the video script) from the report and the bundles; fail on any bad token."""
+    ctx = build_context(
+        report, replays, meta, load_spec(spec_path), out.parent, figures, allow_unset_meta
+    )
+    jobs = [(template, out)]
+    if video.exists():
+        jobs.append((video, video_out))
+    else:
+        console.print(f"[yellow]{video} does not exist: the video script is not filled[/yellow]")
+    try:
+        for source, target in jobs:
+            ctx.out_dir = target.parent
+            filled = fill(source.read_text(encoding="utf-8"), ctx)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(filled, encoding="utf-8")
+            console.print(f"wrote {target}")
+    except WriteupError as exc:
+        console.print(f"[bold red]cannot fill {source}:[/bold red]\n{exc}")
+        raise typer.Exit(code=2) from exc
+    table = Table(title="every token, its value and where it came from")
+    for col in ("token", "value", "source"):
+        table.add_column(col, overflow="fold")
+    for row in format_table(ctx.rows):
+        table.add_row(*row)
+    console.print(table)

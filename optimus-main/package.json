@@ -6,7 +6,7 @@
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
-    "gen:types": "json2ts -i lib/replay/schema.json -o lib/replay/types.generated.ts",
+    "gen:types": "json2ts -i lib/replay/schema.v1.1.json -o lib/replay/types.generated.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

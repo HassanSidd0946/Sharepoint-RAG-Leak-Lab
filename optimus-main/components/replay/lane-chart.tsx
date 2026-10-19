@@ -6,7 +6,7 @@
  * (memoized); only the "future" mask and the playhead change while playing.
  */
 import { memo } from "react"
-import { CONTROL_H, INDEXER_H, LANE_PAD, LEAK_MARK_W, MIN_MARK_W, ROW_GAP, ROW_H, VIEW_W } from "@/lib/replay/layout"
+import { CONTROL_H, DASH, INDEXER_H, LANE_PAD, LEAK_MARK_W, MIN_MARK_W, ROW_GAP, ROW_H, VIEW_W } from "@/lib/replay/layout"
 import type { LaneModel, PairRow } from "@/lib/replay/model"
 import type { Read } from "@/lib/replay/types"
 
@@ -16,6 +16,9 @@ const TONE: Record<Read["outcome"], string> = {
   error: "var(--noanswer)",
   not_indexed: "var(--noanswer)",
 }
+
+/** A lane whose system never served the flipped pair is drawn neutral: not served (green), not revoked (red). */
+const NEUTRAL = "var(--noanswer)"
 
 const MARK: Partial<Record<Read["verdict"], string>> = {
   leak: "var(--denied)",
@@ -55,12 +58,14 @@ function RowTicks({
   h,
   kind,
   scale,
+  neutral,
 }: {
   row: PairRow
   y: number
   h: number
   kind: string
   scale: (t: number) => number
+  neutral: boolean
 }) {
   return (
     <g data-row={kind} data-doc={row.docLabel} data-persona={row.persona}>
@@ -77,7 +82,7 @@ function RowTicks({
               x2={x}
               y1={y}
               y2={y + h}
-              style={{ stroke: TONE[r.outcome] }}
+              style={{ stroke: neutral ? NEUTRAL : TONE[r.outcome] }}
               strokeWidth={MIN_MARK_W}
               vectorEffect="non-scaling-stroke"
             />
@@ -99,16 +104,50 @@ function RowTicks({
   )
 }
 
+function Marker({
+  at,
+  id,
+  color,
+  label,
+  scale,
+}: {
+  at: number | null
+  id: string
+  color: string
+  label: string
+  scale: (t: number) => number
+}) {
+  if (at === null) return null
+  const x = scale(at)
+  return (
+    <line
+      data-testid={id}
+      x1={x}
+      x2={x}
+      y1={0}
+      y2="100%"
+      style={{ stroke: color }}
+      strokeDasharray={DASH}
+      strokeWidth={MIN_MARK_W}
+      vectorEffect="non-scaling-stroke"
+    >
+      <title>{label}</title>
+    </line>
+  )
+}
+
 const Ticks = memo(function Ticks({ lane, scale }: { lane: LaneModel; scale: (t: number) => number }) {
   const at = layoutOf(lane)
   return (
     <g>
       {lane.flipped.map((row, i) => (
-        <RowTicks key={row.canary + row.persona} row={row} y={at.flipped[i]} h={ROW_H} kind="flipped" scale={scale} />
+        <RowTicks key={row.canary + row.persona} row={row} y={at.flipped[i]} h={ROW_H} kind="flipped" scale={scale} neutral={lane.neverServed} />
       ))}
       {lane.control.map((row, i) => (
-        <RowTicks key={row.canary + row.persona} row={row} y={at.control[i]} h={CONTROL_H} kind="control" scale={scale} />
+        <RowTicks key={row.canary + row.persona} row={row} y={at.control[i]} h={CONTROL_H} kind="control" scale={scale} neutral={lane.neverServed} />
       ))}
+      <Marker at={lane.firstDenyRel} id="marker-first-deny" color="var(--denied)" label="first denial" scale={scale} />
+      <Marker at={lane.lastServedRel} id="marker-last-served" color="var(--served)" label="last served" scale={scale} />
       {at.indexer !== null
         ? lane.indexerRuns.map((run) => {
             const x0 = scale(run.t_rel_s)
@@ -147,6 +186,15 @@ export function LaneChart({
   const { height } = layoutOf(lane)
   const now = scale(time)
   return (
+    <div className="relative">
+      {lane.neverServed ? (
+        <div
+          data-testid={`never-served-${lane.id}`}
+          className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-sm font-medium text-muted-foreground"
+        >
+          <span className="rounded bg-card/80 px-2 py-0.5">Never served — nothing to revoke</span>
+        </div>
+      ) : null}
     <svg
       data-testid={`lane-svg-${lane.id}`}
       viewBox={`0 0 ${VIEW_W} ${height}`}
@@ -185,5 +233,6 @@ export function LaneChart({
         vectorEffect="non-scaling-stroke"
       />
     </svg>
+  </div>
   )
 }

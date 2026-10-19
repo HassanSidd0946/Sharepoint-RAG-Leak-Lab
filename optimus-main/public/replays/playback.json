@@ -1,0 +1,5 @@
+[
+  { "until_t_rel_s": 12, "speed": 1 },
+  { "until_t_rel_s": 360, "speed": 60 },
+  { "until_t_rel_s": "end", "speed": 300 }
+]

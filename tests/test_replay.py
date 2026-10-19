@@ -175,7 +175,17 @@ def test_index_lists_every_bundle_with_statuses(exported, tmp_path: Path) -> Non
     index = json.loads((out / "index.json").read_text(encoding="utf-8"))
     assert len(index["bundles"]) == 2
     entry = index["bundles"][0]
-    assert set(entry) == {"bundle", "run_id", "scenario", "replicate", "systems", "summary"}
+    assert set(entry) == {
+        "bundle",
+        "kind",
+        "run_id",
+        "scenario",
+        "replicate",
+        "systems",
+        "summary",
+        "rank",
+        "representative",
+    }
     assert (out / entry["bundle"]).exists()
 
 

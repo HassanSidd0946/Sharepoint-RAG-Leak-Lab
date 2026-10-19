@@ -1,0 +1,16 @@
+# Values the write-up and the video script need that are NOT measured. Nothing here comes from a run.
+# A value that starts with TODO makes `leaklab.replay writeup` fail (use --allow-unset-meta for a dry run).
+
+publish_date: TODO            # e.g. 2026-10-26
+repo_url: TODO                # the public repository
+contact: TODO                 # how readers reach you (not taken from any file in this repo)
+architecture_figure: TODO     # path of the architecture diagram, relative to docs/writeup/
+
+# Facts of the configuration, from the code (src/leaklab/setup_a/client.py API, the runner's report):
+search_api_version: 2026-08-01-preview
+indexer_schedule: 5 min (the shortest the service accepts, PT5M)
+# Setup B's StateReader default (src/leaklab/setup_b/state/access.py max_age_s); change it if the deployed value differs.
+stale_after_s: 30
+
+# "auto": first and last UTC day of the runs listed in report.json. Replace with text to override.
+measurement_dates: auto

@@ -10,10 +10,10 @@ another scenario's mutation touched this scenario's pairs, the two differ and th
 loudly (SummaryMismatch): the bundle must be able to reproduce the report it claims to come from.
 
 STATUS: the report's convergence values map to the schema's status enum as CONFORMED -> CONVERGED;
-DID_NOT_CONVERGE, INSUFFICIENT_DATA and NOT_APPLICABLE are kept. The report has two more values,
-NO_DATA and NOTHING_TO_REVOKE (the revoked document was not being served before the change, so there
-was nothing to revoke), that the schema's enum cannot express: they raise UnmappableStatus. They are
-never renamed to a value that says something else.
+DID_NOT_CONVERGE, INSUFFICIENT_DATA, NOT_APPLICABLE and (schema v1.1) NOTHING_TO_REVOKE (the revoked
+document was not being served before the change) are kept as they are. The report's NO_DATA and NOT_RUN
+have no place in the enum: they raise UnmappableStatus. A status is never renamed to one that says
+something else (NOTHING_TO_REVOKE is not NOT_APPLICABLE).
 """
 
 import math
@@ -39,6 +39,7 @@ STATUS_MAP = {
     "DID_NOT_CONVERGE": "DID_NOT_CONVERGE",
     "INSUFFICIENT_DATA": "INSUFFICIENT_DATA",
     "NOT_APPLICABLE": "NOT_APPLICABLE",
+    "NOTHING_TO_REVOKE": "NOTHING_TO_REVOKE",  # schema v1.1: never served, so nothing to revoke
 }
 FIELDS = (
     "first_deny_s",

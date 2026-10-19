@@ -3,11 +3,16 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { ReplayPage } from "@/components/replay/replay-page"
 import { ReplayView } from "@/components/replay/replay-view"
 import type { Bundle, IndexFile } from "@/lib/replay/types"
-import fixture from "./fixtures/bundle.json"
-import fixtureIndex from "./fixtures/index.json"
+import { checkBundle, checkIndex } from "@/lib/replay/validate"
+import fixture from "./fixtures/bundle.v10.json"
+import fixtureIndex from "./fixtures/index.v10.json"
 
-const bundle = fixture as unknown as Bundle
-const index = fixtureIndex as unknown as IndexFile
+// a v1.0 bundle, loaded the way the app loads it (checked against schema v1.0 and upgraded)
+const checked = checkBundle(fixture)
+const checkedIndex = checkIndex(fixtureIndex)
+if (!checked.ok || !checkedIndex.ok) throw new Error("the v1.0 fixture must be valid")
+const bundle: Bundle = checked.value
+const index: IndexFile = checkedIndex.value
 const at = (t: number) => render(<ReplayView bundle={bundle} index={index} startTime={t} />)
 const lane = (id: string) => screen.getByTestId(`lane-${id}`)
 const clock = (id: string) => screen.getByTestId(`clock-${id}`)
@@ -117,15 +122,14 @@ describe("playback, summary, footer", () => {
     expect(screen.getByTestId("speed-label")).toBeInTheDocument()
   })
 
-  it("renders the summary, mutation text and provenance from the bundle", () => {
+  it("renders the summary, mutation text and provenance from the bundle (v1.0: no caveats)", () => {
     at(0)
     for (const s of bundle.summary) expect(screen.getByTestId(`status-${s.system}`)).toHaveTextContent(s.status)
     const footer = screen.getByTestId("footer")
     expect(footer).toHaveTextContent(bundle.run.run_id)
     expect(footer).toHaveTextContent(bundle.run.generation)
     expect(footer).toHaveTextContent(bundle.provenance.git_commit)
-    expect(footer).toHaveTextContent(/One test tenant/)
-    expect(footer).toHaveTextContent(/Tenant admin out of scope/)
+    expect(screen.getByTestId("no-caveats")).toBeInTheDocument() // a v1.0 bundle carries none; the UI adds none
     const mutation = bundle.events.find((e) => e.type === "mutation")
     expect(screen.getByTestId("mutation-text")).toHaveTextContent(mutation && mutation.type === "mutation" ? mutation.summary : "")
   })
@@ -141,9 +145,9 @@ describe("loading", () => {
     })
 
   it("shows the error panel, not a replay, for a bundle that fails the schema", async () => {
-    const broken = JSON.parse(JSON.stringify(bundle))
+    const broken = JSON.parse(JSON.stringify(fixture))
     delete broken.summary
-    serve({ "index.json": index, "fixture.json": broken })
+    serve({ "index.json": fixtureIndex, "fixture.json": broken })
     render(<ReplayPage slug="fixture" />)
     const panel = await screen.findByTestId("error-panel")
     expect(panel).toHaveTextContent(/not a valid replay bundle/)
@@ -151,7 +155,7 @@ describe("loading", () => {
   })
 
   it("renders a valid bundle from the files and refuses a slug that is not in index.json", async () => {
-    serve({ "index.json": index, "fixture.json": bundle })
+    serve({ "index.json": fixtureIndex, "fixture.json": fixture })
     const ok = render(<ReplayPage slug="fixture" />)
     await waitFor(() => expect(screen.getByTestId("replay")).toBeInTheDocument())
     ok.unmount()

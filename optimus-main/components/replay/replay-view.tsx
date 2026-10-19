@@ -9,9 +9,9 @@ import { useEffect, useMemo, useState } from "react"
 import { Pause, Play } from "lucide-react"
 import { buildModel } from "@/lib/replay/model"
 import { STAGE_H, STAGE_W, VIEW_W } from "@/lib/replay/layout"
-import { SPEEDS, usePlayback } from "@/lib/replay/playback"
+import { SCRIPT_START_S, SPEEDS, usePlayback } from "@/lib/replay/playback"
 import { axisTicks, formatRel, makeScale, spacedTicks, type AxisMode } from "@/lib/replay/scale"
-import type { Bundle, IndexFile } from "@/lib/replay/types"
+import type { Bundle, IndexFile, ScriptStep } from "@/lib/replay/types"
 import { cn } from "@/lib/utils"
 import { BundlePicker } from "./bundle-picker"
 import { LaneChart } from "./lane-chart"
@@ -51,16 +51,35 @@ export function ReplayView({
   bundle,
   index,
   startTime,
+  script,
+  initialPresentation = false,
 }: {
   bundle: Bundle
   index: IndexFile
   startTime?: number
+  /** The scripted playback (playback.json). Used in presentation mode only. */
+  script?: ScriptStep[] | null
+  initialPresentation?: boolean
 }) {
   const model = useMemo(() => buildModel(bundle), [bundle])
   const [axis, setAxis] = useState<AxisMode>("linear")
-  const [presentation, setPresentation] = useState(false)
+  const [presentation, setPresentation] = useState(initialPresentation)
+  const [scripted, setScripted] = useState(true)
   const [fit, setFit] = useState(1)
-  const play = usePlayback(model.domain, startTime)
+  const activeScript = presentation && scripted && script ? script : null
+  const play = usePlayback(
+    model.domain,
+    startTime ?? (initialPresentation && activeScript ? SCRIPT_START_S : undefined),
+    activeScript,
+  )
+  const entry = index.bundles.find(
+    (b) =>
+      b.kind === "scenario_run" &&
+      b.run_id === bundle.run.run_id &&
+      b.scenario === bundle.scenario.id &&
+      b.replicate === bundle.scenario.replicate,
+  )
+  const representative = entry?.kind === "scenario_run" && entry.representative === true
   const scale = useMemo(
     () => makeScale(model.domain.min, model.domain.max, axis, VIEW_W),
     [model.domain, axis],
@@ -71,6 +90,12 @@ export function ReplayView({
     [model.domain, scale],
   )
 
+  /** Entering presentation mode with a script goes back to the script start, paused. */
+  const setMode = (on: boolean) => {
+    setPresentation(on)
+    if (on && script && scripted) play.restart(SCRIPT_START_S)
+  }
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null
@@ -78,12 +103,14 @@ export function ReplayView({
       if (e.key === " ") {
         e.preventDefault()
         play.toggle()
-      } else if (e.key === "p" || e.key === "P") setPresentation((v) => !v)
-      else if (e.key === "Escape") setPresentation(false)
+      } else if (e.key === "p" || e.key === "P") setMode(!presentation)
+      else if (e.key === "Escape") setMode(false)
+      else if ((e.key === "s" || e.key === "S") && presentation) setScripted((v) => !v)
+      else if ((e.key === "r" || e.key === "R") && presentation && activeScript) play.restart(SCRIPT_START_S)
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [play])
+  })
 
   useEffect(() => {
     if (!presentation) return
@@ -154,6 +181,11 @@ export function ReplayView({
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <p data-testid="speed-label" className="text-sm font-medium">{`Real run, played back at ${play.speed}x`}</p>
+        {representative ? (
+          <p data-testid="representative-caption" className="text-sm text-muted-foreground">
+            Replicate closest to the median
+          </p>
+        ) : null}
         {presentation ? null : <Legend />}
       </div>
 
@@ -203,7 +235,7 @@ export function ReplayView({
           </label>
           <button
             type="button"
-            onClick={() => setPresentation(true)}
+            onClick={() => setMode(true)}
             className="rounded-md border border-border bg-card px-3 py-1.5 text-sm hover:bg-accent"
           >
             Presentation mode
@@ -213,7 +245,7 @@ export function ReplayView({
       )}
 
       <SummaryStrip lanes={model.lanes} />
-      <ReplayFooter bundle={bundle} index={index} />
+      <ReplayFooter bundle={bundle} />
     </div>
   )
 

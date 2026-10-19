@@ -9,3 +9,5 @@ export const MIN_MARK_W = 2
 export const STAGE_W = 1920
 export const STAGE_H = 1080
 export const LEAK_MARK_W = 3
+/** Dash pattern of the first-denial and last-served markers. */
+export const DASH = "3 3"

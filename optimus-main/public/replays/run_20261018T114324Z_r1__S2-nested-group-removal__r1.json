@@ -1,5 +1,6 @@
 {
- "schema_version": "1.0",
+ "schema_version": "1.1",
+ "kind": "scenario_run",
  "run": {
   "run_id": "run_20261018T114324Z_r1",
   "generation": "GTN3PY6",
@@ -1563,7 +1564,7 @@
    "t_start": 1792324281.869,
    "t_end": 1792324283.37,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -1672,7 +1673,7 @@
    "t_start": 1792324291.837,
    "t_end": 1792324293.39,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "phase",
@@ -1810,6 +1811,14 @@
    "error_kind": null,
    "expected": "deny",
    "verdict": "leak"
+  },
+  {
+   "type": "phase",
+   "t": 1792324309.8085434,
+   "t_rel_s": 8.827,
+   "name": "last_served",
+   "system": "setup_b",
+   "detail": null
   },
   {
    "type": "read",
@@ -4026,6 +4035,14 @@
    "verdict": "leak"
   },
   {
+   "type": "phase",
+   "t": 1792324503.3579404,
+   "t_rel_s": 202.376,
+   "name": "last_served",
+   "system": "setup_a_basic",
+   "detail": null
+  },
+  {
    "type": "read",
    "t": 1792324503.3579404,
    "t_rel_s": 202.376,
@@ -6009,7 +6026,7 @@
    "index": "ll-sp-index",
    "t_start": 1792324583.181,
    "t_end": null,
-   "status": "unfinished",
+   "status": "unfinished_at_journal_end",
    "items_processed": null
   },
   {
@@ -6021,7 +6038,7 @@
    "t_start": 1792324583.261,
    "t_end": 1792324588.283,
    "status": "success",
-   "items_processed": null
+   "items_processed": 3
   },
   {
    "type": "read",
@@ -6284,7 +6301,7 @@
    "t_start": 1792324593.193,
    "t_end": 1792324596.376,
    "status": "success",
-   "items_processed": null
+   "items_processed": 3
   },
   {
    "type": "read",
@@ -12440,7 +12457,7 @@
    "index": "ll-sp-index",
    "t_start": 1792324880.861,
    "t_end": null,
-   "status": "unfinished",
+   "status": "unfinished_at_journal_end",
    "items_processed": null
   },
   {
@@ -12452,7 +12469,7 @@
    "t_start": 1792324880.937,
    "t_end": 1792324881.96,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -12729,7 +12746,7 @@
    "t_start": 1792324890.831,
    "t_end": 1792324891.897,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -18886,7 +18903,7 @@
    "t_start": 1792325182.604,
    "t_end": 1792325186.174,
    "status": "success",
-   "items_processed": null
+   "items_processed": 2
   },
   {
    "type": "read",
@@ -19149,7 +19166,7 @@
    "t_start": 1792325192.471,
    "t_end": 1792325195.335,
    "status": "success",
-   "items_processed": null
+   "items_processed": 2
   },
   {
    "type": "read",
@@ -25572,7 +25589,7 @@
    "t_start": 1792325485.106,
    "t_end": 1792325487.486,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -25835,7 +25852,7 @@
    "t_start": 1792325494.795,
    "t_end": 1792325496.622,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "poller_lag",
@@ -32006,7 +32023,7 @@
    "t_start": 1792325779.89,
    "t_end": 1792325782.409,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -32408,7 +32425,7 @@
    "index": "ll-sp-index-b",
    "t_start": 1792325795.863,
    "t_end": null,
-   "status": "unfinished",
+   "status": "unfinished_at_journal_end",
    "items_processed": null
   },
   {
@@ -32420,7 +32437,7 @@
    "t_start": 1792325795.933,
    "t_end": 1792325797.307,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -38577,7 +38594,7 @@
    "t_start": 1792326079.437,
    "t_end": 1792326081.674,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -38966,7 +38983,7 @@
    "t_start": 1792326094.463,
    "t_end": 1792326095.62,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -45221,7 +45238,7 @@
    "t_start": 1792326382.246,
    "t_end": 1792326383.591,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -45484,7 +45501,7 @@
    "t_start": 1792326392.259,
    "t_end": 1792326393.636,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -51067,7 +51084,7 @@
    "t_start": 1792326678.553,
    "t_end": 1792326679.979,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -51456,7 +51473,7 @@
    "t_start": 1792326693.901,
    "t_end": 1792326697.437,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -57752,7 +57769,7 @@
    "index": "ll-sp-index",
    "t_start": 1792326982.149,
    "t_end": null,
-   "status": "unfinished",
+   "status": "unfinished_at_journal_end",
    "items_processed": null
   },
   {
@@ -57764,7 +57781,7 @@
    "t_start": 1792326982.263,
    "t_end": 1792326984.743,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -58153,7 +58170,7 @@
    "t_start": 1792326995.242,
    "t_end": 1792326997.678,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -64206,7 +64223,7 @@
    "t_start": 1792327278.455,
    "t_end": 1792327280.659,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -64595,7 +64612,7 @@
    "t_start": 1792327293.483,
    "t_end": 1792327295.75,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -70765,7 +70782,7 @@
    "index": "ll-sp-index",
    "t_start": 1792327579.77,
    "t_end": null,
-   "status": "unfinished",
+   "status": "unfinished_at_journal_end",
    "items_processed": null
   },
   {
@@ -70777,7 +70794,7 @@
    "t_start": 1792327579.852,
    "t_end": 1792327581.362,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -71166,7 +71183,7 @@
    "t_start": 1792327594.792,
    "t_end": 1792327596.107,
    "status": "success",
-   "items_processed": null
+   "items_processed": 0
   },
   {
    "type": "read",
@@ -75481,6 +75498,14 @@
    "verdict": "ok"
   },
   {
+   "type": "phase",
+   "t": 1792327761.313116,
+   "t_rel_s": 3460.332,
+   "name": "last_served",
+   "system": "setup0",
+   "detail": null
+  },
+  {
    "type": "read",
    "t": 1792327761.313116,
    "t_rel_s": 3460.332,
@@ -76851,11 +76876,25 @@
    "lockouts": 0
   }
  ],
+ "caveats": [
+  "One test tenant, one SharePoint site, 45 synthetic documents (tenant generation GTN3PY6). Results may not transfer to other tenants, sizes or configurations.",
+  "Only the 7 persona accounts are measured. The tenant admin holds full control and appears in every ACL; access held by the admin is out of scope.",
+  "SharePoint: SharePoint itself, read as the persona; no search layer.",
+  "Azure AI Search: Azure AI Search SharePoint indexer, basic ACL configuration (users and Entra groups, no SharePoint-group support), 5-min schedule, ACL-filtered index.",
+  "Revocation layer: Setup B: our API over a separate, unfiltered index of the same SharePoint data source; access decided from live membership and ACL state (polled every 5 s).",
+  "Reads every 5 s, so every time has that resolution. Converged means 10 conforming reads in a row. Polling stopped 60 min after the change: a replicate that did not converge is censored at that cap and its times are lower bounds.",
+  "The replay shows the baseline and the time until 1 min after the last served read or the conformance time; the summary covers the whole run.",
+  "Sample size: 1 replicate of S2-nested-group-removal in this export. Minimum, median and maximum are descriptive; no confidence interval or significance test is given.",
+  "Measured on 2026-10-18 (UTC). Replicates ran one after another, not interleaved, so time of day and service-side drift are not controlled."
+ ],
  "provenance": {
   "journal_file": "run_20261018T114324Z_r1.jsonl",
   "report_file": "run_20261018T114324Z_r1.report.json",
-  "exporter_version": "1.0.0",
-  "git_commit": "eea2935-dirty",
-  "exported_at": 1792382668.2755158
+  "exporter_version": "1.1.0",
+  "git_commit": "de580bc-dirty",
+  "exported_at": 1792390802.413744,
+  "window_start": 1792324192.999396,
+  "window_end": 1792327877.882569,
+  "reads_dropped": 0
  }
 }

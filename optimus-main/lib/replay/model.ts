@@ -21,7 +21,10 @@ export interface LaneModel {
   control: PairRow[]
   indexerRuns: IndexerRun[]
   firstDenyRel: number | null
+  lastServedRel: number | null
   capRel: number | null
+  /** The summary says the system never served the flipped pair: nothing to revoke (never red or green). */
+  neverServed: boolean
   summary: Summary | null
 }
 
@@ -68,6 +71,8 @@ export function buildModel(bundle: Bundle): Model {
       control: rows("control"),
       indexerRuns: runs.filter((r) => r.system === id),
       firstDenyRel: phase("first_deny")?.t_rel_s ?? null,
+      lastServedRel: phase("last_served")?.t_rel_s ?? null,
+      neverServed: summary?.status === "NOTHING_TO_REVOKE",
       capRel: cap ? cap.t_rel_s : summary?.status === "DID_NOT_CONVERGE" ? bundle.run.poll_cap_s : null,
       summary,
     })
@@ -84,7 +89,7 @@ export function buildModel(bundle: Bundle): Model {
   }
 }
 
-export type ClockState = "waiting" | "running" | "stopped" | "cap"
+export type ClockState = "waiting" | "running" | "stopped" | "cap" | "never_served"
 
 export interface ClockView {
   state: ClockState
@@ -93,6 +98,7 @@ export interface ClockView {
 
 /** The clock of one lane at playback time `time` (seconds relative to the change). */
 export function laneClock(lane: LaneModel, time: number): ClockView {
+  if (lane.neverServed) return { state: "never_served", elapsed: 0 }
   if (time < 0) return { state: "waiting", elapsed: 0 }
   if (lane.firstDenyRel !== null && time >= lane.firstDenyRel) {
     return { state: "stopped", elapsed: lane.firstDenyRel }

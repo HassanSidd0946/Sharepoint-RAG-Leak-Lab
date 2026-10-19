@@ -44,6 +44,7 @@ packages = ["src/leaklab"]
 line-length = 100
 target-version = "py312"
 src = ["src", "tests", "probes"]
+extend-exclude = ["optimus-main"]  # the Next.js frontend (its one Python helper builds test fixtures)
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B"]
@@ -61,6 +62,7 @@ select = ["E", "F", "W", "I", "UP", "B"]
 "tests/*agent*.py" = ["E501"]
 "tests/*s6*.py" = ["E501"]
 "tests/*replay*.py" = ["E501"]
+"tests/test_writeup.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"

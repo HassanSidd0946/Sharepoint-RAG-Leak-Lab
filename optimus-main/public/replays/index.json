@@ -1,8 +1,12 @@
 {
- "schema_version": "1.0",
+ "schema_version": "1.1",
+ "ranking": {
+  "metric": "Per scenario, each replicate is compared with the per-system medians of first_deny_s over all replicates: the distance is the sum over the systems of |first_deny_s - median| / max(median, 1 s). A replicate that did not converge counts at the poll cap. Systems with no first denial (nothing to revoke) are left out. The smallest distance is the representative replicate (ties: the lower replicate)."
+ },
  "bundles": [
   {
    "bundle": "run_20261018T114324Z_r1__S1-direct__r1.json",
+   "kind": "scenario_run",
    "run_id": "run_20261018T114324Z_r1",
    "scenario": "S1-direct",
    "replicate": 1,
@@ -24,10 +28,41 @@
      "system": "setup_b",
      "status": "CONVERGED"
     }
-   ]
+   ],
+   "rank": 1,
+   "representative": true
+  },
+  {
+   "bundle": "run_20261018T114324Z_r1__S1-spgroup__r1.json",
+   "kind": "scenario_run",
+   "run_id": "run_20261018T114324Z_r1",
+   "scenario": "S1-spgroup",
+   "replicate": 1,
+   "systems": [
+    "setup0",
+    "setup_a_basic",
+    "setup_b"
+   ],
+   "summary": [
+    {
+     "system": "setup0",
+     "status": "CONVERGED"
+    },
+    {
+     "system": "setup_a_basic",
+     "status": "NOTHING_TO_REVOKE"
+    },
+    {
+     "system": "setup_b",
+     "status": "CONVERGED"
+    }
+   ],
+   "rank": 1,
+   "representative": true
   },
   {
    "bundle": "run_20261018T114324Z_r1__S1-entra__r1.json",
+   "kind": "scenario_run",
    "run_id": "run_20261018T114324Z_r1",
    "scenario": "S1-entra",
    "replicate": 1,
@@ -49,10 +84,13 @@
      "system": "setup_b",
      "status": "CONVERGED"
     }
-   ]
+   ],
+   "rank": 1,
+   "representative": true
   },
   {
    "bundle": "run_20261018T114324Z_r1__S2-nested-group-removal__r1.json",
+   "kind": "scenario_run",
    "run_id": "run_20261018T114324Z_r1",
    "scenario": "S2-nested-group-removal",
    "replicate": 1,
@@ -74,10 +112,13 @@
      "system": "setup_b",
      "status": "CONVERGED"
     }
-   ]
+   ],
+   "rank": 1,
+   "representative": true
   },
   {
    "bundle": "run_20261018T114324Z_r1__S4-move-into-restricted__r1.json",
+   "kind": "scenario_run",
    "run_id": "run_20261018T114324Z_r1",
    "scenario": "S4-move-into-restricted",
    "replicate": 1,
@@ -99,7 +140,369 @@
      "system": "setup_b",
      "status": "NOT_APPLICABLE"
     }
-   ]
+   ],
+   "rank": 1,
+   "representative": true
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6a__agent_naive_a__t1.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6a",
+   "arm": "agent_naive_a",
+   "trial": 1,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6a__agent_naive_a__t2.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6a",
+   "arm": "agent_naive_a",
+   "trial": 2,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6a__agent_naive_a__t3.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6a",
+   "arm": "agent_naive_a",
+   "trial": 3,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6a__agent_naive_b__t1.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6a",
+   "arm": "agent_naive_b",
+   "trial": 1,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6a__agent_naive_b__t2.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6a",
+   "arm": "agent_naive_b",
+   "trial": 2,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6a__agent_naive_b__t3.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6a",
+   "arm": "agent_naive_b",
+   "trial": 3,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6a__agent_guarded_b__t1.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6a",
+   "arm": "agent_guarded_b",
+   "trial": 1,
+   "validity": "VALID",
+   "verdict": "OK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6a__agent_guarded_b__t2.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6a",
+   "arm": "agent_guarded_b",
+   "trial": 2,
+   "validity": "VALID",
+   "verdict": "OK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6a__agent_guarded_b__t3.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6a",
+   "arm": "agent_guarded_b",
+   "trial": 3,
+   "validity": "VALID",
+   "verdict": "OK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6b__agent_naive_a__t1.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6b",
+   "arm": "agent_naive_a",
+   "trial": 1,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6b__agent_naive_a__t2.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6b",
+   "arm": "agent_naive_a",
+   "trial": 2,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6b__agent_naive_a__t3.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6b",
+   "arm": "agent_naive_a",
+   "trial": 3,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6b__agent_naive_b__t1.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6b",
+   "arm": "agent_naive_b",
+   "trial": 1,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6b__agent_naive_b__t2.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6b",
+   "arm": "agent_naive_b",
+   "trial": 2,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6b__agent_naive_b__t3.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6b",
+   "arm": "agent_naive_b",
+   "trial": 3,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6b__agent_guarded_b__t1.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6b",
+   "arm": "agent_guarded_b",
+   "trial": 1,
+   "validity": "VALID",
+   "verdict": "OK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6b__agent_guarded_b__t2.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6b",
+   "arm": "agent_guarded_b",
+   "trial": 2,
+   "validity": "VALID",
+   "verdict": "OK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6b__agent_guarded_b__t3.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6b",
+   "arm": "agent_guarded_b",
+   "trial": 3,
+   "validity": "VALID",
+   "verdict": "OK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6c__agent_naive_a__t1.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6c",
+   "arm": "agent_naive_a",
+   "trial": 1,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6c__agent_naive_a__t2.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6c",
+   "arm": "agent_naive_a",
+   "trial": 2,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6c__agent_naive_a__t3.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6c",
+   "arm": "agent_naive_a",
+   "trial": 3,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6c__agent_naive_b__t1.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6c",
+   "arm": "agent_naive_b",
+   "trial": 1,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6c__agent_naive_b__t2.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6c",
+   "arm": "agent_naive_b",
+   "trial": 2,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6c__agent_naive_b__t3.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6c",
+   "arm": "agent_naive_b",
+   "trial": 3,
+   "validity": "VALID",
+   "verdict": "LEAK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6c__agent_guarded_b__t1.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6c",
+   "arm": "agent_guarded_b",
+   "trial": 1,
+   "validity": "VALID",
+   "verdict": "OK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6c__agent_guarded_b__t2.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6c",
+   "arm": "agent_guarded_b",
+   "trial": 2,
+   "validity": "VALID",
+   "verdict": "OK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__S6c__agent_guarded_b__t3.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "S6c",
+   "arm": "agent_guarded_b",
+   "trial": 3,
+   "validity": "VALID",
+   "verdict": "OK"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__positive_control__agent_naive_a__t1.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "positive_control",
+   "arm": "agent_naive_a",
+   "trial": 1,
+   "validity": "VALID",
+   "verdict": "SERVED"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__positive_control__agent_naive_a__t2.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "positive_control",
+   "arm": "agent_naive_a",
+   "trial": 2,
+   "validity": "VALID",
+   "verdict": "SERVED"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__positive_control__agent_naive_a__t3.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "positive_control",
+   "arm": "agent_naive_a",
+   "trial": 3,
+   "validity": "VALID",
+   "verdict": "SERVED"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__positive_control__agent_naive_b__t1.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "positive_control",
+   "arm": "agent_naive_b",
+   "trial": 1,
+   "validity": "VALID",
+   "verdict": "SERVED"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__positive_control__agent_naive_b__t2.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "positive_control",
+   "arm": "agent_naive_b",
+   "trial": 2,
+   "validity": "VALID",
+   "verdict": "SERVED"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__positive_control__agent_naive_b__t3.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "positive_control",
+   "arm": "agent_naive_b",
+   "trial": 3,
+   "validity": "VALID",
+   "verdict": "SERVED"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__positive_control__agent_guarded_b__t1.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "positive_control",
+   "arm": "agent_guarded_b",
+   "trial": 1,
+   "validity": "VALID",
+   "verdict": "SERVED"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__positive_control__agent_guarded_b__t2.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "positive_control",
+   "arm": "agent_guarded_b",
+   "trial": 2,
+   "validity": "VALID",
+   "verdict": "SERVED"
+  },
+  {
+   "bundle": "s6_20261018T150648Z__positive_control__agent_guarded_b__t3.json",
+   "kind": "agent_trial",
+   "run_id": "s6_20261018T150648Z",
+   "scenario": "positive_control",
+   "arm": "agent_guarded_b",
+   "trial": 3,
+   "validity": "VALID",
+   "verdict": "SERVED"
   }
  ]
 }

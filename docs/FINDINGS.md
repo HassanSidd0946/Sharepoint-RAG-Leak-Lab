@@ -1858,3 +1858,21 @@ Exporter: `uv run python -m leaklab.replay export --runs runs/benchmark_v2 --out
 - An indexer run that started but never finished is exported with status "unfinished" (our choice; not in a journal as such).
 - S6 (agent) journals cannot be expressed in schema v1.0.
 - Only run 1 exists in runs/benchmark_v2 so far: re-export after the overnight runs (n=7).
+
+## Replay schema v1.1, S6 bundles, write-up fill (Prompt 24; 2026-10-19)
+
+Files: `docs/schemas/replay_bundle.schema.v1.1.json` (v1.0 file kept, new exports are 1.1 only), `src/leaklab/replay/{export,agent,writeup}.py`, frontend `optimus-main/`.
+
+**Verified on the real data (runs/benchmark_v2, run 1 only so far):**
+- NOTHING_TO_REVOKE is a status of its own. S1-spgroup now exports: Azure AI Search is NOTHING_TO_REVOKE (never served the SharePoint-group document), SharePoint 6.4 s, Setup B 9.8 s. All 5 scenarios export (S4: NOT_APPLICABLE for all three systems).
+- Window trimming (baseline start .. last served read of a flipped pair or conformance time + 60 s, capped at the poll cap): S1-direct 1.0 MB -> 0.5 MB; S1-entra and S2 are unchanged in length (SharePoint serves the file until about 55 min). The summary is still recomputed on the full journal and asserted equal.
+- `last_served` per system (S1-entra: SharePoint 54 min 50.9 s after the change, Azure AI Search 1 min 27.1 s; first denials 45 min 43.4 s and 1 min 33.3 s: the gap is flapping).
+- 36 S6 trial bundles (4 scenarios x 3 arms x 3 trials). Every report row equals `score_trial` on the journal. Naive arms leaked 18 of 18 trials, the guarded arm 0 of 9, the positive control was served 9 of 9, no trial INVALID. Bundles hold no answer texts, drive item ids, user object ids (`entry_owner`) or per-item guard results.
+- Caveats come from the run metadata (tenant count is 1 because `assert_test_tenant` allows exactly one tenant id); the frontend contains none (a test fails if the old wording comes back).
+
+**Choices to review:**
+- Representative replicate = smallest sum over systems of |first_deny_s - median| / max(median, 1 s); a replicate that did not converge counts at the cap; systems with nothing to revoke are left out. The formula is written into `index.json` (`ranking.metric`).
+- Phase and mutation events are never trimmed, only reads, indexer runs and poller lag.
+- With one replicate every scenario's only replicate is "representative": the ranking means something only after the n=7 runs.
+- `figures.architecture`, `meta.publish_date`, `repo_url`, `contact` are TODO in `docs/writeup/meta.yaml`; the fill fails until they are set (use `--allow-unset-meta` for a dry run).
+- `meta.stale_after_s: 30` is Setup B's `StateReader` default, not read from the deployed service. UNVERIFIED: check the deployed value.

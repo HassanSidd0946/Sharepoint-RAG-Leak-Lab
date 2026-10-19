@@ -7,7 +7,10 @@ import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
-const ROOTS = ["components/replay", "app"]
+const ROOTS = ["components/replay", "components/agent", "app"]
+const SHARED = ["components/replay", "components/agent", "app", "lib/replay"]
+// caveats are the bundle's: the wording that used to be fixed in the frontend must not come back
+const OLD_CAVEATS = /(One test tenant|Tenant admin out of scope|tenant admin out of scope)/
 const BANNED = /(mock|sample|lorem|faker)/i
 const ALLOWED_NUMBERS = new Set(["0", "1", "2", "100"])
 
@@ -30,6 +33,7 @@ function split(src: string): { code: string; strings: string[] } {
 }
 
 const sources = ROOTS.flatMap((r) => files(join(process.cwd(), r)))
+const shared = SHARED.flatMap((r) => files(join(process.cwd(), r)))
 
 describe("component files carry no hard-coded metrics or placeholder text", () => {
   it("finds the component files", () => {
@@ -53,6 +57,14 @@ describe("component files carry no hard-coded metrics or placeholder text", () =
     it(`${name}: no numbers with units inside plain strings`, () => {
       const hits = strings.filter((s) => /\b\d+(\.\d+)?\s?(s|ms|min|h|x|%|k)\b/.test(s) && !s.includes("${"))
       expect(hits).toEqual([])
+    })
+  }
+})
+
+describe("no caveat is written into the frontend", () => {
+  for (const file of shared.filter((f) => !f.endsWith("types.generated.ts"))) {
+    it(`${file.replace(process.cwd(), "")}: none of the old fixed caveat strings`, () => {
+      expect(readFileSync(file, "utf8")).not.toMatch(OLD_CAVEATS)
     })
   }
 })

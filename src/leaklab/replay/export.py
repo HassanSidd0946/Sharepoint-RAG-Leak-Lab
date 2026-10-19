@@ -1,9 +1,9 @@
-"""Journal + report -> replay bundles: one per (run, scenario, replicate), schema v1.0.
+"""Journal + report -> replay bundles: one per (run, scenario, replicate), schema v1.1.
 
 Inputs per run: the runner's journal (run_*.jsonl), the runner's per-run report next to it
 (run_*.report.json, the only file with the per-replicate numbers the schema wants: lockouts and read
 counts) and tenant_spec.yaml (checked against the sha256 the journal recorded). Output: dicts that
-validate against docs/schemas/replay_bundle.schema.json and contain nothing that identifies the tenant.
+validate against docs/schemas/replay_bundle.schema.v1.1.json and contain nothing that identifies the tenant.
 
 WHERE EACH FIELD COMES FROM
   direct from the journal   run.generation, started_at, read_interval_s, poll_cap_s, n_consecutive,
@@ -26,13 +26,23 @@ WHAT A JOURNAL CANNOT GIVE (left out, never made up)
   * indexer runs and poller lag exist only for the systems that report them (Azure AI Search / Setup B
     indexers, Setup B's pollers); a run without them has no such events;
   * an indexer run that was started but whose finish was never journalled keeps t_end null and the
-    status "unfinished" (the journal does not say how it ended);
+    status "unfinished_at_journal_end" (the journal does not say how it ended);
   * the `ready` phase exists only for Setup B (the only system with a readiness gate);
   * the schema's phase list has no value for the end of S4's steady window, so none is written.
+
+WHAT v1.1 ADDS
+  window     reads, indexer runs and poller lag are trimmed to [baseline start, max over systems of
+             (last served read of a flipped pair, conformance time) + 60 s], capped at the poll cap after
+             the change. The summary is still checked against the FULL journal; provenance records
+             window_start, window_end and reads_dropped. Phase and mutation events are never dropped.
+  last_served  per-system phase event: the last served read of a flipped pair after t=0
+  caveats    built here from run and report metadata (see `base_caveats` / `finish_caveats`)
+  NOTHING_TO_REVOKE is a status of its own (the pair was never served before the change)
 """
 
 import json
 import re
+import statistics
 import subprocess
 import time
 from bisect import bisect_right
@@ -59,9 +69,11 @@ from leaklab.runner import load_events
 from leaklab.runner.scenarios import ScenarioPlan, plan_from_dict
 from leaklab.spec import TenantSpec
 
-EXPORTER_VERSION = "1.0.0"
+EXPORTER_VERSION = "1.1.0"
+SCHEMA_VERSION = "1.1"
+WINDOW_PAD_S = 60.0
 ROOT = Path(__file__).resolve().parents[3]
-SCHEMA_PATH = ROOT / "docs" / "schemas" / "replay_bundle.schema.json"
+SCHEMA_PATH = ROOT / "docs" / "schemas" / "replay_bundle.schema.v1.1.json"
 ROLE_ORDER = {"flipped": 0, "control": 1, "other": 2}
 
 
@@ -325,8 +337,27 @@ def export_journal(
         except UnmappableStatus as exc:
             result.skipped.append(Skipped(run_id, sid, str(exc)))
             continue
-        window = (min(r["t"] for r in reads), max(r["t"] for r in reads))
-        events_out: list[dict[str, Any]] = list(reads)
+        # -- replay window: the summary above used the FULL journal; only what is replayed is trimmed
+        flipped = {pc for pc, role in bundle_role.items() if role == "flipped"}
+        last_served: dict[str, float] = {}
+        for r in reads:
+            if (
+                r["outcome"] == "served"
+                and (r["persona"], r["canary"]) in flipped
+                and r["t"] >= t_change
+            ):
+                last_served[r["system"]] = max(last_served.get(r["system"], r["t"]), r["t"])
+        ends = [t_change, *last_served.values()]
+        ends += [
+            t_change + float(c["time_to_conformance_s"])
+            for c in copied
+            if c["time_to_conformance_s"] is not None
+        ]
+        window_start = group_at.get(sid, min(r["t"] for r in reads))
+        window_end = min(max(ends) + WINDOW_PAD_S, t_change + float(config["cap_s"]))
+        kept = [r for r in reads if window_start <= r["t"] <= window_end]
+        window = (window_start, window_end)
+        events_out: list[dict[str, Any]] = list(kept)
         mutation_event = {
             "type": "mutation",
             "t": t_change,
@@ -338,13 +369,14 @@ def export_journal(
         }
         events_out.append(mutation_event)
         events_out += _phases(
-            events, sid, t_change, group_at, baseline, done, ready, copied, config
+            events, sid, t_change, group_at, baseline, done, ready, copied, config, last_served
         )
         events_out += _indexer_runs(events, systems, window, t_change)
         events_out += _poller_lag(events, window, t_change)
         events_out.sort(key=lambda e: (e["t"], {"mutation": 0, "phase": 1}.get(e["type"], 2)))
         data = {
-            "schema_version": "1.0",
+            "schema_version": SCHEMA_VERSION,
+            "kind": "scenario_run",
             "run": run_block,
             "scenario": {
                 "id": sid,
@@ -360,12 +392,16 @@ def export_journal(
             },
             "events": events_out,
             "summary": summary,
+            "caveats": base_caveats(run_block, config, len(labels)),
             "provenance": {
                 "journal_file": journal.name,
                 "report_file": report_file.name,
                 "exporter_version": EXPORTER_VERSION,
                 "git_commit": commit,
                 "exported_at": exported_at,
+                "window_start": window_start,
+                "window_end": window_end,
+                "reads_dropped": len(reads) - len(kept),
             },
         }
         jsonschema.Draft202012Validator(schema).validate(data)
@@ -384,6 +420,7 @@ def _phases(
     ready: Mapping[str, Any] | None,
     copied: Sequence[Mapping[str, Any]],
     config: Mapping[str, Any],
+    last_served: Mapping[str, float],
 ) -> list[dict[str, Any]]:
     def ph(
         name: str, t: float, system: str | None = None, detail: str | None = None
@@ -425,6 +462,8 @@ def _phases(
         system = str(c["system"])
         if c["first_deny_s"] is not None:
             out.append(ph("first_deny", t_change + float(c["first_deny_s"]), system))
+        if system in last_served:
+            out.append(ph("last_served", last_served[system], system))
         if c["convergence"] == "CONFORMED" and c["time_to_conformance_s"] is not None:
             out.append(ph("converged", t_change + float(c["time_to_conformance_s"]), system))
         elif c["convergence"] == "DID_NOT_CONVERGE":
@@ -470,9 +509,9 @@ def _indexer_runs(
                 "index": INDEX_OF[system],
                 "t_start": start,
                 "t_end": end,
-                "status": str(fin["status"]) if fin is not None else "unfinished",
-                "items_processed": int(e["items_processed"])
-                if e is not None and e.get("items_processed") is not None
+                "status": str(fin["status"]) if fin is not None else "unfinished_at_journal_end",
+                "items_processed": int(fin["items_processed"])
+                if fin is not None and fin.get("items_processed") is not None
                 else None,
             }
         )
@@ -505,6 +544,68 @@ def _poller_lag(
     return out
 
 
+TEST_TENANTS = 1  # config.assert_test_tenant allows exactly one tenant id, so every run used one
+MIN_S = 60.0
+
+
+def dur(seconds: float) -> str:
+    """ "10 s", "10.3 s", "1.6 min", "60 min": one decimal at most, no trailing .0."""
+    value, unit = (seconds, "s") if seconds < MIN_S else (seconds / MIN_S, "min")
+    return f"{round(value, 1):g} {unit}"
+
+
+def base_caveats(
+    run_block: Mapping[str, Any], config: Mapping[str, Any], n_documents: int
+) -> list[str]:
+    """Caveats every bundle of a run carries, built from the run's own metadata (nothing typed by hand
+    except the wording). Sample size and dates need the whole export: see `finish_caveats`."""
+    tenants = "One test tenant" if TEST_TENANTS == 1 else f"{TEST_TENANTS} test tenants"
+    out = [
+        f"{tenants}, one SharePoint site, {n_documents} synthetic documents (tenant generation "
+        f"{run_block['generation']}). Results may not transfer to other tenants, sizes or configurations.",
+        f"Only the {len(run_block['personas'])} persona accounts are measured. The tenant admin holds full "
+        "control and appears in every ACL; access held by the admin is out of scope.",
+    ]
+    out += [f"{s['label']}: {s['config_label']}." for s in run_block["systems"]]
+    out.append(
+        f"Reads every {dur(float(config['interval_s']))}, so every time has that resolution. Converged means "
+        f"{int(config['n_consecutive'])} conforming reads in a row. Polling stopped {dur(float(config['cap_s']))} "
+        "after the change: a replicate that did not converge is censored at that cap and its times are lower bounds."
+    )
+    out.append(
+        f"The replay shows the baseline and the time until {dur(WINDOW_PAD_S)} after the last served read or the "
+        "conformance time; the summary covers the whole run."
+    )
+    return out
+
+
+def _utc_day(t: float) -> str:
+    return time.strftime("%Y-%m-%d", time.gmtime(t))
+
+
+def finish_caveats(bundles: Sequence[Bundle]) -> None:
+    """Add the caveats that depend on the whole export: sample size per scenario and measurement dates.
+    Every changed bundle is validated and scanned again."""
+    schema = load_schema()
+    by_scenario: dict[str, list[Bundle]] = {}
+    for b in bundles:
+        if b.data["kind"] == "scenario_run":
+            by_scenario.setdefault(b.data["scenario"]["id"], []).append(b)
+    for sid, group in by_scenario.items():
+        n = len(group)
+        days = sorted({_utc_day(b.data["run"]["started_at"]) for b in group})
+        span = days[0] if len(days) == 1 else f"{days[0]} to {days[-1]}"
+        for b in group:
+            b.data["caveats"] += [
+                f"Sample size: {n} replicate{'s' if n != 1 else ''} of {sid} in this export. Minimum, median and "
+                "maximum are descriptive; no confidence interval or significance test is given.",
+                f"Measured on {span} (UTC). Replicates ran one after another, not interleaved, so time of day "
+                "and service-side drift are not controlled.",
+            ]
+            jsonschema.Draft202012Validator(schema).validate(b.data)
+            assert_clean(b.data, b.name)
+
+
 def export_folder(runs: Path, spec: TenantSpec, spec_sha256: str) -> ExportResult:
     """Every run journal of a benchmark folder (run_*.jsonl with its .report.json)."""
     manifest_path = runs / "manifest.json"
@@ -534,18 +635,83 @@ def export_folder(runs: Path, spec: TenantSpec, spec_sha256: str) -> ExportResul
         )
         total.bundles += one.bundles
         total.skipped += one.skipped
+    from leaklab.replay.agent import export_agent_folder  # S6 bundles share this module's helpers
+
+    agent = export_agent_folder(runs, spec, spec_sha256, schema, commit, now)
+    total.bundles += agent.bundles
+    total.skipped += agent.skipped
+    finish_caveats(total.bundles)
     return total
 
 
-def index_entry(b: Bundle) -> dict[str, Any]:
+RANKING_METRIC = (
+    "Per scenario, each replicate is compared with the per-system medians of first_deny_s over all "
+    "replicates: the distance is the sum over the systems of |first_deny_s - median| / max(median, 1 s). "
+    "A replicate that did not converge counts at the poll cap. Systems with no first denial (nothing to "
+    "revoke) are left out. The smallest distance is the representative replicate (ties: the lower replicate)."
+)
+
+
+def rank_replicates(bundles: Sequence[Bundle]) -> dict[str, tuple[int, bool]]:
+    """bundle name -> (rank, representative) for the scenario_run bundles, per scenario (see RANKING_METRIC)."""
+    groups: dict[str, list[Bundle]] = {}
+    for b in bundles:
+        if b.data["kind"] == "scenario_run":
+            groups.setdefault(b.data["scenario"]["id"], []).append(b)
+
+    def value(b: Bundle, system: str) -> float | None:
+        row = next((s for s in b.data["summary"] if s["system"] == system), None)
+        if row is None:
+            return None
+        if row["first_deny_s"] is not None:
+            return float(row["first_deny_s"])
+        return float(b.data["run"]["poll_cap_s"]) if row["status"] == "DID_NOT_CONVERGE" else None
+
+    out: dict[str, tuple[int, bool]] = {}
+    for group in groups.values():
+        systems = sorted({s["system"] for b in group for s in b.data["summary"]})
+        medians = {}
+        for system in systems:
+            values = [v for b in group if (v := value(b, system)) is not None]
+            if values:
+                medians[system] = statistics.median(values)
+        scored = []
+        for b in group:
+            dist = sum(
+                abs(v - medians[system]) / max(medians[system], 1.0)
+                for system in medians
+                if (v := value(b, system)) is not None
+            )
+            scored.append((dist, b.data["scenario"]["replicate"], b.name))
+        for rank, (_, _, name) in enumerate(sorted(scored), start=1):
+            out[name] = (rank, rank == 1)
+    return out
+
+
+def index_entry(b: Bundle, ranks: Mapping[str, tuple[int, bool]] | None = None) -> dict[str, Any]:
     d = b.data
+    if d["kind"] == "agent_trial":
+        return {
+            "bundle": f"{b.name}.json",
+            "kind": "agent_trial",
+            "run_id": d["run"]["run_id"],
+            "scenario": d["trial"]["scenario"],
+            "arm": d["trial"]["arm"]["id"],
+            "trial": d["trial"]["trial"],
+            "validity": d["validity"],
+            "verdict": d["summary"]["verdict"],
+        }
+    rank, representative = (ranks or {}).get(b.name, (None, False))
     return {
         "bundle": f"{b.name}.json",
+        "kind": "scenario_run",
         "run_id": d["run"]["run_id"],
         "scenario": d["scenario"]["id"],
         "replicate": d["scenario"]["replicate"],
         "systems": [s["id"] for s in d["run"]["systems"]],
         "summary": [{"system": s["system"], "status": s["status"]} for s in d["summary"]],
+        "rank": rank,
+        "representative": representative,
     }
 
 
@@ -557,7 +723,12 @@ def write_bundles(result: ExportResult, out: Path) -> list[Path]:
         path = out / f"{b.name}.json"
         path.write_text(json.dumps(b.data, indent=1) + "\n", encoding="utf-8")
         paths.append(path)
-    index = {"schema_version": "1.0", "bundles": [index_entry(b) for b in result.bundles]}
+    ranks = rank_replicates(result.bundles)
+    index = {
+        "schema_version": SCHEMA_VERSION,
+        "ranking": {"metric": RANKING_METRIC},
+        "bundles": [index_entry(b, ranks) for b in result.bundles],
+    }
     assert_clean(index, "index.json")
     (out / "index.json").write_text(json.dumps(index, indent=1) + "\n", encoding="utf-8")
     return paths
