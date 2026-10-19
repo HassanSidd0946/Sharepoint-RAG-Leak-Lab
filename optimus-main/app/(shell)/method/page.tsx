@@ -1,9 +1,5 @@
-import { PageHeader } from "@/components/shell/page-header"
+import { MethodPage } from "@/components/findings/method-page"
 
 export default function Page() {
-  return (
-    <div className="mx-auto max-w-5xl space-y-4 p-6">
-      <PageHeader title="Method" subtitle="Built in Prompt 25-2." />
-    </div>
-  )
+  return <MethodPage />
 }

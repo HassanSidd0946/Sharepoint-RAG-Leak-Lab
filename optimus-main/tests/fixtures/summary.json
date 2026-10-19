@@ -1,0 +1,178 @@
+{
+ "schema_version": "1.0",
+ "systems": [
+  {
+   "id": "setup0",
+   "label": "SharePoint",
+   "config_label": "fixture sp"
+  },
+  {
+   "id": "setup_a_basic",
+   "label": "Azure AI Search",
+   "config_label": "fixture azure"
+  },
+  {
+   "id": "setup_b",
+   "label": "Revocation layer",
+   "config_label": "fixture layer"
+  }
+ ],
+ "config": {
+  "read_interval_s": 5.0,
+  "poll_cap_s": 3600.0,
+  "n_consecutive": 10
+ },
+ "cells": [
+  {
+   "scenario": "S1-entra",
+   "system": "setup0",
+   "planned": 5,
+   "replicates": 5,
+   "first_deny": {
+    "n": 5,
+    "min": 2565.0,
+    "median": 2565.0,
+    "max": 2565.0
+   },
+   "leak_exposure": {
+    "n": 5,
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "did_not_converge": 1,
+   "nothing_to_revoke": 0
+  },
+  {
+   "scenario": "S1-entra",
+   "system": "setup_a_basic",
+   "planned": 5,
+   "replicates": 5,
+   "first_deny": {
+    "n": 5,
+    "min": 93.0,
+    "median": 93.0,
+    "max": 93.0
+   },
+   "leak_exposure": {
+    "n": 5,
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "did_not_converge": 0,
+   "nothing_to_revoke": 0
+  },
+  {
+   "scenario": "S1-entra",
+   "system": "setup_b",
+   "planned": 2,
+   "replicates": 2,
+   "first_deny": {
+    "n": 2,
+    "min": 10.0,
+    "median": 10.0,
+    "max": 10.0
+   },
+   "leak_exposure": {
+    "n": 2,
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "did_not_converge": 0,
+   "nothing_to_revoke": 0
+  },
+  {
+   "scenario": "S1-spgroup",
+   "system": "setup0",
+   "planned": 3,
+   "replicates": 3,
+   "first_deny": {
+    "n": 3,
+    "min": 6.0,
+    "median": 6.0,
+    "max": 6.0
+   },
+   "leak_exposure": {
+    "n": 3,
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "did_not_converge": 0,
+   "nothing_to_revoke": 0
+  },
+  {
+   "scenario": "S1-spgroup",
+   "system": "setup_a_basic",
+   "planned": 3,
+   "replicates": 3,
+   "first_deny": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "leak_exposure": {
+    "n": 3,
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "did_not_converge": 0,
+   "nothing_to_revoke": 3
+  },
+  {
+   "scenario": "S1-spgroup",
+   "system": "setup_b",
+   "planned": 3,
+   "replicates": 3,
+   "first_deny": {
+    "n": 3,
+    "min": 9.0,
+    "median": 9.0,
+    "max": 9.0
+   },
+   "leak_exposure": {
+    "n": 3,
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "did_not_converge": 0,
+   "nothing_to_revoke": 0
+  }
+ ],
+ "s6": {
+  "naive": {
+   "trials": 18,
+   "leaks": 17,
+   "invalid": 1,
+   "leaks_via_cache_memory": 16,
+   "leaks_via_retrieval": 1
+  },
+  "guarded": {
+   "trials": 9,
+   "leaks": 0,
+   "invalid": 0,
+   "leaks_via_cache_memory": 0,
+   "leaks_via_retrieval": 0
+  },
+  "positive_control": {
+   "trials": 9,
+   "served": 9
+  }
+ },
+ "totals": {
+  "runs": 7,
+  "replicates": 21,
+  "reads": 123456,
+  "documents": 45,
+  "personas": 7
+ },
+ "caveats": [
+  "fixture caveat A",
+  "fixture caveat B"
+ ]
+}

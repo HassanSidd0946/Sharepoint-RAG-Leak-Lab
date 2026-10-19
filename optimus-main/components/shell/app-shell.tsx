@@ -3,8 +3,9 @@
 /**
  * The frame around the app pages: a sidebar (top bar on narrow screens) with the navigation and the
  * theme toggle. It holds no data. Copied from the Pulse template and stripped to what this app has:
- * no search, no badges, no profile, no status pill, no right rail. It renders only its children
- * while a page asks to hide it (presentation mode).
+ * no search, no badges, no profile, no status pill, no right rail. While a page asks to hide it
+ * (presentation mode) the chrome is hidden but the children stay mounted in the same place: removing the
+ * wrapper would remount the page and lose its state.
  */
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -35,11 +36,14 @@ function NavLink({ item, active, compact }: { item: NavItem; active: boolean; co
 export function AppShell({ brand, nav, children }: { brand: string; nav: NavItem[]; children: ReactNode }) {
   const pathname = usePathname()
   const { hidden } = useShellVisibility()
-  if (hidden) return <>{children}</>
   const isActive = (item: NavItem) => pathname === item.href || pathname.startsWith(`${item.href}/`)
   return (
-    <div data-testid="app-shell" className="flex min-h-screen flex-col bg-background md:flex-row">
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card md:flex">
+    <div
+      data-testid="app-shell"
+      data-hidden={hidden}
+      className={hidden ? "contents" : "flex min-h-screen flex-col bg-background md:flex-row"}
+    >
+      <aside hidden={hidden} className={cn("w-60 shrink-0 flex-col border-r border-border bg-card", hidden ? "hidden" : "hidden md:flex")}>
         <div className="flex h-16 items-center border-b border-border px-5 text-[15px] font-semibold tracking-tight">{brand}</div>
         <nav aria-label="Main" className="flex-1 space-y-0.5 p-4">
           {nav.map((item) => (
@@ -51,7 +55,7 @@ export function AppShell({ brand, nav, children }: { brand: string; nav: NavItem
           <ThemeToggle />
         </div>
       </aside>
-      <header className="flex items-center gap-2 border-b border-border bg-card px-3 py-2 md:hidden">
+      <header hidden={hidden} className={cn("items-center gap-2 border-b border-border bg-card px-3 py-2", hidden ? "hidden" : "flex md:hidden")}>
         <span className="mr-2 text-sm font-semibold">{brand}</span>
         <nav aria-label="Main (compact)" className="flex flex-1 flex-wrap gap-1">
           {nav.map((item) => (
@@ -60,7 +64,7 @@ export function AppShell({ brand, nav, children }: { brand: string; nav: NavItem
         </nav>
         <ThemeToggle />
       </header>
-      <main className="min-w-0 flex-1 bg-grid">{children}</main>
+      <main className={hidden ? undefined : "min-w-0 flex-1 bg-grid"}>{children}</main>
     </div>
   )
 }

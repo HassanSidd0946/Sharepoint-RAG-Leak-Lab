@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://leaklab.dev/schemas/summary/1.0.json",
+  "title": "LeakLab summary",
+  "description": "The numbers of the Findings page, copied or counted from report.json and the S6 bundles by `leaklab.replay export`. The UI formats them and computes nothing else.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "systems", "config", "cells", "s6", "totals", "caveats"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "systems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "config_label"],
+        "properties": {
+          "id": { "enum": ["setup0", "setup_a_basic", "setup_b"] },
+          "label": { "type": "string" },
+          "config_label": { "type": "string" }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["read_interval_s", "poll_cap_s", "n_consecutive"],
+      "properties": {
+        "read_interval_s": { "type": "number" },
+        "poll_cap_s": { "type": "number" },
+        "n_consecutive": { "type": "number" }
+      }
+    },
+    "cells": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["scenario", "system", "planned", "replicates", "first_deny", "leak_exposure", "did_not_converge", "nothing_to_revoke"],
+        "properties": {
+          "scenario": { "type": "string" },
+          "system": { "enum": ["setup0", "setup_a_basic", "setup_b"] },
+          "planned": { "type": "integer", "minimum": 0 },
+          "replicates": { "type": "integer", "minimum": 0 },
+          "first_deny": { "$ref": "#/$defs/stat" },
+          "leak_exposure": { "$ref": "#/$defs/stat" },
+          "did_not_converge": { "type": "integer", "minimum": 0 },
+          "nothing_to_revoke": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "s6": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["naive", "guarded", "positive_control"],
+          "properties": {
+            "naive": { "$ref": "#/$defs/s6_group" },
+            "guarded": { "$ref": "#/$defs/s6_group" },
+            "positive_control": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["trials", "served"],
+              "properties": { "trials": { "type": "integer", "minimum": 0 }, "served": { "type": "integer", "minimum": 0 } }
+            }
+          }
+        }
+      ]
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runs", "replicates", "reads", "documents", "personas"],
+      "properties": {
+        "runs": { "type": "integer", "minimum": 0 },
+        "replicates": { "type": "integer", "minimum": 0 },
+        "reads": { "type": "integer", "minimum": 0 },
+        "documents": { "type": "integer", "minimum": 0 },
+        "personas": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "caveats": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "stat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["n", "min", "median", "max"],
+      "properties": {
+        "n": { "type": "integer", "minimum": 0 },
+        "min": { "type": ["number", "null"] },
+        "median": { "type": ["number", "null"] },
+        "max": { "type": ["number", "null"] }
+      }
+    },
+    "s6_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trials", "leaks", "invalid", "leaks_via_cache_memory", "leaks_via_retrieval"],
+      "properties": {
+        "trials": { "type": "integer", "minimum": 0 },
+        "leaks": { "type": "integer", "minimum": 0 },
+        "invalid": { "type": "integer", "minimum": 0 },
+        "leaks_via_cache_memory": { "type": "integer", "minimum": 0 },
+        "leaks_via_retrieval": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

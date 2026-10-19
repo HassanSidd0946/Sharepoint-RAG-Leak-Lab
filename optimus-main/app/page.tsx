@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation"
+import { FindingsPage } from "@/components/findings/findings-page"
 
 export default function Home() {
-  redirect("/replay")
+  return <FindingsPage />
 }

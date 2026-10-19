@@ -1876,3 +1876,39 @@ Files: `docs/schemas/replay_bundle.schema.v1.1.json` (v1.0 file kept, new export
 - With one replicate every scenario's only replicate is "representative": the ranking means something only after the n=7 runs.
 - `figures.architecture`, `meta.publish_date`, `repo_url`, `contact` are TODO in `docs/writeup/meta.yaml`; the fill fails until they are set (use `--allow-unset-meta` for a dry run).
 - `meta.stale_after_s: 30` is Setup B's `StateReader` default, not read from the deployed service. UNVERIFIED: check the deployed value.
+
+## Where the S6 leaks came from; tenant-guard audit (Prompt 25-2; 2026-10-19)
+
+**S6, path of every leaking turn (journal s6_20261018T150648Z, 18 leaked trials, one leaking turn each).** Checked from the journal
+(the oracle's expectation at the end of the turn; retrieval item ids mapped to canaries from the turns where the answer came from
+retrieval alone, 14 ids, no conflicts):
+
+| Scenario | Arm | Leaked trials | Path of the leaking turn | Did the asker's own retrieval run on that turn? |
+|---|---|---|---|---|
+| S6a | naive A (Azure AI Search), naive B (revocation layer) | 3 + 3 | cache_hit | no: the cache answered first |
+| S6b | naive A, naive B | 3 + 3 | cache_hit | no |
+| S6c | naive A, naive B | 3 + 3 | memory_hit | yes; it did not return the leaked document |
+
+- No leaked canary was delivered via retrieval. In every one of the 36 trials, every retrieval that ran returned only documents the
+  asker could read at that moment (by the oracle).
+- **What this does not show:** in S6a and S6b retrieval was not re-run on the leaking turns, so the trials cannot say whether Azure
+  AI Search would have returned the revoked document then. For S6b that is plausible (direct-grant changes wait for the next
+  indexer run, S1-direct), and it was not tested. The wording "retrieval returned only permitted documents" was therefore
+  removed from the write-up template, the video script and meta.json; they now say where the leaked content came from, with
+  counts computed from the bundles (`S6.naive.leaks_via_cache_memory`, `leaks_via_retrieval`).
+- Also removed from the write-up: "switching the cache off alone didn't either" (not tested; replaced by "I did not test turning
+  the cache off").
+
+**Tenant guard: every entry point that writes to the tenant.** `config.assert_test_tenant` is called with the token's `tid`:
+- `generator/cli.py` `open_env()` (via `guard_test_tenant()`, on the Graph and the SharePoint app token) for `generate`, `verify`,
+  `teardown`; `runner/run.py` (benchmark runs, mutations, index cleanup, Setup A provisioning), `agent/s6/live.py` (S6 mutations),
+  `setup_b/recall.py` and the probes `delta`, `group_delta`, `index_cleanup`, `mutation`, `search_acl`, `search_index_b`,
+  `user_grant_400` all go through `open_env`.
+- Direct `assert_test_tenant` calls: probes `access`, `consistency`, `graph`, `persona`, `revocation`, `search_provision` (also on the
+  search token), `sp`, `token`; `setup_b/state/run.py` calls `guard_test_tenant()` (it only reads).
+- **Exceptions (no guard call, no tenant writes):** `setup_a/*` and `setup_b/*` library modules (they are reachable only from the
+  guarded callers above; `setup_a` has no entry point of its own); the Setup B API server `setup_b/api` (it reads Graph and the
+  index and rejects user tokens whose `tid` is not its configured tenant, a different check; it writes only its local decision
+  log); the replay exporter and the write-up fill (they read local files). `scripts/overnight_benchmark.ps1` only runs the
+  guarded benchmark. The guard checks the Graph and SharePoint app tokens; Azure Search writes are covered through the same
+  entry points, and `probes/search_provision.py` checks the search token as well.

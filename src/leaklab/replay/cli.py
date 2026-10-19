@@ -27,6 +27,7 @@ from leaklab.replay.figures import (
 )
 from leaklab.replay.redact import RedactionError
 from leaklab.replay.summary import SummaryMismatch
+from leaklab.replay.summary_export import write_summary
 from leaklab.replay.writeup import WriteupError, build_context, fill, format_table
 from leaklab.runner.run import spec_sha256
 from leaklab.spec import load_spec
@@ -51,6 +52,12 @@ def cmd_export(
         console.print(f"[bold red]export failed: {exc}[/bold red]")
         raise typer.Exit(code=2) from exc
     paths = write_bundles(result, out)
+    spec = load_spec(spec_path)
+    extra = write_summary(
+        runs, out, spec, [b.data for b in result.bundles if b.data["kind"] == "agent_trial"]
+    )
+    for f in extra:
+        console.print(f"wrote {f}")
     table = Table(title=f"{len(paths)} bundle(s) written to {out}")
     for col in ("bundle", "systems", "summary (first deny s / status)"):
         table.add_column(col)

@@ -10,7 +10,9 @@ import { Pause, Play } from "lucide-react"
 import { buildModel } from "@/lib/replay/model"
 import { STAGE_H, STAGE_W, VIEW_W } from "@/lib/replay/layout"
 import { SCRIPT_START_S, SPEEDS, usePlayback } from "@/lib/replay/playback"
-import { axisTicks, formatRel, makeScale, spacedTicks, type AxisMode } from "@/lib/replay/scale"
+import { axisTicks, formatRel, makeScale, type AxisMode } from "@/lib/replay/scale"
+import { placeLabels } from "@/lib/ui/axis-labels"
+import { useElementWidth } from "@/lib/ui/use-element-width"
 import type { Bundle, IndexFile, ScriptStep } from "@/lib/replay/types"
 import { cn } from "@/lib/utils"
 import { BundlePicker } from "./bundle-picker"
@@ -19,8 +21,6 @@ import { LaneChart } from "./lane-chart"
 import { LaneClock } from "./lane-clock"
 import { ReplayFooter } from "./footer"
 import { SummaryStrip } from "./summary-strip"
-
-const PERCENT = 100
 
 function Legend() {
   const item = "inline-flex items-center gap-1.5"
@@ -86,9 +86,15 @@ export function ReplayView({
     [model.domain, axis],
   )
   const zero = scale(0)
-  const ticks = useMemo(
-    () => spacedTicks(axisTicks(model.domain.min, model.domain.max), scale),
-    [model.domain, scale],
+  const axis_ = useElementWidth<HTMLDivElement>()
+  const labels = useMemo(
+    () =>
+      placeLabels(
+        axisTicks(model.domain.min, model.domain.max).map((t) => ({ t, text: t === 0 ? "change confirmed" : formatRel(t) })),
+        (t) => (scale(t) / VIEW_W) * axis_.width,
+        axis_.width,
+      ),
+    [model.domain, scale, axis_.width],
   )
 
   /** Entering presentation mode with a script goes back to the script start, paused. */
@@ -162,14 +168,10 @@ export function ReplayView({
         ))}
         <div className="grid grid-cols-[17rem_1fr] gap-4">
           <div />
-          <div data-testid="axis" className="relative h-10 border-t border-border text-xs text-muted-foreground">
-            {ticks.map((t) => (
-              <span
-                key={t}
-                className="absolute top-1 -translate-x-1/2 font-mono"
-                style={{ left: `${(scale(t) / VIEW_W) * PERCENT}%` }}
-              >
-                {t === 0 ? "change confirmed" : formatRel(t)}
+          <div ref={axis_.ref} data-testid="axis" className="relative h-10 border-t border-border text-xs text-muted-foreground">
+            {labels.map((l) => (
+              <span key={l.t} data-testid="axis-label" className="absolute top-1 whitespace-nowrap font-mono" style={{ left: l.left }}>
+                {l.text}
               </span>
             ))}
           </div>

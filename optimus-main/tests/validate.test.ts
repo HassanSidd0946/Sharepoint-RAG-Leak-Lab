@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
+import { summarySchema } from "@/lib/findings/types"
 import { checkAnyBundle, checkBundle, checkIndex, checkScript } from "@/lib/replay/validate"
 import fixture from "./fixtures/bundle.v10.json"
 import fixtureIndex from "./fixtures/index.v10.json"
@@ -31,7 +32,7 @@ describe("bundle validation", () => {
 
   it("validates every real bundle, the index and the playback script that ship in public/replays", () => {
     const dir = join(process.cwd(), "public", "replays")
-    const files = readdirSync(dir).filter((f) => f.endsWith(".json") && !["index.json", "playback.json"].includes(f))
+    const files = readdirSync(dir).filter((f) => f.endsWith(".json") && !["index.json", "playback.json", "summary.json", "report.json"].includes(f))
     expect(files.length).toBeGreaterThan(0)
     const kinds = new Set<string>()
     for (const f of files) {
@@ -42,5 +43,6 @@ describe("bundle validation", () => {
     expect([...kinds].sort()).toEqual(["agent_trial", "scenario_run"])
     expect(checkIndex(JSON.parse(readFileSync(join(dir, "index.json"), "utf8"))).ok).toBe(true)
     expect(checkScript(JSON.parse(readFileSync(join(dir, "playback.json"), "utf8"))).ok).toBe(true)
+    expect(summarySchema.safeParse(JSON.parse(readFileSync(join(dir, "summary.json"), "utf8"))).success).toBe(true)
   })
 })

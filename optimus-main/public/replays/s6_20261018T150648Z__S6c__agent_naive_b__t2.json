@@ -146,7 +146,7 @@
   "journal_file": "s6_20261018T150648Z.jsonl",
   "report_file": "report.json",
   "exporter_version": "1.1.0",
-  "git_commit": "de580bc-dirty",
-  "exported_at": 1792390802.413744
+  "git_commit": "c664c42-dirty",
+  "exported_at": 1792397768.9141216
  }
 }

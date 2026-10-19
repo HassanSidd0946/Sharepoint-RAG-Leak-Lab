@@ -1,0 +1,2540 @@
+{
+ "generated_utc": "2026-10-18 15:30:28Z",
+ "spec_sha256": "2d28954068c1086f2b3eddb4d8a8e696ec5412cd1a43fb0e9d8653c3d2dc585e",
+ "plan_sha256": "52d8dd36ceeee251ecdd41a3d1fedf6f0230ec60387635a3e492fb32c206612a",
+ "systems": [
+  "setup0",
+  "setup_a_basic",
+  "setup_b"
+ ],
+ "system_labels": {
+  "setup_a_basic": "Setup B queries a separate, unfiltered index over the same SharePoint data source; Setup A uses the ACL-filtered index.",
+  "setup_b": "Setup B queries a separate, unfiltered index over the same SharePoint data source; Setup A uses the ACL-filtered index."
+ },
+ "config": {
+  "baseline_k": 12.0,
+  "baseline_cap_s": 960.0,
+  "n_consecutive": 10.0,
+  "cap_s": 3600.0,
+  "interval_s": 5.0,
+  "steady_window_s": 120.0,
+  "workers": 4.0
+ },
+ "cells": [
+  {
+   "scenario": "S1-direct",
+   "system": "setup0",
+   "planned": 1,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 1,
+    "min": 18.034,
+    "median": 18.034,
+    "max": 18.034
+   },
+   "leak_exposure": {
+    "n": 1,
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "conformance": {
+    "n": 1,
+    "min": 18.034,
+    "median": 18.034,
+    "max": 18.034
+   },
+   "convergence": {
+    "CONFORMED": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "OK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 1031,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 1,
+      "min": 18.034,
+      "median": 18.034,
+      "max": 18.034
+     },
+     "leak_exposure": {
+      "n": 1,
+      "min": 0.0,
+      "median": 0.0,
+      "max": 0.0
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "converged",
+     "complete": true,
+     "verdict": "OK",
+     "convergence": "CONFORMED",
+     "first_deny_s": 18.034,
+     "leak_exposure_s": 0.0,
+     "conformance_s": 18.034,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 1031,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": null
+    }
+   ]
+  },
+  {
+   "scenario": "S1-direct",
+   "system": "setup_a_basic",
+   "planned": 1,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 1,
+    "min": 298.198,
+    "median": 298.198,
+    "max": 298.198
+   },
+   "leak_exposure": {
+    "n": 1,
+    "min": 293.259,
+    "median": 293.259,
+    "max": 293.259
+   },
+   "conformance": {
+    "n": 1,
+    "min": 298.198,
+    "median": 298.198,
+    "max": 298.198
+   },
+   "convergence": {
+    "CONFORMED": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "LEAK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 1031,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 1,
+    "min": 295.561,
+    "median": 295.561,
+    "max": 295.561
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 1,
+      "min": 298.198,
+      "median": 298.198,
+      "max": 298.198
+     },
+     "leak_exposure": {
+      "n": 1,
+      "min": 293.259,
+      "median": 293.259,
+      "max": 293.259
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "converged",
+     "complete": true,
+     "verdict": "LEAK",
+     "convergence": "CONFORMED",
+     "first_deny_s": 298.198,
+     "leak_exposure_s": 293.259,
+     "conformance_s": 298.198,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 1031,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": 295.561
+    }
+   ]
+  },
+  {
+   "scenario": "S1-direct",
+   "system": "setup_b",
+   "planned": 1,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 1,
+    "min": 18.227,
+    "median": 18.227,
+    "max": 18.227
+   },
+   "leak_exposure": {
+    "n": 1,
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "conformance": {
+    "n": 1,
+    "min": 18.227,
+    "median": 18.227,
+    "max": 18.227
+   },
+   "convergence": {
+    "CONFORMED": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "OK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 1031,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 1,
+    "min": 0.668,
+    "median": 0.668,
+    "max": 0.668
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 1,
+      "min": 18.227,
+      "median": 18.227,
+      "max": 18.227
+     },
+     "leak_exposure": {
+      "n": 1,
+      "min": 0.0,
+      "median": 0.0,
+      "max": 0.0
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "converged",
+     "complete": true,
+     "verdict": "OK",
+     "convergence": "CONFORMED",
+     "first_deny_s": 18.227,
+     "leak_exposure_s": 0.0,
+     "conformance_s": 18.227,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 1031,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": 0.668
+    }
+   ]
+  },
+  {
+   "scenario": "S1-spgroup",
+   "system": "setup0",
+   "planned": 1,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 1,
+    "min": 6.358,
+    "median": 6.358,
+    "max": 6.358
+   },
+   "leak_exposure": {
+    "n": 1,
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "conformance": {
+    "n": 1,
+    "min": 6.358,
+    "median": 6.358,
+    "max": 6.358
+   },
+   "convergence": {
+    "CONFORMED": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "OK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 885,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 1,
+      "min": 6.358,
+      "median": 6.358,
+      "max": 6.358
+     },
+     "leak_exposure": {
+      "n": 1,
+      "min": 0.0,
+      "median": 0.0,
+      "max": 0.0
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "converged",
+     "complete": true,
+     "verdict": "OK",
+     "convergence": "CONFORMED",
+     "first_deny_s": 6.358,
+     "leak_exposure_s": 0.0,
+     "conformance_s": 6.358,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 885,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": null
+    }
+   ]
+  },
+  {
+   "scenario": "S1-spgroup",
+   "system": "setup_a_basic",
+   "planned": 1,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "leak_exposure": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "conformance": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "convergence": {
+    "NOTHING_TO_REVOKE": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "LOCKOUT": 1
+   },
+   "lockout_replicates": 1,
+   "lockout_max_s": 949.876,
+   "errors": 0,
+   "observations": 885,
+   "baseline_status": {
+    "BASELINE_UNSTABLE": 1
+   },
+   "nothing_to_revoke": 1,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 1,
+    "min": 31.099,
+    "median": 31.099,
+    "max": 31.099
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 0,
+      "min": null,
+      "median": null,
+      "max": null
+     },
+     "leak_exposure": {
+      "n": 0,
+      "min": null,
+      "median": null,
+      "max": null
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_UNSTABLE",
+     "end_reason": "converged",
+     "complete": true,
+     "verdict": "LOCKOUT",
+     "convergence": "NOTHING_TO_REVOKE",
+     "first_deny_s": null,
+     "leak_exposure_s": null,
+     "conformance_s": null,
+     "lockout_s": 949.876,
+     "errors": 0,
+     "observations": 885,
+     "nothing_to_revoke": true,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": 31.099
+    }
+   ]
+  },
+  {
+   "scenario": "S1-spgroup",
+   "system": "setup_b",
+   "planned": 1,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 1,
+    "min": 9.828,
+    "median": 9.828,
+    "max": 9.828
+   },
+   "leak_exposure": {
+    "n": 1,
+    "min": 6.374,
+    "median": 6.374,
+    "max": 6.374
+   },
+   "conformance": {
+    "n": 1,
+    "min": 9.828,
+    "median": 9.828,
+    "max": 9.828
+   },
+   "convergence": {
+    "CONFORMED": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "LEAK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 885,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 1,
+    "min": 40.26,
+    "median": 40.26,
+    "max": 40.26
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 1,
+      "min": 9.828,
+      "median": 9.828,
+      "max": 9.828
+     },
+     "leak_exposure": {
+      "n": 1,
+      "min": 6.374,
+      "median": 6.374,
+      "max": 6.374
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "converged",
+     "complete": true,
+     "verdict": "LEAK",
+     "convergence": "CONFORMED",
+     "first_deny_s": 9.828,
+     "leak_exposure_s": 6.374,
+     "conformance_s": 9.828,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 885,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": 40.26
+    }
+   ]
+  },
+  {
+   "scenario": "S1-entra",
+   "system": "setup0",
+   "planned": 7,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 1,
+    "min": 2743.423,
+    "median": 2743.423,
+    "max": 2743.423
+   },
+   "leak_exposure": {
+    "n": 1,
+    "min": 3290.902,
+    "median": 3290.902,
+    "max": 3290.902
+   },
+   "conformance": {
+    "n": 1,
+    "min": 3295.634,
+    "median": 3295.634,
+    "max": 3295.634
+   },
+   "convergence": {
+    "CONFORMED": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "LEAK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 1749,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 1,
+      "min": 2743.423,
+      "median": 2743.423,
+      "max": 2743.423
+     },
+     "leak_exposure": {
+      "n": 1,
+      "min": 3290.902,
+      "median": 3290.902,
+      "max": 3290.902
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "converged",
+     "complete": true,
+     "verdict": "LEAK",
+     "convergence": "CONFORMED",
+     "first_deny_s": 2743.423,
+     "leak_exposure_s": 3290.902,
+     "conformance_s": 3295.634,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 1749,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": null
+    }
+   ]
+  },
+  {
+   "scenario": "S1-entra",
+   "system": "setup_a_basic",
+   "planned": 7,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 1,
+    "min": 93.269,
+    "median": 93.269,
+    "max": 93.269
+   },
+   "leak_exposure": {
+    "n": 1,
+    "min": 87.097,
+    "median": 87.097,
+    "max": 87.097
+   },
+   "conformance": {
+    "n": 1,
+    "min": 93.269,
+    "median": 93.269,
+    "max": 93.269
+   },
+   "convergence": {
+    "CONFORMED": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "LEAK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 1749,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 1,
+    "min": 176.83,
+    "median": 176.83,
+    "max": 176.83
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 1,
+      "min": 93.269,
+      "median": 93.269,
+      "max": 93.269
+     },
+     "leak_exposure": {
+      "n": 1,
+      "min": 87.097,
+      "median": 87.097,
+      "max": 87.097
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "converged",
+     "complete": true,
+     "verdict": "LEAK",
+     "convergence": "CONFORMED",
+     "first_deny_s": 93.269,
+     "leak_exposure_s": 87.097,
+     "conformance_s": 93.269,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 1749,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": 176.83
+    }
+   ]
+  },
+  {
+   "scenario": "S1-entra",
+   "system": "setup_b",
+   "planned": 7,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 1,
+    "min": 10.332,
+    "median": 10.332,
+    "max": 10.332
+   },
+   "leak_exposure": {
+    "n": 1,
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   },
+   "conformance": {
+    "n": 1,
+    "min": 10.332,
+    "median": 10.332,
+    "max": 10.332
+   },
+   "convergence": {
+    "CONFORMED": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "OK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 1749,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 1,
+    "min": 184.923,
+    "median": 184.923,
+    "max": 184.923
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 1,
+      "min": 10.332,
+      "median": 10.332,
+      "max": 10.332
+     },
+     "leak_exposure": {
+      "n": 1,
+      "min": 0.0,
+      "median": 0.0,
+      "max": 0.0
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "converged",
+     "complete": true,
+     "verdict": "OK",
+     "convergence": "CONFORMED",
+     "first_deny_s": 10.332,
+     "leak_exposure_s": 0.0,
+     "conformance_s": 10.332,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 1749,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": 184.923
+    }
+   ]
+  },
+  {
+   "scenario": "S2-nested-group-removal",
+   "system": "setup0",
+   "planned": 7,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 1,
+    "min": 2953.855,
+    "median": 2953.855,
+    "max": 2953.855
+   },
+   "leak_exposure": {
+    "n": 1,
+    "min": 3460.332,
+    "median": 3460.332,
+    "max": 3460.332
+   },
+   "conformance": {
+    "n": 1,
+    "min": 3516.901,
+    "median": 3516.901,
+    "max": 3516.901
+   },
+   "convergence": {
+    "CONFORMED": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "LEAK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 1785,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 1,
+      "min": 2953.855,
+      "median": 2953.855,
+      "max": 2953.855
+     },
+     "leak_exposure": {
+      "n": 1,
+      "min": 3460.332,
+      "median": 3460.332,
+      "max": 3460.332
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "converged",
+     "complete": true,
+     "verdict": "LEAK",
+     "convergence": "CONFORMED",
+     "first_deny_s": 2953.855,
+     "leak_exposure_s": 3460.332,
+     "conformance_s": 3516.901,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 1785,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": null
+    }
+   ]
+  },
+  {
+   "scenario": "S2-nested-group-removal",
+   "system": "setup_a_basic",
+   "planned": 7,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 1,
+    "min": 206.833,
+    "median": 206.833,
+    "max": 206.833
+   },
+   "leak_exposure": {
+    "n": 1,
+    "min": 202.376,
+    "median": 202.376,
+    "max": 202.376
+   },
+   "conformance": {
+    "n": 1,
+    "min": 206.833,
+    "median": 206.833,
+    "max": 206.833
+   },
+   "convergence": {
+    "CONFORMED": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "LEAK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 1785,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 1,
+    "min": 287.301,
+    "median": 287.301,
+    "max": 287.301
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 1,
+      "min": 206.833,
+      "median": 206.833,
+      "max": 206.833
+     },
+     "leak_exposure": {
+      "n": 1,
+      "min": 202.376,
+      "median": 202.376,
+      "max": 202.376
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "converged",
+     "complete": true,
+     "verdict": "LEAK",
+     "convergence": "CONFORMED",
+     "first_deny_s": 206.833,
+     "leak_exposure_s": 202.376,
+     "conformance_s": 206.833,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 1785,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": 287.301
+    }
+   ]
+  },
+  {
+   "scenario": "S2-nested-group-removal",
+   "system": "setup_b",
+   "planned": 7,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 1,
+    "min": 15.887,
+    "median": 15.887,
+    "max": 15.887
+   },
+   "leak_exposure": {
+    "n": 1,
+    "min": 8.827,
+    "median": 8.827,
+    "max": 8.827
+   },
+   "conformance": {
+    "n": 1,
+    "min": 15.887,
+    "median": 15.887,
+    "max": 15.887
+   },
+   "convergence": {
+    "CONFORMED": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "LEAK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 1785,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 1,
+    "min": 295.394,
+    "median": 295.394,
+    "max": 295.394
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 1,
+      "min": 15.887,
+      "median": 15.887,
+      "max": 15.887
+     },
+     "leak_exposure": {
+      "n": 1,
+      "min": 8.827,
+      "median": 8.827,
+      "max": 8.827
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "converged",
+     "complete": true,
+     "verdict": "LEAK",
+     "convergence": "CONFORMED",
+     "first_deny_s": 15.887,
+     "leak_exposure_s": 8.827,
+     "conformance_s": 15.887,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 1785,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": 295.394
+    }
+   ]
+  },
+  {
+   "scenario": "S4-move-into-restricted",
+   "system": "setup0",
+   "planned": 1,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "leak_exposure": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "conformance": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "convergence": {
+    "NOT_APPLICABLE": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "OK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 208,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 0,
+      "min": null,
+      "median": null,
+      "max": null
+     },
+     "leak_exposure": {
+      "n": 0,
+      "min": null,
+      "median": null,
+      "max": null
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "steady_window_elapsed",
+     "complete": true,
+     "verdict": "OK",
+     "convergence": "NOT_APPLICABLE",
+     "first_deny_s": null,
+     "leak_exposure_s": null,
+     "conformance_s": null,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 208,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": null
+    }
+   ]
+  },
+  {
+   "scenario": "S4-move-into-restricted",
+   "system": "setup_a_basic",
+   "planned": 1,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "leak_exposure": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "conformance": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "convergence": {
+    "NOT_APPLICABLE": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "OK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 208,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 1,
+    "min": 283.678,
+    "median": 283.678,
+    "max": 283.678
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 0,
+      "min": null,
+      "median": null,
+      "max": null
+     },
+     "leak_exposure": {
+      "n": 0,
+      "min": null,
+      "median": null,
+      "max": null
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "steady_window_elapsed",
+     "complete": true,
+     "verdict": "OK",
+     "convergence": "NOT_APPLICABLE",
+     "first_deny_s": null,
+     "leak_exposure_s": null,
+     "conformance_s": null,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 208,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": 283.678
+    }
+   ]
+  },
+  {
+   "scenario": "S4-move-into-restricted",
+   "system": "setup_b",
+   "planned": 1,
+   "replicates": 1,
+   "incomplete": 0,
+   "first_deny": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "leak_exposure": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "conformance": {
+    "n": 0,
+    "min": null,
+    "median": null,
+    "max": null
+   },
+   "convergence": {
+    "NOT_APPLICABLE": 1
+   },
+   "did_not_converge": 0,
+   "verdicts": {
+    "OK": 1
+   },
+   "lockout_replicates": 0,
+   "lockout_max_s": null,
+   "errors": 0,
+   "observations": 208,
+   "baseline_status": {
+    "BASELINE_OK": 1
+   },
+   "nothing_to_revoke": 0,
+   "never_denied": 0,
+   "first_indexer_run_end_after_change": {
+    "n": 1,
+    "min": 291.771,
+    "median": 291.771,
+    "max": 291.771
+   },
+   "by_baseline": [
+    {
+     "baseline_minutes": 1,
+     "replicates": 1,
+     "first_deny": {
+      "n": 0,
+      "min": null,
+      "median": null,
+      "max": null
+     },
+     "leak_exposure": {
+      "n": 0,
+      "min": null,
+      "median": null,
+      "max": null
+     }
+    }
+   ],
+   "rows": [
+    {
+     "run": 1,
+     "journal": "run_20261018T114324Z_r1.jsonl",
+     "baseline_minutes": 1,
+     "baseline_status": "BASELINE_OK",
+     "end_reason": "steady_window_elapsed",
+     "complete": true,
+     "verdict": "OK",
+     "convergence": "NOT_APPLICABLE",
+     "first_deny_s": null,
+     "leak_exposure_s": null,
+     "conformance_s": null,
+     "lockout_s": null,
+     "errors": 0,
+     "observations": 208,
+     "nothing_to_revoke": false,
+     "never_denied": false,
+     "first_indexer_run_end_after_change_s": 291.771
+    }
+   ]
+  }
+ ],
+ "runs": [
+  {
+   "index": 1,
+   "name": "r1",
+   "status": "done",
+   "journal": "run_20261018T114324Z_r1.jsonl",
+   "baseline_minutes": 1,
+   "scenarios": [
+    "S1-direct",
+    "S1-spgroup",
+    "S1-entra",
+    "S2-nested-group-removal",
+    "S4-move-into-restricted"
+   ],
+   "started_utc": "2026-10-18 11:46:27Z",
+   "ended_utc": "2026-10-18 12:51:06Z",
+   "finished": true,
+   "error": null
+  },
+  {
+   "index": 2,
+   "name": "r2",
+   "status": "pending",
+   "journal": null,
+   "baseline_minutes": 10,
+   "scenarios": [
+    "S1-entra",
+    "S2-nested-group-removal"
+   ],
+   "started_utc": null,
+   "ended_utc": null,
+   "finished": false,
+   "error": null
+  },
+  {
+   "index": 3,
+   "name": "r3",
+   "status": "pending",
+   "journal": null,
+   "baseline_minutes": 1,
+   "scenarios": [
+    "S1-entra",
+    "S2-nested-group-removal"
+   ],
+   "started_utc": null,
+   "ended_utc": null,
+   "finished": false,
+   "error": null
+  },
+  {
+   "index": 4,
+   "name": "r4",
+   "status": "pending",
+   "journal": null,
+   "baseline_minutes": 10,
+   "scenarios": [
+    "S1-entra",
+    "S2-nested-group-removal"
+   ],
+   "started_utc": null,
+   "ended_utc": null,
+   "finished": false,
+   "error": null
+  },
+  {
+   "index": 5,
+   "name": "r5",
+   "status": "pending",
+   "journal": null,
+   "baseline_minutes": 1,
+   "scenarios": [
+    "S1-entra",
+    "S2-nested-group-removal"
+   ],
+   "started_utc": null,
+   "ended_utc": null,
+   "finished": false,
+   "error": null
+  },
+  {
+   "index": 6,
+   "name": "r6",
+   "status": "pending",
+   "journal": null,
+   "baseline_minutes": 10,
+   "scenarios": [
+    "S1-entra",
+    "S2-nested-group-removal"
+   ],
+   "started_utc": null,
+   "ended_utc": null,
+   "finished": false,
+   "error": null
+  },
+  {
+   "index": 7,
+   "name": "r7",
+   "status": "pending",
+   "journal": null,
+   "baseline_minutes": 1,
+   "scenarios": [
+    "S1-entra",
+    "S2-nested-group-removal"
+   ],
+   "started_utc": null,
+   "ended_utc": null,
+   "finished": false,
+   "error": null
+  }
+ ],
+ "indexer_runs": [
+  {
+   "run": 1,
+   "system": "setup_a_basic",
+   "runs": 62,
+   "failed": 1,
+   "duration_s": {
+    "n": 62,
+    "min": 0.542,
+    "median": 1.715,
+    "max": 39.146
+   }
+  },
+  {
+   "run": 1,
+   "system": "setup_b",
+   "runs": 62,
+   "failed": 1,
+   "duration_s": {
+    "n": 62,
+    "min": 0.662,
+    "median": 1.428,
+    "max": 11.081
+   }
+  }
+ ],
+ "poller_lag": [
+  {
+   "run": 1,
+   "system": "setup_b",
+   "samples": 97,
+   "membership_age_s": {
+    "n": 97,
+    "min": 0.012,
+    "median": 2.645,
+    "max": 5.119
+   },
+   "acl_age_s": {
+    "n": 97,
+    "min": 0.026,
+    "median": 2.701,
+    "max": 5.342
+   },
+   "degraded_events": 0
+  }
+ ],
+ "s6": {
+  "journal": "s6_20261018T150648Z.jsonl",
+  "generation": "GTN3ZDD",
+  "query_version": 2,
+  "started_utc": "2026-10-18 15:13:04Z",
+  "ended_utc": "2026-10-18 15:29:20Z",
+  "llm": "stub",
+  "embedder": "hash-256",
+  "cache_threshold": 0.65,
+  "memory_threshold": 0.3,
+  "n": 3,
+  "settle_s": 30.0,
+  "arms": {
+   "agent_naive_a": "NAIVE agent, retrieval from Setup A (persona-trimmed, ACL-filtered index)",
+   "agent_naive_b": "NAIVE agent, retrieval from Setup B (/query)",
+   "agent_guarded_b": "GUARDED agent, retrieval from Setup B, access re-checked from Setup B's state"
+  },
+  "not_applicable": {
+   "setup0": "plain SharePoint has no search index, no cache and no agent: there is nothing to test"
+  },
+  "cells": [
+   {
+    "variant": "S6a",
+    "kind": "cross_user_cache",
+    "arm": "agent_naive_a",
+    "trials": 3,
+    "verdicts": {
+     "LEAK": 3
+    },
+    "leak_trials": 3,
+    "invalid_trials": 0,
+    "valid_trials": 3,
+    "similarity": {
+     "n": 3,
+     "min": 0.833,
+     "median": 0.833,
+     "max": 0.833
+    },
+    "guard_denials": 0,
+    "exposure_stored": 9,
+    "exposure_unsafe": 9,
+    "exposure_pairs": 51,
+    "reasons": {},
+    "rows": [
+     {
+      "trial": 1,
+      "verdict": "LEAK",
+      "reason": "3 canary delivery(ies) not allowed",
+      "persona": "p-intern",
+      "question": "Tell me what the Finance Leadership document 01 says about salaries",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FIN-05-56165c",
+        "step": "followup"
+       },
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-01-711d6a",
+        "step": "followup"
+       },
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-02-44dc0b",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     },
+     {
+      "trial": 2,
+      "verdict": "LEAK",
+      "reason": "3 canary delivery(ies) not allowed",
+      "persona": "p-intern",
+      "question": "Summarize the Finance Leadership document 01 on salaries",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FIN-05-56165c",
+        "step": "followup"
+       },
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-01-711d6a",
+        "step": "followup"
+       },
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-02-44dc0b",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     },
+     {
+      "trial": 3,
+      "verdict": "LEAK",
+      "reason": "3 canary delivery(ies) not allowed",
+      "persona": "p-intern",
+      "question": "Explain salaries in the Finance Leadership document 01",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FIN-05-56165c",
+        "step": "followup"
+       },
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-01-711d6a",
+        "step": "followup"
+       },
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-02-44dc0b",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     }
+    ]
+   },
+   {
+    "variant": "S6a",
+    "kind": "cross_user_cache",
+    "arm": "agent_naive_b",
+    "trials": 3,
+    "verdicts": {
+     "LEAK": 3
+    },
+    "leak_trials": 3,
+    "invalid_trials": 0,
+    "valid_trials": 3,
+    "similarity": {
+     "n": 3,
+     "min": 0.833,
+     "median": 0.833,
+     "max": 0.833
+    },
+    "guard_denials": 0,
+    "exposure_stored": 9,
+    "exposure_unsafe": 9,
+    "exposure_pairs": 51,
+    "reasons": {},
+    "rows": [
+     {
+      "trial": 1,
+      "verdict": "LEAK",
+      "reason": "3 canary delivery(ies) not allowed",
+      "persona": "p-intern",
+      "question": "Tell me what the Finance Leadership document 01 says about salaries",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FIN-05-56165c",
+        "step": "followup"
+       },
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-01-711d6a",
+        "step": "followup"
+       },
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-02-44dc0b",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     },
+     {
+      "trial": 2,
+      "verdict": "LEAK",
+      "reason": "3 canary delivery(ies) not allowed",
+      "persona": "p-intern",
+      "question": "Summarize the Finance Leadership document 01 on salaries",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FIN-05-56165c",
+        "step": "followup"
+       },
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-01-711d6a",
+        "step": "followup"
+       },
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-02-44dc0b",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     },
+     {
+      "trial": 3,
+      "verdict": "LEAK",
+      "reason": "3 canary delivery(ies) not allowed",
+      "persona": "p-intern",
+      "question": "Explain salaries in the Finance Leadership document 01",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FIN-05-56165c",
+        "step": "followup"
+       },
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-01-711d6a",
+        "step": "followup"
+       },
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-02-44dc0b",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     }
+    ]
+   },
+   {
+    "variant": "S6a",
+    "kind": "cross_user_cache",
+    "arm": "agent_guarded_b",
+    "trials": 3,
+    "verdicts": {
+     "OK": 3
+    },
+    "leak_trials": 0,
+    "invalid_trials": 0,
+    "valid_trials": 3,
+    "similarity": {
+     "n": 3,
+     "min": 0.833,
+     "median": 0.833,
+     "max": 0.833
+    },
+    "guard_denials": 9,
+    "exposure_stored": 18,
+    "exposure_unsafe": 18,
+    "exposure_pairs": 69,
+    "reasons": {},
+    "rows": [
+     {
+      "trial": 1,
+      "verdict": "OK",
+      "reason": "designed situation occurred, nothing leaked",
+      "persona": "p-intern",
+      "question": "Tell me what the Finance Leadership document 01 says about salaries",
+      "similarity": 0.8333,
+      "cache_status": "denied_by_guard",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 3
+     },
+     {
+      "trial": 2,
+      "verdict": "OK",
+      "reason": "designed situation occurred, nothing leaked",
+      "persona": "p-intern",
+      "question": "Summarize the Finance Leadership document 01 on salaries",
+      "similarity": 0.8333,
+      "cache_status": "denied_by_guard",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 3
+     },
+     {
+      "trial": 3,
+      "verdict": "OK",
+      "reason": "designed situation occurred, nothing leaked",
+      "persona": "p-intern",
+      "question": "Explain salaries in the Finance Leadership document 01",
+      "similarity": 0.8333,
+      "cache_status": "denied_by_guard",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 3
+     }
+    ]
+   },
+   {
+    "variant": "S6b",
+    "kind": "cache_after_revocation",
+    "arm": "agent_naive_a",
+    "trials": 3,
+    "verdicts": {
+     "LEAK": 3
+    },
+    "leak_trials": 3,
+    "invalid_trials": 0,
+    "valid_trials": 3,
+    "similarity": {
+     "n": 3,
+     "min": 0.833,
+     "median": 0.833,
+     "max": 0.833
+    },
+    "guard_denials": 0,
+    "exposure_stored": 9,
+    "exposure_unsafe": 9,
+    "exposure_pairs": 57,
+    "reasons": {},
+    "rows": [
+     {
+      "trial": 1,
+      "verdict": "LEAK",
+      "reason": "1 canary delivery(ies) not allowed",
+      "persona": "p-plateng",
+      "question": "Tell me what the S1 Direct document 01 says about the budget",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [
+       {
+        "persona": "p-plateng",
+        "canary": "CANARY-GTN3ZDD-S1D-01-f0b3ae",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     },
+     {
+      "trial": 2,
+      "verdict": "LEAK",
+      "reason": "1 canary delivery(ies) not allowed",
+      "persona": "p-plateng",
+      "question": "Summarize the S1 Direct document 01 on the budget",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [
+       {
+        "persona": "p-plateng",
+        "canary": "CANARY-GTN3ZDD-S1D-01-f0b3ae",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     },
+     {
+      "trial": 3,
+      "verdict": "LEAK",
+      "reason": "1 canary delivery(ies) not allowed",
+      "persona": "p-plateng",
+      "question": "Explain the budget in the S1 Direct document 01",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [
+       {
+        "persona": "p-plateng",
+        "canary": "CANARY-GTN3ZDD-S1D-01-f0b3ae",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     }
+    ]
+   },
+   {
+    "variant": "S6b",
+    "kind": "cache_after_revocation",
+    "arm": "agent_naive_b",
+    "trials": 3,
+    "verdicts": {
+     "LEAK": 3
+    },
+    "leak_trials": 3,
+    "invalid_trials": 0,
+    "valid_trials": 3,
+    "similarity": {
+     "n": 3,
+     "min": 0.833,
+     "median": 0.833,
+     "max": 0.833
+    },
+    "guard_denials": 0,
+    "exposure_stored": 9,
+    "exposure_unsafe": 9,
+    "exposure_pairs": 57,
+    "reasons": {},
+    "rows": [
+     {
+      "trial": 1,
+      "verdict": "LEAK",
+      "reason": "1 canary delivery(ies) not allowed",
+      "persona": "p-plateng",
+      "question": "Tell me what the S1 Direct document 01 says about the budget",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [
+       {
+        "persona": "p-plateng",
+        "canary": "CANARY-GTN3ZDD-S1D-01-f0b3ae",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     },
+     {
+      "trial": 2,
+      "verdict": "LEAK",
+      "reason": "1 canary delivery(ies) not allowed",
+      "persona": "p-plateng",
+      "question": "Summarize the S1 Direct document 01 on the budget",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [
+       {
+        "persona": "p-plateng",
+        "canary": "CANARY-GTN3ZDD-S1D-01-f0b3ae",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     },
+     {
+      "trial": 3,
+      "verdict": "LEAK",
+      "reason": "1 canary delivery(ies) not allowed",
+      "persona": "p-plateng",
+      "question": "Explain the budget in the S1 Direct document 01",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [
+       {
+        "persona": "p-plateng",
+        "canary": "CANARY-GTN3ZDD-S1D-01-f0b3ae",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     }
+    ]
+   },
+   {
+    "variant": "S6b",
+    "kind": "cache_after_revocation",
+    "arm": "agent_guarded_b",
+    "trials": 3,
+    "verdicts": {
+     "OK": 3
+    },
+    "leak_trials": 0,
+    "invalid_trials": 0,
+    "valid_trials": 3,
+    "similarity": {
+     "n": 3,
+     "min": 0.833,
+     "median": 0.833,
+     "max": 0.833
+    },
+    "guard_denials": 6,
+    "exposure_stored": 12,
+    "exposure_unsafe": 12,
+    "exposure_pairs": 75,
+    "reasons": {},
+    "rows": [
+     {
+      "trial": 1,
+      "verdict": "OK",
+      "reason": "designed situation occurred, nothing leaked",
+      "persona": "p-plateng",
+      "question": "Tell me what the S1 Direct document 01 says about the budget",
+      "similarity": 0.8333,
+      "cache_status": "denied_by_guard",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 2
+     },
+     {
+      "trial": 2,
+      "verdict": "OK",
+      "reason": "designed situation occurred, nothing leaked",
+      "persona": "p-plateng",
+      "question": "Summarize the S1 Direct document 01 on the budget",
+      "similarity": 0.8333,
+      "cache_status": "denied_by_guard",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 2
+     },
+     {
+      "trial": 3,
+      "verdict": "OK",
+      "reason": "designed situation occurred, nothing leaked",
+      "persona": "p-plateng",
+      "question": "Explain the budget in the S1 Direct document 01",
+      "similarity": 0.8333,
+      "cache_status": "denied_by_guard",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 2
+     }
+    ]
+   },
+   {
+    "variant": "S6c",
+    "kind": "shared_memory",
+    "arm": "agent_naive_a",
+    "trials": 3,
+    "verdicts": {
+     "LEAK": 3
+    },
+    "leak_trials": 3,
+    "invalid_trials": 0,
+    "valid_trials": 3,
+    "similarity": {
+     "n": 3,
+     "min": 0.507,
+     "median": 0.567,
+     "max": 0.567
+    },
+    "guard_denials": 0,
+    "exposure_stored": 14,
+    "exposure_unsafe": 14,
+    "exposure_pairs": 49,
+    "reasons": {},
+    "rows": [
+     {
+      "trial": 1,
+      "verdict": "LEAK",
+      "reason": "1 canary delivery(ies) not allowed",
+      "persona": "p-intern",
+      "question": "Any incident review notes from leadership?",
+      "similarity": 0.5669,
+      "cache_status": "below_threshold",
+      "delivered": 2,
+      "leaks": [
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-02-44dc0b",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     },
+     {
+      "trial": 2,
+      "verdict": "LEAK",
+      "reason": "1 canary delivery(ies) not allowed",
+      "persona": "p-intern",
+      "question": "Which incident review did leadership discuss?",
+      "similarity": 0.5669,
+      "cache_status": "below_threshold",
+      "delivered": 2,
+      "leaks": [
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-02-44dc0b",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     },
+     {
+      "trial": 3,
+      "verdict": "LEAK",
+      "reason": "1 canary delivery(ies) not allowed",
+      "persona": "p-intern",
+      "question": "What happened in the last incident review by leadership?",
+      "similarity": 0.5071,
+      "cache_status": "below_threshold",
+      "delivered": 4,
+      "leaks": [
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-02-44dc0b",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     }
+    ]
+   },
+   {
+    "variant": "S6c",
+    "kind": "shared_memory",
+    "arm": "agent_naive_b",
+    "trials": 3,
+    "verdicts": {
+     "LEAK": 3
+    },
+    "leak_trials": 3,
+    "invalid_trials": 0,
+    "valid_trials": 3,
+    "similarity": {
+     "n": 3,
+     "min": 0.507,
+     "median": 0.567,
+     "max": 0.567
+    },
+    "guard_denials": 0,
+    "exposure_stored": 14,
+    "exposure_unsafe": 14,
+    "exposure_pairs": 49,
+    "reasons": {},
+    "rows": [
+     {
+      "trial": 1,
+      "verdict": "LEAK",
+      "reason": "1 canary delivery(ies) not allowed",
+      "persona": "p-intern",
+      "question": "Any incident review notes from leadership?",
+      "similarity": 0.5669,
+      "cache_status": "below_threshold",
+      "delivered": 2,
+      "leaks": [
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-02-44dc0b",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     },
+     {
+      "trial": 2,
+      "verdict": "LEAK",
+      "reason": "1 canary delivery(ies) not allowed",
+      "persona": "p-intern",
+      "question": "Which incident review did leadership discuss?",
+      "similarity": 0.5669,
+      "cache_status": "below_threshold",
+      "delivered": 2,
+      "leaks": [
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-02-44dc0b",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     },
+     {
+      "trial": 3,
+      "verdict": "LEAK",
+      "reason": "1 canary delivery(ies) not allowed",
+      "persona": "p-intern",
+      "question": "What happened in the last incident review by leadership?",
+      "similarity": 0.5071,
+      "cache_status": "below_threshold",
+      "delivered": 4,
+      "leaks": [
+       {
+        "persona": "p-intern",
+        "canary": "CANARY-GTN3ZDD-FLD-02-44dc0b",
+        "step": "followup"
+       }
+      ],
+      "guard_denials": 0
+     }
+    ]
+   },
+   {
+    "variant": "S6c",
+    "kind": "shared_memory",
+    "arm": "agent_guarded_b",
+    "trials": 3,
+    "verdicts": {
+     "OK": 3
+    },
+    "leak_trials": 0,
+    "invalid_trials": 0,
+    "valid_trials": 3,
+    "similarity": {
+     "n": 3,
+     "min": 0.507,
+     "median": 0.567,
+     "max": 0.567
+    },
+    "guard_denials": 3,
+    "exposure_stored": 14,
+    "exposure_unsafe": 14,
+    "exposure_pairs": 49,
+    "reasons": {},
+    "rows": [
+     {
+      "trial": 1,
+      "verdict": "OK",
+      "reason": "designed situation occurred, nothing leaked",
+      "persona": "p-intern",
+      "question": "Any incident review notes from leadership?",
+      "similarity": 0.5669,
+      "cache_status": "below_threshold",
+      "delivered": 1,
+      "leaks": [],
+      "guard_denials": 1
+     },
+     {
+      "trial": 2,
+      "verdict": "OK",
+      "reason": "designed situation occurred, nothing leaked",
+      "persona": "p-intern",
+      "question": "Which incident review did leadership discuss?",
+      "similarity": 0.5669,
+      "cache_status": "below_threshold",
+      "delivered": 1,
+      "leaks": [],
+      "guard_denials": 1
+     },
+     {
+      "trial": 3,
+      "verdict": "OK",
+      "reason": "designed situation occurred, nothing leaked",
+      "persona": "p-intern",
+      "question": "What happened in the last incident review by leadership?",
+      "similarity": 0.5071,
+      "cache_status": "below_threshold",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 1
+     }
+    ]
+   },
+   {
+    "variant": "control",
+    "kind": "positive_control",
+    "arm": "agent_naive_a",
+    "trials": 3,
+    "verdicts": {
+     "SERVED": 3
+    },
+    "leak_trials": 0,
+    "invalid_trials": 0,
+    "valid_trials": 3,
+    "similarity": {
+     "n": 3,
+     "min": 0.833,
+     "median": 0.833,
+     "max": 0.833
+    },
+    "guard_denials": 0,
+    "exposure_stored": 9,
+    "exposure_unsafe": 9,
+    "exposure_pairs": 18,
+    "reasons": {},
+    "rows": [
+     {
+      "trial": 1,
+      "verdict": "SERVED",
+      "reason": "served",
+      "persona": "p-finana",
+      "question": "Tell me what the General document 01 says about the vendor contract",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 0
+     },
+     {
+      "trial": 2,
+      "verdict": "SERVED",
+      "reason": "served",
+      "persona": "p-finana",
+      "question": "Summarize the General document 01 on the vendor contract",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 0
+     },
+     {
+      "trial": 3,
+      "verdict": "SERVED",
+      "reason": "served",
+      "persona": "p-finana",
+      "question": "Explain the vendor contract in the General document 01",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 0
+     }
+    ]
+   },
+   {
+    "variant": "control",
+    "kind": "positive_control",
+    "arm": "agent_naive_b",
+    "trials": 3,
+    "verdicts": {
+     "SERVED": 3
+    },
+    "leak_trials": 0,
+    "invalid_trials": 0,
+    "valid_trials": 3,
+    "similarity": {
+     "n": 3,
+     "min": 0.833,
+     "median": 0.833,
+     "max": 0.833
+    },
+    "guard_denials": 0,
+    "exposure_stored": 9,
+    "exposure_unsafe": 9,
+    "exposure_pairs": 18,
+    "reasons": {},
+    "rows": [
+     {
+      "trial": 1,
+      "verdict": "SERVED",
+      "reason": "served",
+      "persona": "p-finana",
+      "question": "Tell me what the General document 01 says about the vendor contract",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 0
+     },
+     {
+      "trial": 2,
+      "verdict": "SERVED",
+      "reason": "served",
+      "persona": "p-finana",
+      "question": "Summarize the General document 01 on the vendor contract",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 0
+     },
+     {
+      "trial": 3,
+      "verdict": "SERVED",
+      "reason": "served",
+      "persona": "p-finana",
+      "question": "Explain the vendor contract in the General document 01",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 0
+     }
+    ]
+   },
+   {
+    "variant": "control",
+    "kind": "positive_control",
+    "arm": "agent_guarded_b",
+    "trials": 3,
+    "verdicts": {
+     "SERVED": 3
+    },
+    "leak_trials": 0,
+    "invalid_trials": 0,
+    "valid_trials": 3,
+    "similarity": {
+     "n": 3,
+     "min": 0.833,
+     "median": 0.833,
+     "max": 0.833
+    },
+    "guard_denials": 0,
+    "exposure_stored": 9,
+    "exposure_unsafe": 9,
+    "exposure_pairs": 18,
+    "reasons": {},
+    "rows": [
+     {
+      "trial": 1,
+      "verdict": "SERVED",
+      "reason": "served",
+      "persona": "p-finana",
+      "question": "Tell me what the General document 01 says about the vendor contract",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 0
+     },
+     {
+      "trial": 2,
+      "verdict": "SERVED",
+      "reason": "served",
+      "persona": "p-finana",
+      "question": "Summarize the General document 01 on the vendor contract",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 0
+     },
+     {
+      "trial": 3,
+      "verdict": "SERVED",
+      "reason": "served",
+      "persona": "p-finana",
+      "question": "Explain the vendor contract in the General document 01",
+      "similarity": 0.8333,
+      "cache_status": "hit",
+      "delivered": 3,
+      "leaks": [],
+      "guard_denials": 0
+     }
+    ]
+   }
+  ],
+  "questions": {
+   "S6a": {
+    "kind": "cross_user_cache",
+    "seed": "What does the Finance Leadership document 01 say about salaries?",
+    "followups": [
+     "Tell me what the Finance Leadership document 01 says about salaries",
+     "Summarize the Finance Leadership document 01 on salaries",
+     "Explain salaries in the Finance Leadership document 01"
+    ]
+   },
+   "S6b": {
+    "kind": "cache_after_revocation",
+    "seed": "What does the S1 Direct document 01 say about the budget?",
+    "followups": [
+     "Tell me what the S1 Direct document 01 says about the budget",
+     "Summarize the S1 Direct document 01 on the budget",
+     "Explain the budget in the S1 Direct document 01"
+    ]
+   },
+   "S6c": {
+    "kind": "shared_memory",
+    "seed": "What does the Finance Leadership document 02 say about the incident review?",
+    "followups": [
+     "Any incident review notes from leadership?",
+     "Which incident review did leadership discuss?",
+     "What happened in the last incident review by leadership?"
+    ]
+   },
+   "control": {
+    "kind": "positive_control",
+    "seed": "What does the General document 01 say about the vendor contract?",
+    "followups": [
+     "Tell me what the General document 01 says about the vendor contract",
+     "Summarize the General document 01 on the vendor contract",
+     "Explain the vendor contract in the General document 01"
+    ]
+   }
+  },
+  "caveats": [
+   "LLM: stub. It answers by quoting its retrieved, cached and remembered text verbatim, so it is the worst-case leaker: every result measures the cache, the memory, the retrieval and the guard, not a language model. A real model is never used for these numbers.",
+   "Embedding: hash-256, a deterministic local embedding (not a semantic model). Cache threshold 0.65, memory threshold 0.3; the query set (version 2) was designed so that the paraphrases hit the cache and the shared-memory question hits only the memory. Other embeddings or thresholds would change how often a naive agent leaks.",
+   "Sample: 3 trials per variant per arm (follow-up i of a fixed query set), one tenant (generation GTN3ZDD). The trials are not independent draws: same documents, same users, a fixed question set.",
+   "Arms: agent_naive_a retrieves from Setup A basic (ACL-filtered index: its stored ACL is frozen until the next indexer run, so after a revocation its retrieval may still return the document); agent_naive_b and agent_guarded_b retrieve through Setup B, which queries a separate, unfiltered index over the same SharePoint data source (Setup A uses the ACL-filtered index). The guarded arm decides from Setup B's state, which lags the tenant by seconds: S6b waits 30 s after the confirmed revocation before the stale-cache question.",
+   "setup0: not applicable (plain SharePoint has no search index, no cache and no agent: there is nothing to test).",
+   "Exposure surface (stored canaries that some persona may not read, in the cache or memory at the end of a trial: 135 over all cells) is what a leak could draw on. It is reported separately and is not a leak count: the guarded arm stores such answers too and never delivers them to a user who may not read their sources.",
+   "Dates: run between 2026-10-18 15:13:04Z and 2026-10-18 15:29:20Z (UTC)."
+  ]
+ },
+ "startup": [
+  {
+   "run": 1,
+   "ready": true,
+   "time_to_ready_s": 76.628,
+   "waited_in_prepare_s": 0.007,
+   "cap_s": 300.0,
+   "first_sync": {
+    "membership_edges": 26,
+    "directory_users": 15,
+    "acl_items": 57,
+    "acl_files": 45,
+    "unique_scopes": 11,
+    "scopes_with_grants": 12,
+    "grants": 15,
+    "read_grants": 15
+   },
+   "difference": {},
+   "complete_at_first_sync": true,
+   "found_by_verify": 0
+  }
+ ],
+ "index_cleanups": [
+  {
+   "run": 1,
+   "generation": "GTN3PY6",
+   "error": null,
+   "indexes": [
+    {
+     "index": "ll-sp-index-b",
+     "count_before": 45,
+     "count_after": 0,
+     "stale_found": 45,
+     "deleted": 45,
+     "failed": 0
+    },
+    {
+     "index": "ll-sp-index",
+     "count_before": 45,
+     "count_after": 45,
+     "stale_found": 45,
+     "deleted": 45,
+     "failed": 0
+    }
+   ]
+  }
+ ],
+ "stale_copies": [],
+ "postfilter_recall": {
+  "samples": 273,
+  "by_k": {
+   "3": {
+    "samples": 91,
+    "returned": 169,
+    "possible": 236,
+    "short_of_k": 39,
+    "lost": 67,
+    "pages": 91,
+    "max_pages": 1,
+    "capped": 0
+   },
+   "5": {
+    "samples": 91,
+    "returned": 325,
+    "possible": 392,
+    "short_of_k": 39,
+    "lost": 67,
+    "pages": 91,
+    "max_pages": 1,
+    "capped": 0
+   },
+   "10": {
+    "samples": 91,
+    "returned": 665,
+    "possible": 665,
+    "short_of_k": 39,
+    "lost": 0,
+    "pages": 91,
+    "max_pages": 1,
+    "capped": 0
+   }
+  }
+ },
+ "caveats": [
+  "Sample sizes: each scenario x system cell has between 1 and 1 complete replicates (planned: S1-direct 1, S1-spgroup 1, S1-entra 7, S2-nested-group-removal 7, S4-move-into-restricted 1). Minimum, median and maximum are descriptive; with so few replicates they are not estimates of a distribution, and no confidence interval or significance test is given. Cells below 3 replicates: S1-direct/setup0 (n=1), S1-direct/setup_a_basic (n=1), S1-direct/setup_b (n=1), S1-spgroup/setup0 (n=1), S1-spgroup/setup_a_basic (n=1), S1-spgroup/setup_b (n=1), S1-entra/setup0 (n=1), S1-entra/setup_a_basic (n=1), S1-entra/setup_b (n=1), S2-nested-group-removal/setup0 (n=1), S2-nested-group-removal/setup_a_basic (n=1), S2-nested-group-removal/setup_b (n=1), S4-move-into-restricted/setup0 (n=1), S4-move-into-restricted/setup_a_basic (n=1), S4-move-into-restricted/setup_b (n=1).",
+  "System labels: 'setup0' reads SharePoint itself (no search layer) and is the reference. 'setup_a_basic' is Microsoft's SharePoint indexer with ACL ingestion in its plain configuration: users and Entra groups only, no SharePoint-group support, the smallest indexer schedule the service accepts (PT5M); it is not a tuned or best-case Setup A. Setup B queries a separate, unfiltered index over the same SharePoint data source; Setup A uses the ACL-filtered index.",
+  "Scope: only the 7 persona accounts (p-ceo, p-finana, p-finlead, p-hr, p-intern, p-nest, p-plateng) are measured. The tenant admin holds full control and appears in every ACL; access held by the admin is out of scope.",
+  "Single tenant: every run used the same tenant, SharePoint site and search service. Results may not transfer to other tenants, sizes or configurations; the corpus is small (45 documents).",
+  "Dates: runs between 2026-10-18 11:46:27Z and 2026-10-18 12:51:06Z (UTC); this report was generated 2026-10-18 15:30:28Z. Replicates ran one after another, not interleaved, so time-of-day and service-side drift are not controlled.",
+  "Method: read interval 5 s (every time below has that resolution); 'converged' means 10 conforming reads in a row; polling stopped 60 minutes after the change, so a DID_NOT_CONVERGE replicate is censored at the cap and its numbers are lower bounds. Every replicate started from a freshly generated tenant.",
+  "Baseline: the baseline length alternates by run (1 min in runs [1, 3, 5, 7]; 10 min in runs [2, 4, 6]) for S1-entra. The other scenarios in a run share its baseline. The 'by baseline' rows separate the numbers.",
+  "Data quality: 1 replicate(s) started from an unstable baseline for that system; 1 replicate(s) had nothing to revoke (the pair was not served before the change) and are excluded from first-deny and leak statistics; 36 planned replicate(s) have no result yet (not run, or the run stopped early).",
+  "Setup B start-up: the runner waited for /ready before the baseline in 1 run(s); time to ready 76.628-76.628 s (median 76.628 s). Lockouts are counted only from reads after that point. The first sync was already complete in 1 of 1 run(s).",
+  "Index cleanup: before 1 run(s) the documents of earlier tenant generations were deleted from both indexes (90 stale found, 90 deleted in total).",
+  "Setup B is measured through its HTTP API with the persona's own token. Its index is refreshed by its own indexer on its own 5-minute cycle, so content freshness is comparable to Setup A's but not simultaneous. Post-filtering over a k*5 window loses results (273 recall samples, see the table)."
+ ],
+ "journals": [
+  "run_20261018T114324Z_r1.jsonl"
+ ]
+}

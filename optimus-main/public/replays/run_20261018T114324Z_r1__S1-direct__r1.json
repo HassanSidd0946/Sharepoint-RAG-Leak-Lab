@@ -21739,8 +21739,8 @@
   "journal_file": "run_20261018T114324Z_r1.jsonl",
   "report_file": "run_20261018T114324Z_r1.report.json",
   "exporter_version": "1.1.0",
-  "git_commit": "de580bc-dirty",
-  "exported_at": 1792390802.413744,
+  "git_commit": "c664c42-dirty",
+  "exported_at": 1792397768.9141216,
   "window_start": 1792324192.999396,
   "window_end": 1792324650.9202979,
   "reads_dropped": 1575

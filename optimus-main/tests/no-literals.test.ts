@@ -7,8 +7,8 @@ import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
-const ROOTS = ["components/replay", "components/agent", "components/shell", "app"]
-const SHARED = ["components/replay", "components/agent", "components/shell", "app", "lib/replay"]
+const ROOTS = ["components/replay", "components/agent", "components/shell", "components/findings", "app"]
+const SHARED = ["components/replay", "components/agent", "components/shell", "components/findings", "app", "lib/replay", "lib/findings"]
 // caveats are the bundle's: the wording that used to be fixed in the frontend must not come back
 const OLD_CAVEATS = /(One test tenant|Tenant admin out of scope|tenant admin out of scope)/
 const BANNED = /(mock|sample|lorem|faker)/i
