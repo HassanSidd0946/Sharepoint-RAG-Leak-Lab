@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs"
+import { join } from "node:path"
 import { render, screen, waitFor, within } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { ReplayPage } from "@/components/replay/replay-page"
@@ -21,14 +23,14 @@ const index: IndexFile = must(checkIndex(indexRaw))
 afterEach(() => vi.unstubAllGlobals())
 
 describe("AppShell", () => {
-  it("has exactly the four views in the navigation, and nothing else from the Pulse template", () => {
+  it("has exactly the three views in the navigation, and nothing else from the Pulse template", () => {
     render(
       <AppShell brand="Test" nav={NAV}>
         <p>page</p>
       </AppShell>,
     )
     const nav = screen.getByRole("navigation", { name: "Main" })
-    expect(within(nav).getAllByRole("link").map((l) => l.textContent)).toEqual(["Replay", "Agent", "Results", "Method"])
+    expect(within(nav).getAllByRole("link").map((l) => l.textContent)).toEqual(["Replay", "Agent", "Method"])
     expect(screen.queryByPlaceholderText(/search/i)).toBeNull()
     expect(screen.queryByText(/report incident|on-call|notifications/i)).toBeNull()
   })
@@ -113,6 +115,13 @@ describe("presentation mode does not reload the page", () => {
     expect(screen.getByTestId("replay")).toHaveAttribute("data-presentation", "true")
     expect(screen.queryByText(/loading replay data/i)).toBeNull()
     expect(calls).toHaveLength(fetched)
+  })
+})
+
+describe("the frozen UI has no /results page", () => {
+  it("has no results route and no results nav item", () => {
+    expect(existsSync(join(process.cwd(), "app", "(shell)", "results"))).toBe(false)
+    expect(NAV.map((n) => n.href)).toEqual(["/replay", "/agent", "/method"])
   })
 })
 

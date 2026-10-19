@@ -29,9 +29,7 @@ A static viewer. It reads files from `public/` and calls no backend. Bundles and
 - One font set: Geist and Geist Mono from the `geist` package (bundled, no network at build). No `next/font/google`.
 - No `motion` dependency: animated beams are plain SVG; timing is deterministic (constants in `lib/ui/`).
 - No canvas decorations (sphere, tetrahedron, wave).
-- Charts: recharts, Pulse card style. First-deny chart is a scatter with a log time axis, one dot per replicate,
-  DID_NOT_CONVERGE drawn at the cap with its own marker and a legend entry; any jitter is seeded by replicate id.
-- `/` (Findings) is outside the AppShell with its own minimal top bar; Replay, Agent, Results and Method are inside it.
+- `/` (Findings) is outside the AppShell with its own minimal top bar; Replay, Agent and Method are inside it. The UI is frozen except for bug fixes (there is no /results page).
   Presentation mode hides the AppShell completely (`components/shell/shell-visibility.tsx`).
 
 ## Commands
