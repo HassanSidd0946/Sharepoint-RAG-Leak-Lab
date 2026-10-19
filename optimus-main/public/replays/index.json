@@ -1,0 +1,105 @@
+{
+ "schema_version": "1.0",
+ "bundles": [
+  {
+   "bundle": "run_20261018T114324Z_r1__S1-direct__r1.json",
+   "run_id": "run_20261018T114324Z_r1",
+   "scenario": "S1-direct",
+   "replicate": 1,
+   "systems": [
+    "setup0",
+    "setup_a_basic",
+    "setup_b"
+   ],
+   "summary": [
+    {
+     "system": "setup0",
+     "status": "CONVERGED"
+    },
+    {
+     "system": "setup_a_basic",
+     "status": "CONVERGED"
+    },
+    {
+     "system": "setup_b",
+     "status": "CONVERGED"
+    }
+   ]
+  },
+  {
+   "bundle": "run_20261018T114324Z_r1__S1-entra__r1.json",
+   "run_id": "run_20261018T114324Z_r1",
+   "scenario": "S1-entra",
+   "replicate": 1,
+   "systems": [
+    "setup0",
+    "setup_a_basic",
+    "setup_b"
+   ],
+   "summary": [
+    {
+     "system": "setup0",
+     "status": "CONVERGED"
+    },
+    {
+     "system": "setup_a_basic",
+     "status": "CONVERGED"
+    },
+    {
+     "system": "setup_b",
+     "status": "CONVERGED"
+    }
+   ]
+  },
+  {
+   "bundle": "run_20261018T114324Z_r1__S2-nested-group-removal__r1.json",
+   "run_id": "run_20261018T114324Z_r1",
+   "scenario": "S2-nested-group-removal",
+   "replicate": 1,
+   "systems": [
+    "setup0",
+    "setup_a_basic",
+    "setup_b"
+   ],
+   "summary": [
+    {
+     "system": "setup0",
+     "status": "CONVERGED"
+    },
+    {
+     "system": "setup_a_basic",
+     "status": "CONVERGED"
+    },
+    {
+     "system": "setup_b",
+     "status": "CONVERGED"
+    }
+   ]
+  },
+  {
+   "bundle": "run_20261018T114324Z_r1__S4-move-into-restricted__r1.json",
+   "run_id": "run_20261018T114324Z_r1",
+   "scenario": "S4-move-into-restricted",
+   "replicate": 1,
+   "systems": [
+    "setup0",
+    "setup_a_basic",
+    "setup_b"
+   ],
+   "summary": [
+    {
+     "system": "setup0",
+     "status": "NOT_APPLICABLE"
+    },
+    {
+     "system": "setup_a_basic",
+     "status": "NOT_APPLICABLE"
+    },
+    {
+     "system": "setup_b",
+     "status": "NOT_APPLICABLE"
+    }
+   ]
+  }
+ ]
+}

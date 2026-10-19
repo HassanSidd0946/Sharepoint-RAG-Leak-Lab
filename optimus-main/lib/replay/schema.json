@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://leaklab.dev/schemas/replay_bundle/1.0.json",
+  "title": "LeakLab Replay Bundle",
+  "description": "One replay bundle = one scenario replicate from one benchmark run, exported from the real run journal. The UI only renders this; it never computes verdicts. All times are UNIX epoch seconds (UTC, float). t_rel_s is relative to the mutation's confirmed_at (negative during baseline).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run", "scenario", "events", "summary", "provenance"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "generation", "started_at", "read_interval_s", "poll_cap_s", "n_consecutive", "systems", "personas"],
+      "properties": {
+        "run_id": { "type": "string", "description": "e.g. run_20261018T114324Z_r1" },
+        "generation": { "type": "string", "description": "Tenant generation id, e.g. GTN3PY6" },
+        "started_at": { "type": "number" },
+        "read_interval_s": { "type": "number", "exclusiveMinimum": 0 },
+        "poll_cap_s": { "type": "number", "exclusiveMinimum": 0 },
+        "n_consecutive": { "type": "integer", "minimum": 1 },
+        "systems": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label", "config_label"],
+            "properties": {
+              "id": { "enum": ["setup0", "setup_a_basic", "setup_b"] },
+              "label": { "type": "string", "description": "Display name, e.g. 'SharePoint'" },
+              "config_label": { "type": "string", "description": "Exact configuration caveat shown in the UI, e.g. 'Azure AI Search SharePoint indexer, basic ACL configuration, 5-min schedule'" }
+            }
+          }
+        },
+        "personas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "display"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^p-" },
+              "display": { "type": "string", "description": "Fictional display name from tenant_spec.yaml" }
+            }
+          }
+        }
+      }
+    },
+
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description", "replicate", "baseline_target_s", "tracked_pairs"],
+      "properties": {
+        "id": { "type": "string", "description": "e.g. S1-entra" },
+        "description": { "type": "string" },
+        "replicate": { "type": "integer", "minimum": 1 },
+        "baseline_target_s": { "type": "number", "minimum": 0 },
+        "tracked_pairs": {
+          "type": "array",
+          "description": "Every (persona, canary) pair that appears in events, with its role in the scenario.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["persona", "canary", "doc_label", "role"],
+            "properties": {
+              "persona": { "type": "string" },
+              "canary": { "type": "string", "description": "Synthetic canary string (safe to publish)" },
+              "doc_label": { "type": "string", "description": "Human label, e.g. 'S1-Entra/doc-01.txt' — no tenant URLs or item ids" },
+              "role": { "enum": ["flipped", "control", "other"] }
+            }
+          }
+        }
+      }
+    },
+
+    "events": {
+      "type": "array",
+      "description": "Sorted by t ascending. Discriminated by 'type'.",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/read" },
+          { "$ref": "#/$defs/mutation" },
+          { "$ref": "#/$defs/indexer_run" },
+          { "$ref": "#/$defs/phase" },
+          { "$ref": "#/$defs/poller_lag" }
+        ]
+      }
+    },
+
+    "summary": {
+      "type": "array",
+      "description": "Copied from report.json for this scenario replicate (never recomputed by the UI). Exporter asserts equality with its own recomputation.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["system", "status", "first_deny_s", "leak_exposure_s", "time_to_conformance_s", "n_reads", "n_errors", "lockouts"],
+        "properties": {
+          "system": { "enum": ["setup0", "setup_a_basic", "setup_b"] },
+          "status": { "enum": ["CONVERGED", "DID_NOT_CONVERGE", "INSUFFICIENT_DATA", "NOT_APPLICABLE"] },
+          "first_deny_s": { "type": ["number", "null"] },
+          "leak_exposure_s": { "type": ["number", "null"] },
+          "time_to_conformance_s": { "type": ["number", "null"] },
+          "n_reads": { "type": "integer", "minimum": 0 },
+          "n_errors": { "type": "integer", "minimum": 0 },
+          "lockouts": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["journal_file", "report_file", "exporter_version", "git_commit", "exported_at"],
+      "properties": {
+        "journal_file": { "type": "string" },
+        "report_file": { "type": "string" },
+        "exporter_version": { "type": "string" },
+        "git_commit": { "type": "string" },
+        "exported_at": { "type": "number" }
+      }
+    }
+  },
+
+  "$defs": {
+    "read": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "t", "t_rel_s", "phase", "system", "persona", "canary", "outcome", "expected", "verdict"],
+      "properties": {
+        "type": { "const": "read" },
+        "t": { "type": "number" },
+        "t_rel_s": { "type": "number" },
+        "phase": { "enum": ["baseline", "poll"] },
+        "system": { "enum": ["setup0", "setup_a_basic", "setup_b"] },
+        "persona": { "type": "string" },
+        "canary": { "type": "string" },
+        "outcome": {
+          "enum": ["served", "denied", "error", "not_indexed"],
+          "description": "error and not_indexed are NEVER rendered as denied."
+        },
+        "status_code": { "type": ["integer", "null"] },
+        "error_kind": { "type": ["string", "null"] },
+        "expected": {
+          "enum": ["allow", "deny"],
+          "description": "Oracle's intent for this (persona, canary) at time t, computed by the exporter via IntentTimeline."
+        },
+        "verdict": {
+          "enum": ["ok", "leak", "lockout", "unscored"],
+          "description": "leak = served while expected deny; lockout = denied while expected allow; unscored = error/not_indexed."
+        }
+      }
+    },
+    "mutation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "t", "t_rel_s", "t_requested", "t_confirmed", "mutation_type", "summary"],
+      "properties": {
+        "type": { "const": "mutation" },
+        "t": { "type": "number", "description": "= t_confirmed" },
+        "t_rel_s": { "type": "number", "description": "0 for the scenario's mutation" },
+        "t_requested": { "type": "number" },
+        "t_confirmed": { "type": "number" },
+        "mutation_type": { "type": "string", "description": "e.g. group_member_removed" },
+        "summary": { "type": "string", "description": "Human text, e.g. 'p-plateng removed from ll-grp-s1-entra'" }
+      }
+    },
+    "indexer_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "t", "t_rel_s", "system", "index", "t_start", "t_end", "status"],
+      "properties": {
+        "type": { "const": "indexer_run" },
+        "t": { "type": "number", "description": "= t_start" },
+        "t_rel_s": { "type": "number" },
+        "system": { "enum": ["setup_a_basic", "setup_b"] },
+        "index": { "type": "string" },
+        "t_start": { "type": "number" },
+        "t_end": { "type": ["number", "null"] },
+        "status": { "type": "string" },
+        "items_processed": { "type": ["integer", "null"] }
+      }
+    },
+    "phase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "t", "t_rel_s", "name"],
+      "properties": {
+        "type": { "const": "phase" },
+        "t": { "type": "number" },
+        "t_rel_s": { "type": "number" },
+        "name": { "enum": ["ready", "baseline_start", "baseline_stable", "poll_start", "first_deny", "converged", "cap_reached"] },
+        "system": { "enum": ["setup0", "setup_a_basic", "setup_b", null] },
+        "detail": { "type": ["string", "null"] }
+      }
+    },
+    "poller_lag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "t", "t_rel_s", "poller", "lag_s"],
+      "properties": {
+        "type": { "const": "poller_lag" },
+        "t": { "type": "number" },
+        "t_rel_s": { "type": "number" },
+        "poller": { "enum": ["membership", "acl"] },
+        "lag_s": { "type": "number", "minimum": 0 }
+      }
+    }
+  }
+}

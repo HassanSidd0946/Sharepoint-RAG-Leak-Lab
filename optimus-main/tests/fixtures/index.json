@@ -1,0 +1,22 @@
+{
+ "schema_version": "1.0",
+ "bundles": [
+  {
+   "bundle": "fixture.json",
+   "run_id": "run_fixture_r1",
+   "scenario": "S-fixture",
+   "replicate": 1,
+   "systems": [
+    "setup0",
+    "setup_a_basic",
+    "setup_b"
+   ],
+   "summary": [
+    {
+     "system": "setup0",
+     "status": "CONVERGED"
+    }
+   ]
+  }
+ ]
+}
