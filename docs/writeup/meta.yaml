@@ -1,9 +1,9 @@
 # Values the write-up and the video script need that are NOT measured. Nothing here comes from a run.
 # A value that starts with TODO makes `leaklab.replay writeup` fail (use --allow-unset-meta for a dry run).
 
-publish_date: TODO            # e.g. 2026-10-26
-repo_url: TODO                # the public repository
-contact: TODO                 # how readers reach you (not taken from any file in this repo)
+publish_date: 2026-10-19            # e.g. 2026-10-26
+repo_url: https://github.com/HassanSidd0946/Sharepoint-RAG-Leak-Lab.git                # the public repository
+contact: Hassan Siddiqui (hassansiddiqui0946@gmail.com)                 # how readers reach you (not taken from any file in this repo)
 architecture_figure: TODO     # path of the architecture diagram, relative to docs/writeup/
 
 # Facts of the configuration, from the code (src/leaklab/setup_a/client.py API, the runner's report):
