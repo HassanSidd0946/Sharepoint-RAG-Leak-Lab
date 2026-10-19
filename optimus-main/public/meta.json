@@ -1,0 +1,76 @@
+{
+  "_comment": "Non-measured text and URLs only. No result numbers: every number on the site comes from summary.json, report.json or a bundle. A link that is null hides the component that shows it; the whole Reproduce section is hidden while links.repo is null.",
+  "brand": "Leak Lab",
+  "author": "Muhammad Hassan Siddiqui",
+  "links": {
+    "github": "https://github.com/HassanSidd0946",
+    "linkedin": null,
+    "writeup": null,
+    "repo": null
+  },
+  "hero": {
+    "eyebrow": "Measuring permission revocation in RAG over SharePoint",
+    "question": "You remove someone from a security group. How long can your copilot still show them the file?",
+    "scope": "One Microsoft 365 test tenant with synthetic documents. Azure AI Search measured in its basic ACL configuration."
+  },
+  "findings": [
+    {
+      "title": "After an Entra-group removal, the three systems stop at very different times",
+      "description": "The same Entra security-group change was applied once and a removed user was read through three systems in one polling loop: SharePoint itself, Azure AI Search's SharePoint indexer in its basic ACL configuration, and a small revocation layer. For direct and SharePoint-group grants, SharePoint itself revoked quickly; the gap is specific to Entra-group changes."
+    },
+    {
+      "title": "SharePoint groups in the basic ACL configuration",
+      "description": "In Azure AI Search's basic ACL configuration, documents granted to a SharePoint group were indexed with the group recorded but never served to its members. Microsoft documents an additional configuration for SharePoint-group support; it was not tested, so this is about the basic configuration only."
+    },
+    {
+      "title": "In the agent tests, leaked content came from the shared cache and memory",
+      "description": "In the agent tests, the leaked content was delivered from the agent's shared cache and memory, not from retrieval; the counts show which path delivered each leak. A shared semantic cache and a shared long-term memory carry no permission information. Retrieval was not re-run on the cache-hit turns, so these tests do not show whether Azure AI Search would have returned the revoked document at that moment. A guarded agent re-checks every source of a cached answer for the current user on every hit and fails closed; the numbers show how it fared."
+    }
+  ],
+  "method": {
+    "heading": "Method in three steps",
+    "steps": [
+      {
+        "title": "Generate a test tenant",
+        "description": "A synthetic tenant is built from a spec: users, nested Entra groups, SharePoint groups, folders with unique permissions, and documents that each contain a unique canary string. Every run starts from a freshly generated tenant.",
+        "code": "uv run python -m leaklab.generator generate"
+      },
+      {
+        "title": "Run the scenarios",
+        "description": "One permission change is applied and the same user is read through each system on a fixed interval until the system conforms or the cap is reached.",
+        "code": "uv run python -m leaklab.benchmark run --dir runs/benchmark_v2"
+      },
+      {
+        "title": "Score against the oracle",
+        "description": "An independent model of intended access, computed only from the spec and the confirmed changes, decides what the user should see. A leak is a canary served while intent denies it. Errors are never counted as denials; no language model judges anything.",
+        "code": "uv run python -m leaklab.benchmark report --dir runs/benchmark_v2"
+      }
+    ]
+  },
+  "reproduce": {
+    "heading": "Reproduce it",
+    "tabs": [
+      {
+        "label": "Install",
+        "code": "uv sync",
+        "clone": true
+      },
+      {
+        "label": "Run",
+        "code": "uv run python -m leaklab.generator generate\nuv run python -m leaklab.benchmark run --dir runs/benchmark_v2"
+      },
+      {
+        "label": "Report",
+        "code": "uv run python -m leaklab.benchmark report --dir runs/benchmark_v2\nuv run python -m leaklab.replay export --runs runs/benchmark_v2 --out optimus-main/public/replays"
+      }
+    ],
+    "note": "Every script that writes to a tenant checks the tenant id against LEAKLAB_ALLOWED_TENANT_ID first."
+  },
+  "systems_intro": "Three systems, observed in the same polling loop, after the same permission change.",
+  "limitations_heading": "Limitations",
+  "cta": {
+    "heading": "Run it against your dev tenant",
+    "body": "If you would like to run this harness against your own development tenant, get in touch.",
+    "action_label": "Get in touch"
+  }
+}
