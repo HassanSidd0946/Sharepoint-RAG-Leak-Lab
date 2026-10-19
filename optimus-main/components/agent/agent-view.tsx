@@ -6,10 +6,13 @@
  * trial summary. Verdicts are the bundle's; an INVALID trial gets a grey banner and is never "ok".
  */
 import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { flowFor } from "@/lib/agent/flow"
 import { slugOf } from "@/lib/replay/load"
 import type { AgentBundle, AgentEntry, IndexFile } from "@/lib/replay/types"
 import { cn } from "@/lib/utils"
 import { ReplayFooter } from "@/components/replay/footer"
+import { FlowGraph } from "./flow-graph"
 import { TurnCard } from "./turn-card"
 
 const SCENARIO_ORDER: AgentEntry["scenario"][] = ["S6a", "S6b", "S6c", "positive_control"]
@@ -110,6 +113,10 @@ function Pickers({ bundle, index }: { bundle: AgentBundle; index: IndexFile }) {
 
 export function AgentView({ bundle, index }: { bundle: AgentBundle; index: IndexFile }) {
   const invalid = bundle.validity === "INVALID"
+  // the turn whose path is drawn: the first leaking turn, else the last turn (the critical question)
+  const firstLeak = bundle.turns.findIndex((t) => t.verdict === "leak")
+  const [selected, setSelected] = useState(firstLeak >= 0 ? firstLeak : bundle.turns.length - 1)
+  const flow = flowFor(bundle, selected)
   const persona = (id: string) => bundle.run.personas.find((p) => p.id === id)?.display ?? id
   const turns = bundle.turns.map((turn, i) => ({ turn, i }))
   const asking = turns.filter(({ turn }) => turn.step === "followup")
@@ -143,17 +150,19 @@ export function AgentView({ bundle, index }: { bundle: AgentBundle; index: Index
         </p>
       ))}
 
+      <FlowGraph flow={flow} />
+
       <div className="grid gap-4 md:grid-cols-2">
         <section aria-label="asking user" data-testid="pane-asking" className="space-y-3">
           <h2 className="text-sm font-semibold text-muted-foreground">Asking now</h2>
           {asking.map(({ turn, i }) => (
-            <TurnCard key={i} turn={turn} index={i} persona={persona(turn.persona)} invalid={invalid} />
+            <TurnCard key={i} turn={turn} index={i} persona={persona(turn.persona)} invalid={invalid} selected={i === selected} onSelect={() => setSelected(i)} />
           ))}
         </section>
         <section aria-label="earlier user" data-testid="pane-earlier" className="space-y-3">
           <h2 className="text-sm font-semibold text-muted-foreground">Asked earlier</h2>
           {earlier.map(({ turn, i }) => (
-            <TurnCard key={i} turn={turn} index={i} persona={persona(turn.persona)} invalid={invalid} />
+            <TurnCard key={i} turn={turn} index={i} persona={persona(turn.persona)} invalid={invalid} selected={i === selected} onSelect={() => setSelected(i)} />
           ))}
         </section>
       </div>

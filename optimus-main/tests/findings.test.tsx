@@ -114,11 +114,6 @@ describe("view mapping", () => {
 })
 
 describe("null links hide things", () => {
-  it("the meta.json in the repo has no repo, write-up or linkedin link yet", () => {
-    expect(meta.links.repo).toBeNull()
-    expect(meta.links.writeup).toBeNull()
-  })
-
   it("with every link null only the Replay link and button remain, there is no Reproduce section and no contact", () => {
     const m = withLinks({ github: null, linkedin: null, writeup: null, repo: null })
     expect(navLinks(m).map((l) => l.label)).toEqual(["Replay"])
@@ -162,7 +157,7 @@ describe("the pages", () => {
   })
 
   it("the Findings page shows nothing about the write-up, the code or the contact while those links are null", async () => {
-    serve(metaFile)
+    serve({ ...metaFile, links: { github: null, linkedin: null, writeup: null, repo: null } })
     render(<FindingsPage />)
     await screen.findByTestId("hero-question")
     const actions = screen.getByTestId("hero-actions")
@@ -182,7 +177,7 @@ describe("the pages", () => {
   })
 
   it("the Method page lists the steps and the caveats, and hides Reproduce while the repo link is null", async () => {
-    serve(metaFile)
+    serve({ ...metaFile, links: { ...metaFile.links, repo: null } })
     render(<MethodPage />)
     await screen.findByTestId("method-steps")
     expect(screen.getByTestId("limitations")).toHaveTextContent("fixture caveat A")

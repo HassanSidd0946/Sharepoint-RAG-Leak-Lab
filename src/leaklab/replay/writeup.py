@@ -11,6 +11,7 @@ TOKENS  {{path}} or {{path|dur}}   (inside a Markdown table the pipe may be esca
       scenario: a full id (S1-entra) or a unique prefix (S2 -> S2-nested-group-removal)
   S6a|S6b|S6c|S6pc.<arm>.leaks|trials|served   one cell of the S6 report (S6pc is the positive control)
   S6.naive.leaks|trials, S6.guarded.leaks|trials   sums over S6a-c and the naive / guarded arms
+  S6a.naive.leaks|trials (also S6b, S6c, S6pc; guarded)   one scenario, summed over the naive / guarded arms
   S6.naive.leaks_via_cache_memory|leaks_via_retrieval   leaked trials by the path of their leaking turn (bundles)
   run.documents, run.personas           from tenant_spec.yaml
   run.read_interval_s, run.n_consecutive, run.poll_cap_s    from report.json config
@@ -189,6 +190,18 @@ def _s6_token(ctx: Context, parts: list[str]) -> Value:
         and what in ("leaks", "trials")
     ):
         return _s6_sum(ctx, NAIVE_ARMS if arm == "naive" else GUARDED_ARMS, what)
+    if (
+        head in S6_VARIANT
+        and len(parts) == 3
+        and arm in ("naive", "guarded")
+        and what in ("leaks", "trials")
+    ):
+        arms = NAIVE_ARMS if arm == "naive" else GUARDED_ARMS
+        total = 0
+        for a in arms:
+            cell = ctx.s6_cell(S6_VARIANT[head], a)
+            total += int(cell["leak_trials"] if what == "leaks" else cell["trials"])
+        return total, f"report.json s6.cells[{S6_VARIANT[head]}/{', '.join(arms)}] summed"
     if head in S6_VARIANT and len(parts) == 3:
         cell = ctx.s6_cell(S6_VARIANT[head], arm)
         where = f"report.json s6.cells[{S6_VARIANT[head]}/{arm}]"

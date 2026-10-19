@@ -217,3 +217,11 @@ def test_leak_origin_counts_the_path_of_the_leaking_turn() -> None:
 def test_leak_origin_fails_without_agent_bundles() -> None:
     with pytest.raises(WriteupError, match="no agent_trial bundles"):
         fill("{{S6.naive.leaks_via_retrieval}}", make_ctx())
+
+
+def test_one_scenario_summed_over_the_naive_arms() -> None:
+    ctx = make_ctx()
+    # S6a: naive A 3 leaks + naive B 3 leaks, 3 trials each
+    assert fill("{{S6a.naive.leaks}} of {{S6a.naive.trials}}", ctx) == "6 of 6"
+    assert fill("{{S6a.guarded.leaks}} of {{S6a.guarded.trials}}", ctx) == "0 of 3"
+    assert fill("{{S6pc.naive.trials}}", ctx) == "6"

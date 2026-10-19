@@ -18,11 +18,15 @@ export function TurnCard({
   index,
   persona,
   invalid,
+  selected,
+  onSelect,
 }: {
   turn: AgentTurn
   index: number
   persona: string
   invalid: boolean
+  selected: boolean
+  onSelect: () => void
 }) {
   const leak = turn.verdict === "leak"
   return (
@@ -30,11 +34,27 @@ export function TurnCard({
       data-testid={`turn-${index}`}
       data-step={turn.step}
       data-verdict={turn.verdict}
-      className={cn("space-y-2 rounded-xl border bg-card p-3 shadow-card", leak ? "border-[color:var(--denied)]" : "border-border")}
+      data-selected={selected}
+      className={cn(
+        "space-y-2 rounded-xl border bg-card p-3 shadow-card",
+        leak ? "border-[color:var(--denied)]" : "border-border",
+        selected && "ring-2 ring-foreground/40",
+      )}
     >
       <header className="flex items-center justify-between gap-2 text-sm">
         <span className="font-semibold">{persona}</span>
-        <span className="font-mono text-xs text-muted-foreground">{`+${turn.t_rel_s.toFixed(1)} s`}</span>
+        <span className="flex items-center gap-2">
+          <span className="font-mono text-xs text-muted-foreground">{`+${turn.t_rel_s.toFixed(1)} s`}</span>
+          <button
+            type="button"
+            data-testid="show-path"
+            aria-pressed={selected}
+            onClick={onSelect}
+            className={cn("rounded-md border px-2 py-0.5 text-xs", selected ? "border-foreground bg-foreground text-background" : "border-border hover:bg-muted")}
+          >
+            show path
+          </button>
+        </span>
       </header>
       <p className="rounded-md bg-muted px-3 py-2 text-sm">{turn.query}</p>
 

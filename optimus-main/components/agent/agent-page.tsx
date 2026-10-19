@@ -54,7 +54,7 @@ export function AgentPage({ slug }: { slug?: string }) {
       </div>
     )
   }
-  if (state.kind === "bundle") return <AgentView bundle={state.bundle} index={state.index} />
+  if (state.kind === "bundle") return <AgentView key={slug} bundle={state.bundle} index={state.index} />
   const entries = agentEntries(state.index)
   return (
     <div className="mx-auto max-w-3xl space-y-4 p-6">
