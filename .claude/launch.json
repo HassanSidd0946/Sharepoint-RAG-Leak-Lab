@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "replay", "runtimeExecutable": "npm", "runtimeArgs": ["--prefix", "optimus-main", "run", "dev", "--", "-p", "3100"], "port": 3100 }
+  ]
+}
