@@ -184,3 +184,36 @@ def test_template_comments_are_dropped_and_the_token_table_lists_every_token() -
     assert out == "A 7 A 7"
     rows = format_table(ctx.rows)
     assert rows == [("S1-entra.setup_b.n", "7", "report.json cells[S1-entra/setup_b].replicates")]
+
+
+def agent_bundle(
+    scenario: str, mode: str, verdict: str, paths: list[tuple[str, str]]
+) -> dict[str, Any]:
+    return {
+        "trial": {"scenario": scenario, "arm": {"mode": mode}},
+        "summary": {"verdict": verdict},
+        "turns": [{"path": p, "verdict": v} for p, v in paths],
+    }
+
+
+def test_leak_origin_counts_the_path_of_the_leaking_turn() -> None:
+    ctx = make_ctx()
+    ctx.agent = [
+        agent_bundle("S6a", "naive", "LEAK", [("retrieval", "ok"), ("cache_hit", "leak")]),
+        agent_bundle("S6c", "naive", "LEAK", [("memory_hit", "leak")]),
+        agent_bundle("S6b", "naive", "LEAK", [("cache_hit", "leak"), ("retrieval", "leak")]),
+        agent_bundle("S6a", "guarded", "OK", [("retrieval", "ok")]),
+        agent_bundle("positive_control", "naive", "SERVED", [("cache_hit", "ok")]),
+    ]
+    assert (
+        fill("{{S6.naive.leaks_via_cache_memory}}/{{S6.naive.leaks_via_retrieval}}", ctx) == "2/1"
+    )
+    assert (
+        fill("{{S6.guarded.leaks_via_cache_memory}}/{{S6.guarded.leaks_via_retrieval}}", ctx)
+        == "0/0"
+    )
+
+
+def test_leak_origin_fails_without_agent_bundles() -> None:
+    with pytest.raises(WriteupError, match="no agent_trial bundles"):
+        fill("{{S6.naive.leaks_via_retrieval}}", make_ctx())

@@ -17,7 +17,7 @@ TEMPLATE RULES
 > **TL;DR**
 > - After removing a user from an **Entra security group**, plain **SharePoint** kept serving the file for a median of **{{S1-entra.setup0.first_deny_s.median|dur}}** before the first denial ({{S1-entra.setup0.n}} runs). **Azure AI Search's SharePoint indexer** in its basic ACL configuration stopped after **{{S1-entra.setup_a_basic.first_deny_s.median|dur}}**. A small **revocation layer** stopped after **{{S1-entra.setup_b.first_deny_s.median|dur}}**.
 > - For **direct grants** and **SharePoint-group** grants, SharePoint revoked in seconds ({{S1-direct.setup0.first_deny_s.median|dur}} and {{S1-spgroup.setup0.first_deny_s.median|dur}}) — slightly faster than our layer. The gap is specific to Entra-group changes.
-> - An agent with a **shared answer cache and memory** delivered one user's content to another in **{{S6.naive.leaks}} of {{S6.naive.trials}}** attack trials — even though both retrieval systems returned only permitted documents. A guarded agent leaked in **{{S6.guarded.leaks}} of {{S6.guarded.trials}}**, and still served allowed users.
+> - An agent with a **shared answer cache and memory** delivered one user's content to another in **{{S6.naive.leaks}} of {{S6.naive.trials}}** attack trials. In **{{S6.naive.leaks_via_cache_memory}} of those {{S6.naive.leaks}}** the leaked content came from the agent's shared cache or memory, in {{S6.naive.leaks_via_retrieval}} from retrieval. A guarded agent leaked in **{{S6.guarded.leaks}} of {{S6.guarded.trials}}**, and still served allowed users.
 >
 > *Scope: one Microsoft 365 test tenant, {{run.documents}} synthetic documents, {{run.personas}} test users, {{meta.measurement_dates}}. Azure AI Search measured in its basic ACL configuration. Full limitations below; all code, journals and the report are public.*
 
@@ -83,7 +83,7 @@ Microsoft documents an additional configuration for SharePoint-group support. **
 | S6c: shared memory recalls another user's facts | {{S6c.agent_naive_a.leaks}} of {{S6c.agent_naive_a.trials}} | {{S6c.agent_naive_b.leaks}} of {{S6c.agent_naive_b.trials}} | {{S6c.agent_guarded_b.leaks}} of {{S6c.agent_guarded_b.trials}} |
 | Positive control: allowed user is served | {{S6pc.agent_naive_a.served}} of {{S6pc.agent_naive_a.trials}} | {{S6pc.agent_naive_b.served}} of {{S6pc.agent_naive_b.trials}} | {{S6pc.agent_guarded_b.served}} of {{S6pc.agent_guarded_b.trials}} |
 
-**Both retrieval systems returned only documents the user was allowed to read.** The leaks came entirely from the agent layer: a shared semantic cache and a shared long-term memory with no permission information. Switching retrieval systems didn't change anything; switching the cache off alone didn't either, because the shared memory leaked the same content.
+**The leaked content was delivered from the agent's shared cache and memory, not from retrieval:** {{S6.naive.leaks_via_cache_memory}} of the {{S6.naive.leaks}} leaked trials came from the shared cache or memory, {{S6.naive.leaks_via_retrieval}} from retrieval. Neither store carries permission information. Retrieval was not re-run on the cache-hit turns, so these trials do not show whether Azure AI Search would have returned the revoked document at that moment (its direct-grant changes wait for the next indexer run; see Result 1). Using Azure AI Search or the revocation layer for retrieval gave the same leak counts. I did not test turning the cache off.
 
 The guarded agent stores the source documents of every cache entry and memory item, and on every hit re-checks that the **current** user may read **every** source, right now. Unknown means deny. It refused every attack candidate and still served allowed users — it doesn't achieve "security" by refusing everything.
 
@@ -127,6 +127,7 @@ It was tested on {{run.documents}} documents. **Its polling approach has not bee
 - The revocation layer queries a separate, unfiltered index over the same data source.
 - The tenant admin (a site collection admin) is out of scope.
 - Time resolution is {{run.read_interval_s|dur}}.
+- In S6, retrieval was not re-run on the turns the cache answered, so the trials say where the leaked content came from, not what retrieval would have returned then.
 - S6 uses a stub LLM and deterministic embeddings; other embeddings change how often a naive agent leaks.
 - SharePoint's behavior varied between runs in ways I could not explain; the ranges in Figure 2 show that.
 

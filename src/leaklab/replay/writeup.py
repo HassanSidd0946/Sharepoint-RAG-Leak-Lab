@@ -11,6 +11,7 @@ TOKENS  {{path}} or {{path|dur}}   (inside a Markdown table the pipe may be esca
       scenario: a full id (S1-entra) or a unique prefix (S2 -> S2-nested-group-removal)
   S6a|S6b|S6c|S6pc.<arm>.leaks|trials|served   one cell of the S6 report (S6pc is the positive control)
   S6.naive.leaks|trials, S6.guarded.leaks|trials   sums over S6a-c and the naive / guarded arms
+  S6.naive.leaks_via_cache_memory|leaks_via_retrieval   leaked trials by the path of their leaking turn (bundles)
   run.documents, run.personas           from tenant_spec.yaml
   run.read_interval_s, run.n_consecutive, run.poll_cap_s    from report.json config
   figures.timeline, figures.timeline_bundle, figures.dotplot  files of the figures folder
@@ -79,6 +80,9 @@ class Context:
     figures: Mapping[str, str]
     out_dir: Path
     rows: list[Row] = field(default_factory=list)
+    agent: list[Mapping[str, Any]] = field(
+        default_factory=list
+    )  # agent_trial bundles of the replays folder
 
     # -- helpers ---------------------------------------------------------------------------------
     def scenario(self, token: str) -> str:
@@ -145,8 +149,39 @@ def _s6_sum(ctx: Context, arms: tuple[str, ...], what: str) -> Value:
     return total, f"report.json s6.cells summed over S6a-c x {', '.join(arms)}"
 
 
+def _leak_origin(ctx: Context, mode: str) -> tuple[int, int]:
+    """(leaked trials delivered from the shared cache or memory, leaked trials delivered via retrieval)
+    among the S6a-c trials of the naive or guarded arms, from the agent bundles' leaking turns."""
+    via_store = via_retrieval = 0
+    for b in ctx.agent:
+        if b["trial"]["scenario"] not in ("S6a", "S6b", "S6c") or b["trial"]["arm"]["mode"] != mode:
+            continue
+        if b["summary"]["verdict"] != "LEAK":
+            continue
+        paths = {t["path"] for t in b["turns"] if t["verdict"] == "leak"}
+        if "retrieval" in paths:
+            via_retrieval += 1
+        else:
+            via_store += 1
+    return via_store, via_retrieval
+
+
 def _s6_token(ctx: Context, parts: list[str]) -> Value:
     head, arm, what = parts[0], parts[1], parts[2] if len(parts) > 2 else ""
+    if (
+        head == "S6"
+        and len(parts) == 3
+        and arm in ("naive", "guarded")
+        and what.startswith("leaks_via_")
+    ):
+        if not ctx.agent:
+            raise KeyError("no agent_trial bundles in the replays folder")
+        via_store, via_retrieval = _leak_origin(ctx, arm)
+        src = "agent_trial bundles: path of the leaking turn"
+        if what == "leaks_via_cache_memory":
+            return via_store, src
+        if what == "leaks_via_retrieval":
+            return via_retrieval, src
     if (
         head == "S6"
         and len(parts) == 3
@@ -298,6 +333,11 @@ def build_context(
             bundles[str(e["scenario"])] = json.loads(
                 (replays / e["bundle"]).read_text(encoding="utf-8")
             )
+    agent = [
+        json.loads((replays / e["bundle"]).read_text(encoding="utf-8"))
+        for e in index["bundles"]
+        if e.get("kind") == "agent_trial"
+    ]
     figures: dict[str, str] = {}
     timeline = bundles.get("S1-entra")
     if timeline is not None:
@@ -311,7 +351,7 @@ def build_context(
         figures["dotplot"] = _rel(dot, out_dir)
     if meta.get("architecture_figure"):
         figures["architecture"] = str(meta["architecture_figure"])
-    return Context(report, spec, meta, bundles, figures, out_dir)
+    return Context(report, spec, meta, bundles, figures, out_dir, agent=agent)
 
 
 def format_table(rows: list[Row]) -> list[tuple[str, str, str]]:
