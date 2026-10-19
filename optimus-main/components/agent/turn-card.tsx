@@ -30,7 +30,7 @@ export function TurnCard({
       data-testid={`turn-${index}`}
       data-step={turn.step}
       data-verdict={turn.verdict}
-      className={cn("space-y-2 rounded-md border bg-card p-3", leak ? "border-[color:var(--denied)]" : "border-border")}
+      className={cn("space-y-2 rounded-xl border bg-card p-3 shadow-card", leak ? "border-[color:var(--denied)]" : "border-border")}
     >
       <header className="flex items-center justify-between gap-2 text-sm">
         <span className="font-semibold">{persona}</span>

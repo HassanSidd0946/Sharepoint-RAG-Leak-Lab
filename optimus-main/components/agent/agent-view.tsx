@@ -10,8 +10,6 @@ import { slugOf } from "@/lib/replay/load"
 import type { AgentBundle, AgentEntry, IndexFile } from "@/lib/replay/types"
 import { cn } from "@/lib/utils"
 import { ReplayFooter } from "@/components/replay/footer"
-import { ThemeToggle } from "@/components/replay/theme-toggle"
-import { Nav } from "@/components/replay/nav"
 import { TurnCard } from "./turn-card"
 
 const SCENARIO_ORDER: AgentEntry["scenario"][] = ["S6a", "S6b", "S6c", "positive_control"]
@@ -124,10 +122,6 @@ export function AgentView({ bundle, index }: { bundle: AgentBundle; index: Index
           <h1 className="text-xl font-semibold">{`${bundle.trial.scenario} · ${bundle.trial.arm.label} · trial ${bundle.trial.trial}`}</h1>
           <p className="text-sm text-muted-foreground">{`${bundle.trial.kind.replaceAll("_", " ")} · asking about ${bundle.trial.question_source}`}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Nav />
-          <ThemeToggle />
-        </div>
       </header>
       <Pickers bundle={bundle} index={index} />
 
@@ -164,7 +158,7 @@ export function AgentView({ bundle, index }: { bundle: AgentBundle; index: Index
         </section>
       </div>
 
-      <section data-testid="agent-summary" className="rounded-md border border-border bg-card p-3 text-sm">
+      <section data-testid="agent-summary" className="rounded-xl border border-border bg-card p-3 text-sm shadow-card">
         <div className="flex flex-wrap items-center gap-3">
           <span data-testid="trial-verdict" data-verdict={s.verdict} className={cn(pill, VERDICT_TONE[s.verdict])}>
             {s.verdict}

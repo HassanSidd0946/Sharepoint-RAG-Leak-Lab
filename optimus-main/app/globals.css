@@ -28,12 +28,22 @@
   --chart-3: oklch(0.55 0.02 60);
   --chart-4: oklch(0.70 0.02 60);
   --chart-5: oklch(0.85 0.01 60);
-  --radius: 0.25rem;
+  --radius: 0.75rem; /* from the Pulse template */
   --served: oklch(0.62 0.15 150);
   --denied: oklch(0.58 0.22 27);
   --noanswer: oklch(0.65 0 0);
   --lockout: oklch(0.7 0.15 75);
   --indexer: oklch(0.6 0.12 250);
+  /* status tokens from the Pulse template */
+  --success: oklch(0.6 0.17 155);
+  --warning: oklch(0.78 0.18 85);
+  --info: oklch(0.55 0.15 250);
+  /* Pulse card shadow */
+  --card-shadow: 0 0 0 1px rgb(14 63 126 / 0.04), 0 1px 1px -0.5px rgb(42 51 69 / 0.04),
+    0 3px 3px -1.5px rgb(42 51 70 / 0.04), 0 6px 6px -3px rgb(42 51 70 / 0.04),
+    0 12px 12px -6px rgb(14 63 126 / 0.04), 0 24px 24px -12px rgb(14 63 126 / 0.04);
+  /* the optimus grid background */
+  --grid-line: oklch(0.12 0.01 60 / 0.06);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -69,6 +79,11 @@
   --noanswer: oklch(0.55 0 0);
   --lockout: oklch(0.78 0.15 75);
   --indexer: oklch(0.72 0.12 250);
+  --success: oklch(0.72 0.17 155);
+  --warning: oklch(0.82 0.16 85);
+  --info: oklch(0.72 0.12 250);
+  --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --grid-line: oklch(0.96 0.005 90 / 0.06);
 }
 
 @theme inline {
@@ -76,6 +91,10 @@
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --color-served: var(--served);
   --color-denied: var(--denied);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --shadow-card: var(--card-shadow);
   --color-noanswer: var(--noanswer);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -124,5 +143,15 @@
   }
   html {
     scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  /* the optimus grid background, as one utility */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 4rem 4rem;
   }
 }

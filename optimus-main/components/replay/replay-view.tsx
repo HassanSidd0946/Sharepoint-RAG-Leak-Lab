@@ -14,11 +14,11 @@ import { axisTicks, formatRel, makeScale, spacedTicks, type AxisMode } from "@/l
 import type { Bundle, IndexFile, ScriptStep } from "@/lib/replay/types"
 import { cn } from "@/lib/utils"
 import { BundlePicker } from "./bundle-picker"
+import { useHideShell } from "@/components/shell/shell-visibility"
 import { LaneChart } from "./lane-chart"
 import { LaneClock } from "./lane-clock"
 import { ReplayFooter } from "./footer"
 import { SummaryStrip } from "./summary-strip"
-import { ThemeToggle } from "./theme-toggle"
 
 const PERCENT = 100
 
@@ -66,6 +66,7 @@ export function ReplayView({
   const [presentation, setPresentation] = useState(initialPresentation)
   const [scripted, setScripted] = useState(true)
   const [fit, setFit] = useState(1)
+  useHideShell(presentation)
   const activeScript = presentation && scripted && script ? script : null
   const play = usePlayback(
     model.domain,
@@ -144,7 +145,6 @@ export function ReplayView({
         {presentation ? null : (
           <div className="flex items-center gap-2">
             <BundlePicker index={index} current={bundle} />
-            <ThemeToggle />
           </div>
         )}
       </header>

@@ -203,7 +203,7 @@ export function LaneChart({
       preserveAspectRatio="none"
       role="img"
       aria-label={lane.label}
-      className="block overflow-hidden rounded-sm bg-card"
+      className="block overflow-hidden rounded-lg bg-card"
     >
       <Ticks lane={lane} scale={scale} />
       <rect

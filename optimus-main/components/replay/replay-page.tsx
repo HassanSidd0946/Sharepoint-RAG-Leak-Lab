@@ -8,9 +8,7 @@ import type { Bundle, IndexFile, ScenarioEntry, ScriptStep } from "@/lib/replay/
 import type { Checked } from "@/lib/replay/validate"
 import { BundlePicker } from "./bundle-picker"
 import { ErrorPanel } from "./error-panel"
-import { Nav } from "./nav"
 import { ReplayView } from "./replay-view"
-import { ThemeToggle } from "./theme-toggle"
 
 type Problem = { title: string; problems: string[]; total: number }
 type State =
@@ -88,15 +86,11 @@ export function ReplayPage({ slug }: { slug?: string }) {
     <div className="mx-auto max-w-3xl space-y-4 p-6">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-semibold">Replays</h1>
-        <div className="flex items-center gap-2">
-          <Nav />
-          <BundlePicker index={state.index} />
-          <ThemeToggle />
-        </div>
+        <BundlePicker index={state.index} />
       </div>
       <ul className="space-y-2">
         {replicates.map((b) => (
-          <li key={b.bundle} className="rounded-md border border-border bg-card p-3">
+          <li key={b.bundle} className="rounded-xl border border-border bg-card p-3 shadow-card">
             <Link href={`/replay/${slugOf(b.bundle)}`} className="font-semibold underline-offset-4 hover:underline">
               {`${b.scenario} · replicate ${b.replicate}`}
             </Link>

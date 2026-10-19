@@ -4,8 +4,6 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { ErrorPanel } from "@/components/replay/error-panel"
-import { Nav } from "@/components/replay/nav"
-import { ThemeToggle } from "@/components/replay/theme-toggle"
 import { loadAgentBundle, loadIndex, slugOf } from "@/lib/replay/load"
 import type { AgentBundle, IndexFile } from "@/lib/replay/types"
 import { AgentView, agentEntries } from "./agent-view"
@@ -62,14 +60,10 @@ export function AgentPage({ slug }: { slug?: string }) {
     <div className="mx-auto max-w-3xl space-y-4 p-6">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-semibold">Agent trials</h1>
-        <div className="flex items-center gap-2">
-          <Nav />
-          <ThemeToggle />
-        </div>
       </div>
       <ul className="space-y-2">
         {entries.map((e) => (
-          <li key={e.bundle} className="rounded-md border border-border bg-card p-3 text-sm">
+          <li key={e.bundle} className="rounded-xl border border-border bg-card p-3 shadow-card text-sm">
             <Link href={`/agent/${slugOf(e.bundle)}`} className="font-semibold underline-offset-4 hover:underline">
               {`${e.scenario} · ${e.arm} · trial ${e.trial}`}
             </Link>

@@ -11,7 +11,7 @@ export function SummaryStrip({ lanes }: { lanes: LaneModel[] }) {
   return (
     <div data-testid="summary-strip" className="grid gap-3 md:grid-cols-3">
       {lanes.map((lane) => (
-        <div key={lane.id} className="rounded-md border border-border bg-card p-3">
+        <div key={lane.id} className="rounded-xl border border-border bg-card p-3 shadow-card">
           <div className="text-sm font-semibold">{lane.label}</div>
           {lane.summary ? (
             <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 text-sm">
