@@ -11,6 +11,7 @@ from typing import Any
 from leaklab.runner import Engine, Journal, RunConfig, build_report, load_events
 from leaklab.runner.journal import new_journal_path
 from leaklab.runner.metrics import RunReport
+from leaklab.runner.run import spec_sha256, write_report
 from runner_fakes import SPEC, FakeSystem, make_world
 
 
@@ -28,6 +29,7 @@ class BFakeSystem(FakeSystem):
             out.append(
                 {
                     "kind": "setup_b_ready",
+                    "t": self._clock.time(),
                     "ready": True,
                     "time_to_ready_s": 41.5,
                     "waited_in_prepare_s": 12.0,
@@ -56,7 +58,12 @@ class BFakeSystem(FakeSystem):
                 )  # fmt: skip
         if self._lag_n % 6 == 0:
             out.append(
-                {"kind": "poller_lag", "membership_age_s": 4.0, "acl_age_s": 2.0 + self._lag_n % 5}
+                {
+                    "kind": "poller_lag",
+                    "t": self._clock.time(),
+                    "membership_age_s": 4.0,
+                    "acl_age_s": 2.0 + self._lag_n % 5,
+                }
             )
         return out
 
@@ -124,7 +131,9 @@ class FakeRuns:
                 {
                     "type": "run_started", "run_id": path.stem, "t": clock.time(),
                     "scenarios": scenario_ids, "systems": system_names,
-                    "config": config.as_dict(), "spec_sha256": "x", "tenant": {},
+                    "config": config.as_dict(), "spec_sha256": spec_sha256(spec_path),
+                    "generation": SPEC.naming.generation,
+                    "tenant": {},
                 }
             )  # fmt: skip
             if {"setup_a_basic", "setup_b"} & set(system_names):
@@ -160,4 +169,6 @@ class FakeRuns:
                 raise KeyboardInterrupt("simulated crash")
             engine.run(scenario_ids)
             journal.append({"type": "run_finished", "t": clock.time()})
-        return path, build_report(SPEC, load_events(path))
+        report = build_report(SPEC, load_events(path))
+        write_report(report, path)
+        return path, report

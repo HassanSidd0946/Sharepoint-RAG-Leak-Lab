@@ -1844,3 +1844,17 @@ access at that moment (oracle) lacks it. Verdict counts of the 3 trials per cell
   Setup B's state, which lags the tenant by seconds (S6b waits 30 s after the confirmed revocation); Setup B queries a separate, unfiltered index.
 - Not verified: the real-LLM `explore` command (no API key was used); `skip` paging stability; behaviour of a different embedding.
 
+
+## Replay bundles (Prompt 23a; 2026-10-19; src/leaklab/replay/, schema docs/schemas/replay_bundle.schema.json v1.0)
+
+Exporter: `uv run python -m leaklab.replay export --runs runs/benchmark_v2 --out <dir>`; figures: `... figures --bundles <dir> --out runs/figures`. Real export of runs/benchmark_v2: 4 bundles, summary recompute (oracle `classify` over the bundle's own reads) equals report.json for every scenario x system; schema and redaction scans pass.
+
+**Maps directly from the journal:** run id, generation, config (interval, cap, n_consecutive), reads (`obs`: time, system, persona, canary, served/error, status), mutation request/confirm times, indexer runs (`system_event` indexer_run), poller lag (`poller_lag`), setup_b ready time.
+**Derived:** `expected` and `verdict` of every read (oracle IntentTimeline over the run's applied mutations; error / not_indexed -> "unscored"), `t_rel_s`, document labels (spec + plan), mutation text, phases (from baseline_done, scenario_done and the copied summary), per-pair roles.
+**Not in the journals, so omitted (nothing invented):** indexer events for systems that report none, poller lag for systems other than Setup B, any event whose journal record has no time. System labels / config_label are fixed in `labels.py`, not journaled.
+**Gaps / decisions open:**
+- Schema status enum has no NOTHING_TO_REVOKE / NO_DATA: the S1-spgroup bundle is skipped loudly (exit code 3). Needs schema v1.1 or a mapping decision.
+- Bundles hold all reads of the tracked pairs to the end of the journal (control pair is shared), so short scenarios span about 58 min and bundles are 0.2-1.7 MB.
+- An indexer run that started but never finished is exported with status "unfinished" (our choice; not in a journal as such).
+- S6 (agent) journals cannot be expressed in schema v1.0.
+- Only run 1 exists in runs/benchmark_v2 so far: re-export after the overnight runs (n=7).

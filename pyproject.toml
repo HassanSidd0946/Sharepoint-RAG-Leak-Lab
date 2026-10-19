@@ -20,6 +20,8 @@ dependencies = [
     "langgraph>=1.2.16",
     "langgraph-checkpoint-postgres>=3.2.0",
     "pgserver>=0.1.4",
+    "jsonschema>=4.26.0",
+    "matplotlib>=3.11.2",
 ]
 
 [dependency-groups]
@@ -55,8 +57,10 @@ select = ["E", "F", "W", "I", "UP", "B"]
 "src/leaklab/benchmark/cli.py" = ["B008"]  # same: typer.Option(...) defaults
 "src/leaklab/setup_b/recall.py" = ["B008"]
 "src/leaklab/agent/**" = ["E501", "B008"]  # long SQL strings and docstrings in the agent package
+"src/leaklab/replay/**" = ["E501", "B008"]  # long label strings; typer options
 "tests/*agent*.py" = ["E501"]
 "tests/*s6*.py" = ["E501"]
+"tests/*replay*.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -68,6 +72,10 @@ plugins = ["pydantic.mypy"]
 [[tool.mypy.overrides]]
 module = ["msal", "msal.*"]
 ignore_missing_imports = true  # msal ships no type information
+
+[[tool.mypy.overrides]]
+module = ["jsonschema", "jsonschema.*"]
+ignore_missing_imports = true  # no stubs installed; used only to validate bundles
 
 [[tool.mypy.overrides]]
 module = ["anthropic", "anthropic.*"]
