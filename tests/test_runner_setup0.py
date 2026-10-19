@@ -17,9 +17,9 @@ from leaklab.runner.setup0 import Setup0SharePoint, TokenCache
 
 CANARY = "CANARY-S1D-01-b67fb8"
 DRIVE, ITEM = "drive1", "item1"
-UPN = "ll-p-plateng@leaklabdev.onmicrosoft.com"
+UPN = "ll-p-plateng@contoso.onmicrosoft.com"
 GRAPH_URL = f"https://graph.microsoft.com/v1.0/drives/{DRIVE}/items/{ITEM}/content"
-DOWNLOAD = "https://leaklabdev.sharepoint.com/_layouts/download.aspx?sig=abc"
+DOWNLOAD = "https://contoso.sharepoint.com/_layouts/download.aspx?sig=abc"
 
 
 def jwt(exp: float) -> str:

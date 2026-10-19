@@ -3,7 +3,7 @@
 Observed 2026-10-17 (probes/search_acl_probe.py, stage lookup): the SharePoint indexer with
 `base64Encode` on `metadata_spo_site_library_item_id` stores keys that decode to
     "<site id>::<drive id>::<drive item id>"
-for example "leaklabdev.sharepoint.com,<site collection guid>,<web guid>::b!<drive>::01<item>".
+for example "<tenant>.sharepoint.com,<site collection guid>,<web guid>::b!<drive>::01<item>".
 The encoding is URL-safe base64. EMPIRICAL, not documented: the item part the INDEXER stores is
 Graph's driveItem id plus one extra character "5" (6 of 6 documents compared on 2026-10-17: 34 -> 35
 characters, always "5"). The probe `lookup` checks derived keys against the index; if a lookup by a

@@ -79,7 +79,7 @@ def test_logins_are_read_as_the_verified_claim_formats() -> None:
         "user",
         "ll-p-intern@t.onmicrosoft.com",
     )
-    gid = "46215F48-3C54-4BF3-815B-DF4D3CE8CA4C"
+    gid = "00000000-0000-4000-8000-0000000000b2"
     assert parse_login(f"{GROUP_PREFIX}{gid}", 4) == ("entra_group", gid.lower())
 
 

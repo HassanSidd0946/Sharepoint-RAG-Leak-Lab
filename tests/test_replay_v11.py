@@ -210,8 +210,8 @@ def test_dur_formats_like_the_write_up() -> None:
 # -- 6 S6 agent bundles --------------------------------------------------------------------------
 
 FLD = CAN["Finance/Leadership"]
-OWNER_OID = "e0aba0f9-9b9e-40e4-a271-b52d96d96084"
-ITEM_ID = "01RQLOFTUVBCRNGAO2IFB2B36KAHRIP45A"
+OWNER_OID = "00000000-0000-4000-8000-0000000000a1"
+ITEM_ID = "01FAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE"
 
 
 def _answer(*canaries: str) -> str:

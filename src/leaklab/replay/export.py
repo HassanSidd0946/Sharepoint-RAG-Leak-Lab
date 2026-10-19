@@ -181,6 +181,7 @@ def export_journal(
     schema: dict[str, Any] | None = None,
     commit: str | None = None,
     exported_at: float | None = None,
+    ordinals: Mapping[str, int] | None = None,
 ) -> ExportResult:
     """All bundles of one run journal. Raises SummaryMismatch / RedactionError / ValidationError."""
     schema = schema or load_schema()
@@ -381,7 +382,7 @@ def export_journal(
             "scenario": {
                 "id": sid,
                 "description": next(s.description for s in spec.scenarios if s.id == sid),
-                "replicate": rep,
+                "replicate": (ordinals or {}).get(sid, rep),
                 "baseline_target_s": round(
                     int(config["baseline_k"]) * float(config["interval_s"]), 3
                 ),
@@ -406,7 +407,7 @@ def export_journal(
         }
         jsonschema.Draft202012Validator(schema).validate(data)
         assert_clean(data, f"{run_id}/{sid}")
-        result.bundles.append(Bundle(f"{run_id}__{sid}__r{rep}", data))
+        result.bundles.append(Bundle(f"{run_id}__{sid}__r{(ordinals or {}).get(sid, rep)}", data))
     return result
 
 
@@ -606,6 +607,28 @@ def finish_caveats(bundles: Sequence[Bundle]) -> None:
             assert_clean(b.data, b.name)
 
 
+def replicate_ordinals(runs: Path, manifest: Mapping[str, Any] | None) -> dict[str, dict[str, int]]:
+    """journal file -> {scenario: replicate number}. The replicate number of a scenario is its place among the
+    planned runs that contain it (plan.json), not the run number: if S1-direct runs in runs 1, 8 and 9 those
+    are its replicates 1, 2 and 3. Empty without a plan or manifest (the run number is used then)."""
+    plan_file = runs / "plan.json"
+    if not manifest or not plan_file.exists():
+        return {}
+    plan = json.loads(plan_file.read_text(encoding="utf-8"))
+    by_index = {int(r["index"]): list(r["scenarios"]) for r in plan.get("runs", [])}
+    seen: dict[str, int] = {}
+    out: dict[str, dict[str, int]] = {}
+    for index in sorted(by_index):
+        ordinal: dict[str, int] = {}
+        for sid in by_index[index]:
+            seen[sid] = seen.get(sid, 0) + 1
+            ordinal[sid] = seen[sid]
+        for entry in manifest.get("runs", []):
+            if int(entry["index"]) == index and entry.get("journal"):
+                out[str(entry["journal"])] = ordinal
+    return out
+
+
 def export_folder(runs: Path, spec: TenantSpec, spec_sha256: str) -> ExportResult:
     """Every run journal of a benchmark folder (run_*.jsonl with its .report.json)."""
     manifest_path = runs / "manifest.json"
@@ -616,6 +639,7 @@ def export_folder(runs: Path, spec: TenantSpec, spec_sha256: str) -> ExportResul
     commit = git_commit()
     now = time.time()
     total = ExportResult()
+    ordinals = replicate_ordinals(runs, manifest)
     for journal in sorted(runs.glob("run_*_r*.jsonl")):
         report_file = journal.with_suffix(".report.json")
         if not report_file.exists():
@@ -632,6 +656,7 @@ def export_folder(runs: Path, spec: TenantSpec, spec_sha256: str) -> ExportResul
             schema=schema,
             commit=commit,
             exported_at=now,
+            ordinals=ordinals.get(journal.name),
         )
         total.bundles += one.bundles
         total.skipped += one.skipped

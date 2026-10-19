@@ -15,6 +15,9 @@ TOKENS  {{path}} or {{path|dur}}   (inside a Markdown table the pipe may be esca
   S6.naive.leaks_via_cache_memory|leaks_via_retrieval   leaked trials by the path of their leaking turn (bundles)
   run.documents, run.personas           from tenant_spec.yaml
   run.read_interval_s, run.n_consecutive, run.poll_cap_s    from report.json config
+  summary.<scenario>.<system>.first_deny_s.median|min|max, .n, .n_label; summary.totals.<field>; summary.caveats
+                                        read from summary.json (README); site.links.writeup_line (empty while the
+                                        link is null); env.names (the NAMES in .env.example)
   figures.timeline, figures.timeline_bundle, figures.dotplot  files of the figures folder
   meta.*                                values of meta.yaml (not measured: dates, URLs, contact, API
                                         version, schedule); meta.replicates_range and, if meta.yaml says
@@ -84,6 +87,9 @@ class Context:
     agent: list[Mapping[str, Any]] = field(
         default_factory=list
     )  # agent_trial bundles of the replays folder
+    summary: Mapping[str, Any] | None = None  # the replays folder's summary.json
+    site: Mapping[str, Any] | None = None  # the site's meta.json (links)
+    env_names: list[str] = field(default_factory=list)  # variable NAMES of .env.example
 
     # -- helpers ---------------------------------------------------------------------------------
     def scenario(self, token: str) -> str:
@@ -263,9 +269,66 @@ def _figures_token(ctx: Context, parts: list[str]) -> Value:
     raise KeyError(f"no figure {key!r} (have: {', '.join(sorted(ctx.figures))})")
 
 
+NL = chr(10)
+PROVISIONAL_BELOW = 3  # the site's rule: fewer replicates than this is "provisional"
+
+
+def _summary_token(ctx: Context, parts: list[str]) -> Value:
+    """Tokens read from summary.json (the file the Findings page shows), e.g.
+    summary.S1-entra.setup0.first_deny_s.median | .n | .n_label, summary.totals.replicates, summary.caveats."""
+    if ctx.summary is None:
+        raise KeyError("no summary.json in the replays folder")
+    src = "summary.json"
+    if parts[1] == "totals" and len(parts) == 3:
+        return ctx.summary["totals"][parts[2]], f"{src} totals.{parts[2]}"
+    if parts[1] == "caveats" and len(parts) == 2:
+        return NL.join(f"- {c}" for c in ctx.summary["caveats"]), f"{src} caveats"
+    ids = sorted({str(c["scenario"]) for c in ctx.summary["cells"]})
+    hits = [i for i in ids if i == parts[1] or i.startswith(parts[1] + "-")]
+    if len(parts) < 4 or len(hits) != 1:
+        raise KeyError(f"unknown summary field {'.'.join(parts)!r}")
+    cell = next(
+        (c for c in ctx.summary["cells"] if c["scenario"] == hits[0] and c["system"] == parts[2]),
+        None,
+    )
+    if cell is None:
+        raise KeyError(f"no summary cell {hits[0]}/{parts[2]}")
+    where = f"{src} cells[{hits[0]}/{parts[2]}]"
+    rest = parts[3:]
+    if rest == ["n"]:
+        return cell["replicates"], where + ".replicates"
+    if rest == ["n_label"]:
+        n = int(cell["replicates"])
+        return (
+            f"provisional (n = {n})" if n < PROVISIONAL_BELOW else f"n = {n}"
+        ), where + ".replicates"
+    if len(rest) == 2 and rest[0] == "first_deny_s" and rest[1] in ("median", "min", "max"):
+        return cell["first_deny"][rest[1]], where + f".first_deny.{rest[1]}"
+    raise KeyError(f"unknown summary field {'.'.join(parts)!r}")
+
+
+def _site_token(ctx: Context, parts: list[str]) -> Value:
+    if ctx.site is None:
+        raise KeyError("no site meta.json given")
+    if parts == ["site", "links", "writeup_line"]:
+        url = ctx.site["links"].get("writeup")
+        return (
+            f"Write-up: {url}" if url else ""
+        ), "site meta.json links.writeup (empty while null)"
+    raise KeyError(f"unknown site field {'.'.join(parts)!r}")
+
+
 def resolve(ctx: Context, path: str) -> Value:
     parts = path.split(".")
     head = parts[0]
+    if head == "summary":
+        return _summary_token(ctx, parts)
+    if head == "site":
+        return _site_token(ctx, parts)
+    if parts == ["env", "names"]:
+        if not ctx.env_names:
+            raise KeyError("no .env.example names")
+        return NL.join(f"- `{n}`" for n in ctx.env_names), ".env.example (names only)"
     if head == "meta":
         return _meta_token(ctx, parts)
     if head == "run":
@@ -334,6 +397,8 @@ def build_context(
     out_dir: Path,
     figures_dir: Path,
     allow_unset_meta: bool = False,
+    site_meta: Path | None = None,
+    env_example: Path | None = None,
 ) -> Context:
     report = json.loads(report_path.read_text(encoding="utf-8"))
     meta = yaml.safe_load(meta_path.read_text(encoding="utf-8")) or {}
@@ -351,6 +416,21 @@ def build_context(
         for e in index["bundles"]
         if e.get("kind") == "agent_trial"
     ]
+    summary_file = replays / "summary.json"
+    summary = (
+        json.loads(summary_file.read_text(encoding="utf-8")) if summary_file.exists() else None
+    )
+    site = (
+        json.loads(site_meta.read_text(encoding="utf-8"))
+        if site_meta and site_meta.exists()
+        else None
+    )
+    env_names: list[str] = []
+    if env_example and env_example.exists():
+        for line in env_example.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"^([A-Z][A-Z0-9_]+)=", line)
+            if m:
+                env_names.append(m.group(1))
     figures: dict[str, str] = {}
     timeline = bundles.get("S1-entra")
     if timeline is not None:
@@ -364,7 +444,18 @@ def build_context(
         figures["dotplot"] = _rel(dot, out_dir)
     if meta.get("architecture_figure"):
         figures["architecture"] = str(meta["architecture_figure"])
-    return Context(report, spec, meta, bundles, figures, out_dir, agent=agent)
+    return Context(
+        report,
+        spec,
+        meta,
+        bundles,
+        figures,
+        out_dir,
+        agent=agent,
+        summary=summary,
+        site=site,
+        env_names=env_names,
+    )
 
 
 def format_table(rows: list[Row]) -> list[tuple[str, str, str]]:

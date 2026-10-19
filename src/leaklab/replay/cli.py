@@ -16,6 +16,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from leaklab.replay.build_public import BuildError, build_public
 from leaklab.replay.export import ExportError, export_folder, write_bundles
 from leaklab.replay.figures import (
     best_demo_bundle,
@@ -25,6 +26,7 @@ from leaklab.replay.figures import (
     representative_name,
     timeline_figure,
 )
+from leaklab.replay.publish_check import check as publish_check
 from leaklab.replay.redact import RedactionError
 from leaklab.replay.summary import SummaryMismatch
 from leaklab.replay.summary_export import write_summary
@@ -127,6 +129,8 @@ def cmd_writeup(
     video_out: Path = typer.Option(Path("docs/video/VIDEO_SCRIPT.filled.md"), "--video-out"),
     figures: Path = typer.Option(Path("runs/figures"), "--figures"),
     spec_path: Path = SPEC_OPT,
+    site_meta: Path = typer.Option(Path("optimus-main/public/meta.json"), "--site-meta"),
+    env_example: Path = typer.Option(Path(".env.example"), "--env-example"),
     allow_unset_meta: bool = typer.Option(
         False,
         "--allow-unset-meta",
@@ -135,7 +139,15 @@ def cmd_writeup(
 ) -> None:
     """Fill the write-up (and the video script) from the report and the bundles; fail on any bad token."""
     ctx = build_context(
-        report, replays, meta, load_spec(spec_path), out.parent, figures, allow_unset_meta
+        report,
+        replays,
+        meta,
+        load_spec(spec_path),
+        out.parent,
+        figures,
+        allow_unset_meta,
+        site_meta=site_meta,
+        env_example=env_example,
     )
     jobs = [(template, out)]
     if video.exists():
@@ -158,3 +170,44 @@ def cmd_writeup(
     for row in format_table(ctx.rows):
         table.add_row(*row)
     console.print(table)
+
+
+@app.command("publish-check")
+def cmd_publish_check(root: Path = typer.Option(Path("."), "--root")) -> None:
+    """Check docs/PUBLISH.md against git: private or unlisted files tracked, and identifiers in public files."""
+    wrong, findings = publish_check(root.resolve())
+    for kind, names in wrong.items():
+        by_top: dict[str, int] = {}
+        for n in names:
+            by_top[n.split("/")[0]] = by_top.get(n.split("/")[0], 0) + 1
+        console.print(
+            f"{kind} files that git would publish: {len(names)} {by_top if names else ''}"
+        )
+    for f in findings:
+        console.print(f"{f.path}:{f.line} {f.kind}")
+    console.print(f"findings in public files: {len(findings)}")
+    if findings or any(wrong.values()):
+        raise typer.Exit(code=1)
+
+
+@app.command("build-public")
+def cmd_build_public(
+    out: Path = typer.Option(..., "--out", help="A NEW (empty) folder for the public repository."),
+    root: Path = typer.Option(Path("."), "--root"),
+    skip_gitleaks: bool = typer.Option(
+        False, "--skip-gitleaks", help="Do not run gitleaks (not for a release)."
+    ),
+) -> None:
+    """Build the public repository from the allowlist: one clean commit, tenant_spec.yaml with placeholders."""
+    from leaklab.replay.build_public import run_gitleaks
+
+    try:
+        report = build_public(root.resolve(), out, gitleaks=None if skip_gitleaks else run_gitleaks)
+    except BuildError as exc:
+        console.print(f"[bold red]build-public stopped:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
+    for step in report.steps:
+        console.print(step)
+    console.print(
+        f"built {out} ({len(report.files)} files, commit {report.commit}). Nothing was pushed."
+    )

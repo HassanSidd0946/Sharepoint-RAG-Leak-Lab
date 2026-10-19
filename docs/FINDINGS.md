@@ -106,9 +106,9 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 
 ### Tenant setup facts confirmed by the probe
 - Date: 2026-10-15
-- The tenant's domain `leaklabdev.onmicrosoft.com` is valid: users were created as
-  `ll-probe-a@leaklabdev.onmicrosoft.com` and `ll-probe-b@...`. The site is
-  `https://leaklabdev.sharepoint.com/sites/LeakLab`. `tenant_spec.yaml` now holds both.
+- The tenant's domain `<tenant>.onmicrosoft.com` is valid: users were created as
+  `ll-probe-a@<tenant>.onmicrosoft.com` and `ll-probe-b@...`. The site is
+  `https://<tenant>.sharepoint.com/sites/LeakLab`. `tenant_spec.yaml` now holds both.
 - Creating users with the `LEAKLAB_PERSONA_PASSWORD` value was accepted (it meets the tenant's
   password policy), and `POST /users`, `POST /groups` and the app roles
   `User.ReadWrite.All` / `Group.ReadWrite.All` are sufficient for it.
@@ -267,9 +267,9 @@ endpoint, what we expected, what actually happened, and a doc link if any.
 ### Unique permissions on a single FILE, granted to a user; the real user claim (sp_probe file-grant)
 - Date: 2026-10-15
 - Endpoint: `POST <file ListItemAllFields>/breakroleinheritance(...)`, `POST /_api/web/ensureuser`
-  with the PLAIN UPN `ll-probe-a@leaklabdev.onmicrosoft.com`, then `addroleassignment`
+  with the PLAIN UPN `ll-probe-a@<tenant>.onmicrosoft.com`, then `addroleassignment`
 - Actual: break inheritance on a file worked (200). `ensureuser` accepted the plain UPN and returned
-  `LoginName` = `i:0#.f|membership|ll-probe-a@leaklabdev.onmicrosoft.com` (lowercase UPN),
+  `LoginName` = `i:0#.f|membership|ll-probe-a@<tenant>.onmicrosoft.com` (lowercase UPN),
   `PrincipalType` 1, `Title` = `ll-probe-a`, `UserPrincipalName` set, `Email` empty. So the assumed
   claim format is verified for a user (it is also what the admin has). After the grant, the file had
   `HasUniqueRoleAssignments=True` and exactly one assignment (the user, Read); Graph listed the user
@@ -1231,7 +1231,7 @@ configured; the driver app has no Azure role and no app-registration rights (Gra
 Group.ReadWrite.All, LicenseAssignment.Read.All, Sites.FullControl.All, User.ReadWrite.All).
 
 ### Setup A probes, first results (2026-10-17; probes/out/search_acl_*_20261017T07*.json)
-VERIFIED against a real Basic service (`leaklab-search-772918cf`, created with probes/search_provision.py):
+VERIFIED against a real Basic service (`<search-service>`, created with probes/search_provision.py):
 - The driver app's Entra token with scope `https://search.azure.com/.default` is accepted as the
   Authorization bearer once the service has `aadOrApiKey` auth and the driver app has the roles
   (Search Service Contributor, Search Index Data Contributor, Search Index Data Reader); api-version
@@ -1240,7 +1240,7 @@ VERIFIED against a real Basic service (`leaklab-search-772918cf`, created with p
 - Data source `type: sharepoint` with `indexerPermissionOptions: [userIds, groupIds]`, a client-secret
   connection string (SharePointOnlineEndpoint = the SITE url) and container `useQuery` was accepted (201).
   `includeFolder=` REQUIRES a full URL with `https://`: the docs' example without the scheme gave
-  HTTP 400 "Invalid URI format 'leaklabdev.sharepoint.com/sites/LeakLab/Shared Documents/ll-lab'" at
+  HTTP 400 "Invalid URI format '<tenant>.sharepoint.com/sites/LeakLab/Shared Documents/ll-lab'" at
   indexer creation. With `https://...` the indexer was created (201).
 - The indexer ran by itself on creation (an explicit `run` straight after answered HTTP 409 "Another
   indexer invocation is currently in progress"). First run: 07:53:07 -> 07:53:25 (18 s), status success,
@@ -1270,7 +1270,7 @@ VERIFIED against a real Basic service (`leaklab-search-772918cf`, created with p
   token for the search service can be issued through it. Which scope name that resource offers: UNVERIFIED.
 
 ### Setup A probes, trimming and revocation (2026-10-17; probes/out/search_acl_trim_*, _revoke_*, _entra_add_lag_*)
-Service `leaklab-search-772918cf`, plain SharePoint-indexer ACL configuration (client-secret ingestion app, no SharePoint-group
+Service `<search-service>`, plain SharePoint-indexer ACL configuration (client-secret ingestion app, no SharePoint-group
 configuration), api-version 2026-08-01-preview, tenant generated from the 10-folder spec. All numbers below are single runs
 unless a count is given.
 - USER TOKEN: after adding the Azure AI Search resource (app 880da380-985e-4198-81b9-e05b1cc53158) to `leaklab-persona`'s API
@@ -1321,7 +1321,7 @@ What the plain configuration (no SharePoint-group setup) stored, per folder, in 
 - Entra group grant -> the group's object id in GroupIds (Board, Engineering, Finance, Finance/Leadership, HR,
   Platform-Secrets, S1-Entra: one id each, nothing expanded to members).
 - Direct user grant -> the user's object id in UserIds (Board: p-ceo; special file: p-ceo and p-hr).
-- SHAREPOINT-GROUP grant (S1-SPGroup) -> STORED, not dropped: GroupIds = `spg:https://leaklabdev.sharepoint.com/sites/leaklab:168`
+- SHAREPOINT-GROUP grant (S1-SPGroup) -> STORED, not dropped: GroupIds = `spg:https://<tenant>.sharepoint.com/sites/leaklab:168`
   (the prefix `spg:`, the site url in lower case, the SharePoint group id 168). Yet p-plateng, a member of that group, was not served
   those documents (trim stage): without `sharePointConnectorAppRegistration` the value is stored but never matched at query time.
 - Inherited documents (General, via the site root) carry grp-all-staff AND `spg:...:3`, `spg:...:4`, `spg:...:5` (the site's own
@@ -1654,34 +1654,22 @@ Times in seconds after the change was confirmed; "leak" = how long after it the 
 - Tests (fake tenant, fake clock, real engine journals): plan, resumable executor (crash -> resume from the journal, --redo), per-cell
   statistics, caveats generated from the data, HTML/JSON report, and a guard that the HTML template contains no numbers of its own.
 
-## Benchmark, first full run (2026-10-18; runs/benchmark/report.html, report.json; 5 runs, journals run_20261018T*_r1..r5.jsonl)
-Medians over the replicates (min-max in report.json); times in seconds after the change was confirmed; read interval 5 s; ONE tenant.
-| scenario | setup0 first deny | setup_a_basic first deny | setup_b first deny |
-|---|---|---|---|
-| S1-direct (n=3) | 5 | 227 | 17 |
-| S1-spgroup (n=3) | 6 | never served (3 of 3 had nothing to revoke) | 11 |
-| S1-entra (n=5) | 2565 (1 did not converge in 60 min) | 164 | 10 |
-| S2 nested removal (n=5) | 2663 | 234 | 9 |
-| S4 move (n=2) | no change expected, none seen | no change, none seen | no change in access (but see lockouts below) |
-Setup B's largest leak exposure after a change was 13 s (S2); none of its replicates failed to converge.
-- PROBLEM 1 (Setup B start-up lockouts): setup_b withheld pairs it should serve at the START of runs 1-3: pairs were first served 6-12 s
-  (run 1), about 90-98 s (run 2) and 25-31 s (run 3) after the run began; runs 4 and 5 had none. Direct user grants (p-ceo and p-hr on the
-  special file, p-plateng on S1-Direct) were affected as well as group grants, and `/health` never reported degraded, so the state was
-  fresh but incomplete. These reads count as `lockout` in the table (also S4 shows setup_b LOCKOUT 2 of 2: only these start-up reads).
-  They happen BEFORE the change, so they are not revocation numbers, but they are real: a freshly generated tenant is not served
-  correctly for up to ~100 s. Cause UNVERIFIED: the first sync right after `generate` may see SharePoint/Graph before the new
-  permissions and memberships are visible, and a later poll or the 60 s verification completes it (run 2's ~90 s fits a verification
-  cycle). To check: log the first sync's grant count against a later one, or wait a settle time after generate before building Setup B.
-- PROBLEM 2 (stale copies in the index): `ll-sp-index-b` holds 268 documents for 45 live ones; every canary exists in up to 6 copies (one
-  per tenant generation). Neither indexer removes documents of a deleted tenant. Setup B denies the stale copies (unknown item id) so
-  nothing leaks, but they fill the k*5 window: the recall figures in this report (e.g. k=10: 1340 returned of 2436 possible) are
-  CONTAMINATED and must not be quoted. `ll-sp-index` (Setup A) very probably has the same stale copies (not counted yet); their stored
-  ACLs name principals of deleted generations, which is why they were not served, but that is not verified. Fix proposed, not done:
-  delete the documents of earlier generations from both indexes (or reset them) after each teardown, then re-measure recall.
-- Read errors (served=None, mostly right after each regeneration while the indexers catch up) are excluded from every number; setup_a_basic
-  had the most (37-127 per cell).
+## Benchmark, first full run (2026-10-18): superseded, its numbers are not published
+The first full benchmark (five runs, folder `runs/benchmark`) was run before the fixes described below. Its results are superseded by the
+re-run set `runs/benchmark_v2` (journals with per-generation canaries, index cleanup, the readiness gate) and are deliberately not quoted in
+any public document. It found two problems of the measurement itself, which the fixes below address:
+- PROBLEM 1 (Setup B start-up lockouts): in some runs setup_b withheld pairs it should serve at the START of the run, for a while after the
+  run began. Direct user grants as well as group grants were affected, and `/health` never reported degraded, so the state was fresh but
+  incomplete. These reads count as `lockout`. They happen BEFORE the change, so they are not revocation numbers, but they are real: a freshly
+  generated tenant was not served correctly for a short time. Cause UNVERIFIED (see "Readiness" below for what the re-run showed).
+- PROBLEM 2 (stale copies in the index): `ll-sp-index-b` held copies of every canary from earlier tenant generations. Neither indexer removes
+  documents of a deleted tenant. Setup B denies the stale copies (unknown item id) so nothing leaks, but they fill the k*5 window, so the
+  recall figures of that benchmark were CONTAMINATED and must not be quoted. `ll-sp-index` (Setup A) very probably had the same stale copies;
+  their stored ACLs name principals of deleted generations, which is why they were not served (not verified at the time). Fix: delete the
+  documents of earlier generations from both indexes after each teardown, then re-measure recall (done, below).
+- Read errors (served=None, mostly right after each regeneration while the indexers catch up) are excluded from every number.
 
-## Fixes after the first benchmark (2026-10-18; docs/BENCHMARK_HANDOFF.md)
+## Fixes after the first benchmark (2026-10-18)
 
 ### 1. Per-generation canaries
 - Every canary now carries the id of the tenant generation: `CANARY-G<6>-<folder code>-<nn>-<hex6>` and `CANARY-G<6>-SPC-<hex6>`.
@@ -1705,10 +1693,10 @@ Setup B's largest leak exposure after a change was 13 s (S2); none of its replic
   not "indexed", reported once, a stale copy visible to a persona who may not read the current document is a denial), a hit without a usable key.
 
 ### 3. Index cleanup
-- PROBE (probes/index_cleanup_probe.py, probes/out/index_cleanup_*_20261018T11*.json), before: `ll-sp-index-b` listed 268 documents with the
-  service token: 45 of the current generation, 223 stale, 0 foreign keys. `ll-sp-index` (ACL-filtered): search count 0 for the service token,
-  `documentCount` statistic 268 (so about 223 stale; the statistic lags, the stored documents themselves cannot be listed without an elevated
-  read by an admin user).
+- PROBE (probes/index_cleanup_probe.py), before the cleanup: `ll-sp-index-b` listed, with the service token, the 45 documents of the current
+  generation plus stale documents of earlier generations and no foreign keys. `ll-sp-index` (ACL-filtered): search count 0 for the service token,
+  while its `documentCount` statistic included the stale documents (the statistic lags, and the stored documents themselves cannot be listed
+  without an elevated read by an admin user).
 - Delete by key works while permission filtering is ON: `POST /indexes/{index}/docs/index` with `@search.action: delete` and the key is accepted
   by both indexes (HTTP 200, status true per key, driver app with Search Index Data Contributor). One stale key: ll-sp-index-b 268 -> 267 within
   3 s (and gone from the listing); ll-sp-index `documentCount` 268 -> 267 within 15 s.
@@ -1743,8 +1731,8 @@ distributions. Times in seconds after the change was confirmed.
 | S1-entra | 2743 | 93 | 10 (0) |
 | S2 nested removal | 2954 | 207 | 16 (9) |
 | S4 move | no change | no change | no change |
-- NO Setup B LOCKOUT in any scenario (the first benchmark had them in every cell). Setup B had 0 read errors; Setup A and Setup 0 had 0 too. The 13
-  readable pairs were first served by Setup B within 10 s of the first read, like Setup 0 (the first benchmark: up to 98 s).
+- NO Setup B LOCKOUT in any scenario. Setup B had 0 read errors; Setup A and Setup 0 had 0 too. The 13
+  readable pairs were first served by Setup B within 10 s of the first read, like Setup 0.
 - Readiness: ready 76.6 s after the build started (first sync about 43 s, then two quiet polls per poller and the first verification); `prepare()` found
   it already ready (waited 0.007 s). The first sync was COMPLETE: the state at readiness had exactly the same numbers (26 membership edges, 15 directory
   users, 57 items / 45 files / 11 unique scopes / 15 read grants), no event was found after the first sync, and the verification found 0 drift.

@@ -64,6 +64,8 @@ select = ["E", "F", "W", "I", "UP", "B"]
 "tests/*replay*.py" = ["E501"]
 "tests/test_writeup.py" = ["E501"]
 "tests/test_summary_export.py" = ["E501"]
+"tests/test_publish_check.py" = ["E501"]
+"tests/test_build_public.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"

@@ -15,7 +15,7 @@ the setting name — the setting itself is what matters.
 
 ### A1. Microsoft 365 test tenant
 - [ ] Sign up for a **Microsoft 365 Business Basic** trial with a **new** tenant
-      (e.g. `leaklabdev.onmicrosoft.com`). Use a Payoneer/virtual USD card if your local card fails.
+      (e.g. `<tenant>.onmicrosoft.com`). Use a Payoneer/virtual USD card if your local card fails.
 - [ ] Optional: apply to the Microsoft 365 Developer Program too; if you happen to qualify for
       the E5 sandbox, use that tenant instead.
 - [ ] Admin center → Users → confirm your admin account has a license.

@@ -2,7 +2,7 @@
 
 Why: every teardown + generate makes a new tenant with new drive item ids, and neither indexer
 deletes the documents of the tenant that is gone. After a few generations an index holds several
-copies of every document (measured 2026-10-18: 268 documents for 45 live ones in ll-sp-index-b).
+copies of every document (measured 2026-10-18 in ll-sp-index-b: stale copies of old generations).
 They are never served, but they fill result windows and make "is this document indexed?" ambiguous.
 
 What is deleted: every document whose key does NOT belong to the CURRENT generation. A key encodes

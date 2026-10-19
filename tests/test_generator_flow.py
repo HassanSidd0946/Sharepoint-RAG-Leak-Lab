@@ -71,8 +71,8 @@ def test_generate_builds_the_tenant_and_verify_agrees_with_the_spec(
     assert report.checked["documents"] == 45  # 44 folder documents + the special file
     assert len(tenant.users) == 12 and len(tenant.groups) == 10
     # licensed users hold the license, unlicensed do not
-    assert tenant.users["ll-p-intern@leaklabdev.onmicrosoft.com"]["licenses"] == {"sku-1"}
-    assert not tenant.users["ll-p-hr@leaklabdev.onmicrosoft.com"]["licenses"]
+    assert tenant.users[f"ll-p-intern@{SPEC.naming.domain}"]["licenses"] == {"sku-1"}
+    assert not tenant.users[f"ll-p-hr@{SPEC.naming.domain}"]["licenses"]
 
 
 def test_everything_lives_under_the_prefixed_container(built: tuple[FakeTenant, Env]) -> None:
@@ -92,12 +92,12 @@ def test_permissions_match_the_spec_and_break_back_to_back(built: tuple[FakeTena
     }
     assert grants == {
         group_claim(env.group_id("grp-board")): {"Read"},
-        user_login("ll-p-ceo@leaklabdev.onmicrosoft.com"): {"Read"},
+        user_login(f"ll-p-ceo@{SPEC.naming.domain}"): {"Read"},
     }
     special = env.sp.assignments(env.file_item("General", "offer-letter-draft.txt"))
     assert {a.login for a in special} == {
-        user_login("ll-p-hr@leaklabdev.onmicrosoft.com"),
-        user_login("ll-p-ceo@leaklabdev.onmicrosoft.com"),
+        user_login(f"ll-p-hr@{SPEC.naming.domain}"),
+        user_login(f"ll-p-ceo@{SPEC.naming.domain}"),
     }
     # the site-root grant for all-staff is present; the admin was not granted anything
     root = {a.login for a in env.sp.assignments("/web")}
@@ -184,7 +184,7 @@ def test_verify_reports_missing_documents_unexpected_grants_and_memberships(
     problems = " | ".join(errors(report))
     assert "ll-hr-01.txt" in problems
     assert "unexpected grant" in problems
-    assert "group membership of ll-p-plateng@leaklabdev.onmicrosoft.com" in problems
+    assert f"group membership of ll-p-plateng@{SPEC.naming.domain}" in problems
 
 
 def test_verify_treats_a_nonempty_default_members_group_as_a_warning(
@@ -205,7 +205,7 @@ def test_teardown_removes_only_prefixed_objects(built: tuple[FakeTenant, Env]) -
     foreign_folder = tenant.graph.create_folder(
         "drive1", None, "General"
     )  # same name as a spec folder
-    tenant.graph.create_user("someone@leaklabdev.onmicrosoft.com", "S", "someone", "pw", "US")
+    tenant.graph.create_user("someone@contoso.onmicrosoft.com", "S", "someone", "pw", "US")
     tenant.graph.create_group("Team Site Members")
     owners_before = dict(tenant.web_grants)["LeakLab Owners"]
 
@@ -217,7 +217,7 @@ def test_teardown_removes_only_prefixed_objects(built: tuple[FakeTenant, Env]) -
 
     assert [i.name for i in tenant.items.values()] == ["General"]  # only the foreign folder remains
     assert tenant.items[foreign_folder["id"]].parent is None
-    assert set(tenant.users) == {"someone@leaklabdev.onmicrosoft.com"}
+    assert set(tenant.users) == {"someone@contoso.onmicrosoft.com"}
     assert set(tenant.groups) == {"Team Site Members"}
     assert tenant.web_grants["LeakLab Owners"] == owners_before  # the site's own groups untouched
     assert group_claim_in(tenant) == set()  # our root grant is gone
@@ -383,7 +383,7 @@ def test_generate_refuses_to_run_without_a_password_or_usage_location() -> None:
 
 
 def sp_login(tenant: FakeTenant, user_id: str) -> str:
-    return user_login(f"ll-{user_id}@leaklabdev.onmicrosoft.com")
+    return user_login(f"ll-{user_id}@{SPEC.naming.domain}")
 
 
 def test_the_sharepoint_group_is_created_filled_and_granted_on_its_folder(

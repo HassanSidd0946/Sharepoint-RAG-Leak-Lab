@@ -1,0 +1,3 @@
+# Strings that are published on purpose and must not be reported by publish-check (one per line).
+# The contact address of the write-up: the owner decided to keep it public (Prompt 27, decision 3).
+hassansiddiqui0946@gmail.com

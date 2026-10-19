@@ -50,7 +50,7 @@ def test_the_first_poll_builds_the_tree_the_scopes_and_the_grants(make_repo: Fac
     assert {g.kind for g in board} == {"entra_group", "user"} and {g.role for g in board} == {
         "Read"
     }
-    assert {g.ref for g in board if g.kind == "user"} == {"ll-p-ceo@leaklabdev.onmicrosoft.com"}
+    assert {g.ref for g in board if g.kind == "user"} == {f"ll-p-ceo@{SPEC.naming.domain}"}
 
 
 def test_a_document_belongs_to_its_nearest_unique_scope(make_repo: Factory) -> None:
@@ -352,7 +352,7 @@ def test_a_user_in_no_group_still_matches_a_direct_grant(make_repo: Factory) -> 
     assert w.repo.groups_of(w.uid("p-hr")) == set()  # in no group at all now
     assert allowed(w, "p-hr", special)  # the direct grant still works
     assert not allowed(w, "p-hr", CAN["HR"][0])  # and the group grant is gone
-    assert w.repo.upn_of(w.uid("p-hr")) == "ll-p-hr@leaklabdev.onmicrosoft.com"
+    assert w.repo.upn_of(w.uid("p-hr")) == f"ll-p-hr@{SPEC.naming.domain}"
 
 
 def test_a_directory_that_cannot_resolve_means_a_user_grant_denies(make_repo: Factory) -> None:

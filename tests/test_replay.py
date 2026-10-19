@@ -145,12 +145,12 @@ def test_a_journal_of_another_spec_is_refused(tmp_path: Path) -> None:
 
 def test_redaction_scanner_finds_each_kind_of_identifier() -> None:
     bad = {
-        "a": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "a": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # publish-check: fixture
         "b": "alice@contoso.com",
         "c": "x.sharepoint.com",
         "d": "t.onmicrosoft.com",
         "e": "https://example.org/x",
-        "f": ["01ABCDEFGHIJKLMNOPQRSTUVWXYZ012345"],
+        "f": ["01ABCDEFGHIJKLMNOPQRSTUVWXYZ012345"],  # publish-check: fixture
     }
     found = find_leaks(bad)
     assert len(found) >= 6

@@ -6,6 +6,7 @@ import pytest
 
 from leaklab.setup_b.state.model import Edge, ResyncRequired
 from leaklab.setup_b.state.repository import StateRepository
+from runner_fakes import SPEC
 from setup_b_world import World
 
 Factory = Callable[[], StateRepository]
@@ -32,7 +33,7 @@ def test_the_first_poll_loads_everything_and_computes_the_nested_closure(
     }
     assert groups_of(w, "p-intern") == {"grp-all-staff"}
     assert groups_of(w, "p-finlead") == {"grp-finance-leads", "grp-finance", "grp-all-staff"}
-    assert w.repo.upn_of(w.uid("p-plateng")) == "ll-p-plateng@leaklabdev.onmicrosoft.com"
+    assert w.repo.upn_of(w.uid("p-plateng")) == f"ll-p-plateng@{SPEC.naming.domain}"
 
 
 def test_removing_a_user_changes_the_closure_and_logs_one_event_with_both_times(

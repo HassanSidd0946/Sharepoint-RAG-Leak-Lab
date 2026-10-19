@@ -10,7 +10,7 @@ TEMPLATE RULES
 - Every number is a {{token}} filled by `leaklab.replay writeup` from report.json and the
   replay bundles. Never type a number into this file. The fill step fails on any unknown or
   missing token.
-- Durations: use the |dur filter (e.g. 2565 -> "42.8 min", 10 -> "10 s").
+- Durations: use the |dur filter (e.g. 2700 -> "45 min", 10 -> "10 s").
 - Re-run the fill step after every new benchmark export.
 -->
 
